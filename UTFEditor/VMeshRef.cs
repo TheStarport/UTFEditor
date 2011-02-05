@@ -10,12 +10,12 @@ namespace UTFEditor
     public class VMeshRef
     {
         // Header - one per lod for each .3db section of cmp - 60 bytes
-        public UInt32 HeaderSize;           // 0x0000003C
-        public UInt32 VMeshLibId;              // crc of 3db name
+        public UInt32 HeaderSize;               // 0x0000003C
+        public UInt32 VMeshLibId;               // crc of 3db name
         public UInt16 StartVert;
         public UInt16 NumVert;
-        public UInt16 StartRefVert;
-        public UInt16 NumRefVert;
+        public UInt16 StartIndex;
+        public UInt16 NumIndex;
         public UInt16 StartMesh;
         public UInt16 NumMeshes;
         public float BoundingBoxMaxX;
@@ -32,24 +32,24 @@ namespace UTFEditor
         public VMeshRef(byte[] data)
         {
             int pos = 0;
-            HeaderSize = BitConverter.ToUInt32(data, pos); pos += 4;
-            VMeshLibId = BitConverter.ToUInt32(data, pos); pos += 4;
-            StartVert = BitConverter.ToUInt16(data, pos); pos += 2;
-            NumVert = BitConverter.ToUInt16(data, pos); pos += 2;
-            StartRefVert = BitConverter.ToUInt16(data, pos); pos += 2;
-            NumRefVert = BitConverter.ToUInt16(data, pos); pos += 2;
-            StartMesh = BitConverter.ToUInt16(data, pos); pos += 2;
-            NumMeshes = BitConverter.ToUInt16(data, pos); pos += 2;
-            BoundingBoxMaxX = BitConverter.ToSingle(data, pos); pos += 4;
-            BoundingBoxMinX = BitConverter.ToSingle(data, pos); pos += 4;
-            BoundingBoxMaxY = BitConverter.ToSingle(data, pos); pos += 4;
-            BoundingBoxMinY = BitConverter.ToSingle(data, pos); pos += 4;
-            BoundingBoxMaxZ = BitConverter.ToSingle(data, pos); pos += 4;
-            BoundingBoxMinZ = BitConverter.ToSingle(data, pos); pos += 4;
-            CenterX = BitConverter.ToSingle(data, pos); pos += 4;
-            CenterY = BitConverter.ToSingle(data, pos); pos += 4;
-            CenterZ = BitConverter.ToSingle(data, pos); pos += 4;
-            Radius = BitConverter.ToSingle(data, pos); pos += 4;
+            HeaderSize = Utilities.GetDWord(data, ref pos);
+            VMeshLibId = Utilities.GetDWord(data, ref pos);
+            StartVert = Utilities.GetWord(data, ref pos);
+            NumVert = Utilities.GetWord(data, ref pos);
+            StartIndex = Utilities.GetWord(data, ref pos);
+            NumIndex = Utilities.GetWord(data, ref pos);
+            StartMesh = Utilities.GetWord(data, ref pos);
+            NumMeshes = Utilities.GetWord(data, ref pos);
+            BoundingBoxMaxX = Utilities.GetFloat(data, ref pos);
+            BoundingBoxMinX = Utilities.GetFloat(data, ref pos);
+            BoundingBoxMaxY = Utilities.GetFloat(data, ref pos);
+            BoundingBoxMinY = Utilities.GetFloat(data, ref pos);
+            BoundingBoxMaxZ = Utilities.GetFloat(data, ref pos);
+            BoundingBoxMinZ = Utilities.GetFloat(data, ref pos);
+            CenterX = Utilities.GetFloat(data, ref pos);
+            CenterY = Utilities.GetFloat(data, ref pos);
+            CenterZ = Utilities.GetFloat(data, ref pos);
+            Radius = Utilities.GetFloat(data, ref pos);
         }
 
         public byte[] GetBytes()
@@ -59,8 +59,8 @@ namespace UTFEditor
             data.AddRange(BitConverter.GetBytes(VMeshLibId));
             data.AddRange(BitConverter.GetBytes(StartVert));
             data.AddRange(BitConverter.GetBytes(NumVert));
-            data.AddRange(BitConverter.GetBytes(StartRefVert));
-            data.AddRange(BitConverter.GetBytes(NumRefVert));
+            data.AddRange(BitConverter.GetBytes(StartIndex));
+            data.AddRange(BitConverter.GetBytes(NumIndex));
             data.AddRange(BitConverter.GetBytes(StartMesh));
             data.AddRange(BitConverter.GetBytes(NumMeshes));
             data.AddRange(BitConverter.GetBytes(BoundingBoxMaxX));

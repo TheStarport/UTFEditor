@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
@@ -30,26 +26,23 @@ namespace UTFEditor
                 byte[] dataHeader = nodeHeader.Tag as byte[];
 
                 int pos = 0;
-                textBoxFrames.Text = BitConverter.ToInt32(dataHeader, pos).ToString(); pos += 4;
-                textBoxFrameUnknown1.Text = BitConverter.ToSingle(dataHeader, pos).ToString(); pos += 4;
-                textBoxFrameUnknown2.Text = BitConverter.ToInt32(dataHeader, pos).ToString(); pos += 4;
-
-                textBoxGenTime.Text = "5.0";
-                textBoxGenDistance.Text = "100.0";
+                textBoxFrames.Text = Utilities.GetInt(dataHeader, ref pos).ToString();
+                floatBoxInterval.Value = Utilities.GetFloat(dataHeader, ref pos);
+                textBoxType.Text = Utilities.GetInt(dataHeader, ref pos).ToString();
 
                 nodeFrames = node.Nodes.Find("Frames", true)[0];
                 byte[] dataFrames = nodeFrames.Tag as byte[];
                 StringBuilder sb = new StringBuilder();
-                for (int i = 0; i < dataFrames.Length; i += 4)
+                for (int i = 0; i < dataFrames.Length; )
                 {
-                    sb.AppendLine(BitConverter.ToSingle(dataFrames, i).ToString());
+                    sb.AppendLine(Utilities.GetFloat(dataFrames, ref i).ToString());
                 }
                 textBox1.Text = sb.ToString();
-                textBox1.Select(0, 0);
+                //textBox1.Select(0, 0);
             }
             catch
             {
-                MessageBox.Show(this, "Error 'Unable to parse Frames and Header nodes", "Error");
+                MessageBox.Show(this, "Unable to parse Frames and Header nodes", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 Close();
             }
         }
@@ -59,31 +52,32 @@ namespace UTFEditor
             try
             {
                 int frames = Int32.Parse(textBoxFrames.Text);
-                float unknown1 = Single.Parse(textBoxFrameUnknown1.Text);
-                int unknown2 = Int32.Parse(textBoxFrameUnknown2.Text);
+                float interval = floatBoxInterval.Value;
+                int type = Int32.Parse(textBoxType.Text);
 
-                List<byte> dataHeader = new List<byte>();
+                List<byte> dataHeader = new List<byte>(12);
                 dataHeader.AddRange(BitConverter.GetBytes(frames));
-                dataHeader.AddRange(BitConverter.GetBytes(unknown1));
-                dataHeader.AddRange(BitConverter.GetBytes(unknown2));
+                dataHeader.AddRange(BitConverter.GetBytes(interval));
+                dataHeader.AddRange(BitConverter.GetBytes(type));
                 nodeHeader.Tag = dataHeader.ToArray();
 
                 List<byte> dataBlock = new List<byte>();
-                foreach (string value in textBox1.Text.Split('\r'))
+                foreach (string value in textBox1.Lines)
                 {
                     if (value.Trim().Length > 0)
-                        dataBlock.AddRange(BitConverter.GetBytes(Single.Parse(value.Trim())));
+                        dataBlock.AddRange(BitConverter.GetBytes(Single.Parse(value)));
                 }
                 nodeFrames.Tag = dataBlock.ToArray();
 
-                if (frames != (dataBlock.Count / 8))
-                    throw new Exception("Number of frames in channel data does not match channel header");
+                if (frames * 8 != dataBlock.Count)
+                    throw new Exception("Number of frames in channel data does not match channel header.");
 
                 Close();
+                (node.TreeView.FindForm() as UTFForm).Modified(node);
             }
             catch (Exception ex)
             {
-                MessageBox.Show(this, "Error '" + ex.Message+"'", "Error");
+                MessageBox.Show(this, ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -94,21 +88,27 @@ namespace UTFEditor
 
         private void buttonGenData_Click(object sender, EventArgs e)
         {
-            float frames = Single.Parse(textBoxFrames.Text);
-            float time = Single.Parse(textBoxGenTime.Text);
-            float distance = Single.Parse(textBoxGenDistance.Text);
+            int frames;
+            if (!Int32.TryParse(textBoxFrames.Text, out frames))
+            {
+                MessageBox.Show(this, "Frames is not a valid number.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            float time = floatBoxGenTime.Value / frames;
+            float distance = floatBoxGenDistance.Value / frames;
 
             textBox1.Clear();
             StringBuilder sb = new StringBuilder();
-            for (float i = 1; i <= frames; i++)
+            for (int i = 1; i <= frames; i++)
             {
-                float curTime = (time / (frames)) * i;
-                float curDist = (distance / (frames)) * i;
-                sb.AppendFormat("{0:0.000000}\r\n", curTime);
-                sb.AppendFormat("{0:0.000000}\r\n", curDist);
+                float curTime = time * i;
+                float curDist = distance * i;
+                sb.AppendFormat("{0:g}\r\n", curTime);
+                sb.AppendFormat("{0:g}\r\n", curDist);
             }
             textBox1.Text = sb.ToString();
-            textBox1.Select(0, 0);
+            //textBox1.Select(0, 0);
         }
     }
 }

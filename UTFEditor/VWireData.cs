@@ -29,12 +29,12 @@ namespace UTFEditor
             int pos = 0;
 
             // Read the data header.
-            HeaderSize = BitConverter.ToUInt32(data, pos); pos += 4;
-            VMeshLibId = BitConverter.ToUInt32(data, pos); pos += 4;
-            VertexOffset = BitConverter.ToUInt16(data, pos); pos += 2;
-            NoVertices = BitConverter.ToUInt16(data, pos); pos += 2;
-            NoRefVertices = BitConverter.ToUInt16(data, pos); pos += 2;
-            MaxVertNoPlusOne = BitConverter.ToUInt16(data, pos); pos += 2;
+            HeaderSize = Utilities.GetDWord(data, ref pos);
+            VMeshLibId = Utilities.GetDWord(data, ref pos);
+            VertexOffset = Utilities.GetWord(data, ref pos);
+            NoVertices = Utilities.GetWord(data, ref pos);
+            NoRefVertices = Utilities.GetWord(data, ref pos);
+            MaxVertNoPlusOne = Utilities.GetWord(data, ref pos);
 
             pos = (int)HeaderSize;
 
@@ -43,8 +43,8 @@ namespace UTFEditor
             for (int count = 0; count < no_lines; count++)
             {
                 Line item = new Line();
-                item.Point1 = BitConverter.ToUInt16(data, pos); pos += 2;
-                item.Point2 = BitConverter.ToUInt16(data, pos); pos += 2;
+                item.Point1 = Utilities.GetWord(data, ref pos);
+                item.Point2 = Utilities.GetWord(data, ref pos);
                 Lines.Add(item);
             }
         }

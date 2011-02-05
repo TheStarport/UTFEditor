@@ -20,7 +20,6 @@ namespace UTFEditor
             public int NumRefVertices;
             public int Padding;             // 0x00CC
 
-            public int BaseVertex;
             public int TriangleStart;
         };
 
@@ -106,16 +105,17 @@ namespace UTFEditor
             int pos = 0;
 
             // Read the data header.
-            MeshType = BitConverter.ToUInt32(data, pos); pos += 4;
-            SurfaceType = BitConverter.ToUInt32(data, pos); pos += 4;
-            NumMeshes = BitConverter.ToUInt16(data, pos); pos += 2;
-            NumRefVertices = BitConverter.ToUInt16(data, pos); pos += 2;
-            FlexibleVertexFormat = BitConverter.ToUInt16(data, pos); pos += 2;
-            NumVertices = BitConverter.ToUInt16(data, pos); pos += 2;
+            MeshType = Utilities.GetDWord(data, ref pos);
+            SurfaceType = Utilities.GetDWord(data, ref pos);
+            NumMeshes = Utilities.GetWord(data, ref pos);
+            NumRefVertices = Utilities.GetWord(data, ref pos);
+            FlexibleVertexFormat = Utilities.GetWord(data, ref pos);
+            NumVertices = Utilities.GetWord(data, ref pos);
 
             // The FVF defines what fields are included for each vertex.
             switch (FlexibleVertexFormat)
             {
+                case 0x02:
                 case 0x12:
                 case 0x102:
                 case 0x112:
@@ -130,21 +130,17 @@ namespace UTFEditor
 
             // Read the mesh headers.
             int triangleStartOffset = 0;
-            int vertexBaseOffset = 0;
             for (int count = 0; count < NumMeshes; count++)
             {
                 TMeshHeader item = new TMeshHeader();
-                item.MaterialId = BitConverter.ToUInt32(data, pos); pos += 4;
-                item.StartVertex = (int)BitConverter.ToUInt16(data, pos); pos += 2;
-                item.EndVertex = (int)BitConverter.ToUInt16(data, pos); pos += 2;
-                item.NumRefVertices = (int)BitConverter.ToUInt16(data, pos); pos += 2;
-                item.Padding = (int)BitConverter.ToUInt16(data, pos); pos += 2;
+                item.MaterialId = Utilities.GetDWord(data, ref pos);
+                item.StartVertex = Utilities.GetWord(data, ref pos);
+                item.EndVertex = Utilities.GetWord(data, ref pos);
+                item.NumRefVertices = Utilities.GetWord(data, ref pos);
+                item.Padding = Utilities.GetWord(data, ref pos);
                
                 item.TriangleStart = triangleStartOffset;
                 triangleStartOffset += item.NumRefVertices;
-
-                item.BaseVertex = vertexBaseOffset;
-                vertexBaseOffset += item.EndVertex - item.StartVertex + 1;
 
                 Meshes.Add(item);
             }
@@ -154,9 +150,9 @@ namespace UTFEditor
             for (int count = 0; count < num_triangles; count++)
             {
                 TTriangle item = new TTriangle();
-                item.Vertex1 = BitConverter.ToUInt16(data, pos); pos += 2;
-                item.Vertex2 = BitConverter.ToUInt16(data, pos); pos += 2;
-                item.Vertex3 = BitConverter.ToUInt16(data, pos); pos += 2;
+                item.Vertex1 = Utilities.GetWord(data, ref pos);
+                item.Vertex2 = Utilities.GetWord(data, ref pos);
+                item.Vertex3 = Utilities.GetWord(data, ref pos);
                 Triangles.Add(item);
             }
 
@@ -167,37 +163,37 @@ namespace UTFEditor
                 {                 
                     TVertex item = new TVertex();
                     item.FVF = FlexibleVertexFormat;
-                    item.X = BitConverter.ToSingle(data, pos); pos += 4;
-                    item.Y = BitConverter.ToSingle(data, pos); pos += 4;
-                    item.Z = BitConverter.ToSingle(data, pos); pos += 4;
+                    item.X = Utilities.GetFloat(data, ref pos);
+                    item.Y = Utilities.GetFloat(data, ref pos);
+                    item.Z = Utilities.GetFloat(data, ref pos);
                     if ((FlexibleVertexFormat & D3DFVF_NORMAL) == D3DFVF_NORMAL)
                     {
-                        item.NormalX = BitConverter.ToSingle(data, pos); pos += 4;
-                        item.NormalY = BitConverter.ToSingle(data, pos); pos += 4;
-                        item.NormalZ = BitConverter.ToSingle(data, pos); pos += 4;
+                        item.NormalX = Utilities.GetFloat(data, ref pos);
+                        item.NormalY = Utilities.GetFloat(data, ref pos);
+                        item.NormalZ = Utilities.GetFloat(data, ref pos);
                     }
                     if ((FlexibleVertexFormat & D3DFVF_DIFFUSE) == D3DFVF_DIFFUSE)
                     {
-                        item.Diffuse = BitConverter.ToUInt32(data, pos); pos += 4;
+                        item.Diffuse = Utilities.GetDWord(data, ref pos);
                     }
                     if ((FlexibleVertexFormat & D3DFVF_TEX1) == D3DFVF_TEX1)
                     {
-                        item.S = BitConverter.ToSingle(data, pos); pos += 4;
-                        item.T = BitConverter.ToSingle(data, pos); pos += 4;
+                        item.S = Utilities.GetFloat(data, ref pos);
+                        item.T = Utilities.GetFloat(data, ref pos);
                     }
                     if ((FlexibleVertexFormat & D3DFVF_TEX2) == D3DFVF_TEX2)
                     {
-                        item.S = BitConverter.ToSingle(data, pos); pos += 4;
-                        item.T = BitConverter.ToSingle(data, pos); pos += 4;
-                        item.U = BitConverter.ToSingle(data, pos); pos += 4;
-                        item.V = BitConverter.ToSingle(data, pos); pos += 4;
+                        item.S = Utilities.GetFloat(data, ref pos);
+                        item.T = Utilities.GetFloat(data, ref pos);
+                        item.U = Utilities.GetFloat(data, ref pos);
+                        item.V = Utilities.GetFloat(data, ref pos);
                     }
                     Vertices.Add(item);
                 }
             }
             catch
             {
-                MessageBox.Show("Header has more vertices then data", "Error");
+                MessageBox.Show("Header has more vertices than data", "Error");
             }
         }
     }

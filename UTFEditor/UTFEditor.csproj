@@ -12,7 +12,7 @@
     <AssemblyName>UTFEditor</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <ApplicationIcon>ico103.ico</ApplicationIcon>
+    <ApplicationIcon>flutf.ico</ApplicationIcon>
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
@@ -46,6 +46,22 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x86\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <OutputPath>bin\x86\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.DirectX, Version=1.0.2902.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35">
       <SpecificVersion>False</SpecificVersion>
@@ -60,14 +76,7 @@
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
     </Reference>
-    <Reference Include="System.Xml.Linq">
-      <RequiredTargetFramework>3.5</RequiredTargetFramework>
-    </Reference>
-    <Reference Include="System.Data.DataSetExtensions">
-      <RequiredTargetFramework>3.5</RequiredTargetFramework>
-    </Reference>
     <Reference Include="System.Data" />
-    <Reference Include="System.Deployment" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
@@ -80,13 +89,19 @@
       <DependentUpon>AboutForm.cs</DependentUpon>
     </Compile>
     <Compile Include="CmpFixData.cs" />
-    <Compile Include="CmpPrisData.cs" />
     <Compile Include="CmpRevData.cs" />
-    <Compile Include="EditHardpointsData.cs">
+    <Compile Include="CmpSphereData.cs" />
+    <Compile Include="EditColorForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="EditHardpointsData.Designer.cs">
-      <DependentUpon>EditHardpointsData.cs</DependentUpon>
+    <Compile Include="EditColorForm.Designer.cs">
+      <DependentUpon>EditColorForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="EditHardpointData.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="EditHardpointData.Designer.cs">
+      <DependentUpon>EditHardpointData.cs</DependentUpon>
     </Compile>
     <Compile Include="EditVMeshRef.cs">
       <SubType>Form</SubType>
@@ -100,11 +115,11 @@
     <Compile Include="EditCmpRevData.Designer.cs">
       <DependentUpon>EditCmpRevData.cs</DependentUpon>
     </Compile>
-    <Compile Include="EditCmpPrisData.cs">
+    <Compile Include="EditCmpSphereData.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="EditCmpPrisData.Designer.cs">
-      <DependentUpon>EditCmpPrisData.cs</DependentUpon>
+    <Compile Include="EditCmpSphereData.Designer.cs">
+      <DependentUpon>EditCmpSphereData.cs</DependentUpon>
     </Compile>
     <Compile Include="EditCmpFixData.cs">
       <SubType>Form</SubType>
@@ -136,6 +151,10 @@
     <Compile Include="EditAnimChannel.Designer.cs">
       <DependentUpon>EditAnimChannel.cs</DependentUpon>
     </Compile>
+    <Compile Include="FloatBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="HardpointData.cs" />
     <Compile Include="ModelViewForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -167,8 +186,11 @@
     <EmbeddedResource Include="AboutForm.resx">
       <DependentUpon>AboutForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="EditHardpointsData.resx">
-      <DependentUpon>EditHardpointsData.cs</DependentUpon>
+    <EmbeddedResource Include="EditColorForm.resx">
+      <DependentUpon>EditColorForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EditHardpointData.resx">
+      <DependentUpon>EditHardpointData.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="EditVMeshRef.resx">
       <DependentUpon>EditVMeshRef.cs</DependentUpon>
@@ -176,8 +198,8 @@
     <EmbeddedResource Include="EditCmpRevData.resx">
       <DependentUpon>EditCmpRevData.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="EditCmpPrisData.resx">
-      <DependentUpon>EditCmpPrisData.cs</DependentUpon>
+    <EmbeddedResource Include="EditCmpSphereData.resx">
+      <DependentUpon>EditCmpSphereData.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="EditCmpFixData.resx">
       <DependentUpon>EditCmpFixData.cs</DependentUpon>
@@ -211,6 +233,12 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
+    <EmbeddedResource Include="ViewTextForm.resx">
+      <DependentUpon>ViewTextForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ViewTextureForm.resx">
+      <DependentUpon>ViewTextureForm.cs</DependentUpon>
+    </EmbeddedResource>
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
@@ -228,13 +256,27 @@
     </Compile>
     <Compile Include="UTFFormObserver.cs" />
     <Compile Include="Utilities.cs" />
+    <Compile Include="ViewTextForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ViewTextForm.Designer.cs">
+      <DependentUpon>ViewTextForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ViewTextureForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ViewTextureForm.Designer.cs">
+      <DependentUpon>ViewTextureForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="VMeshData.cs" />
     <Compile Include="VMeshRef.cs" />
     <Compile Include="VWireData.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="ico103.ico" />
+    <None Include="flutf.ico" />
     <Content Include="Readme.txt" />
+    <None Include="Resources\ModelViewHelp.txt" />
+    <None Include="Resources\backgroundpattern.bmp" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Client.3.5">

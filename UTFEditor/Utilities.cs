@@ -1,39 +1,59 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Drawing;
+using System.Globalization;
 using System.Text;
+using System.Windows.Forms;
 
 namespace UTFEditor
 {
     class Utilities
     {
-        public static string GetString(System.Windows.Forms.TreeNode node, int startIndex)
+        public static string GetString(TreeNode node)
         {
             byte[] data = node.Tag as byte[];
-            if (data != null)
-                return GetString(data, startIndex);
-            return "";
+            if (data == null)
+                return "";
+            int pos = 0;
+            return GetString(data, ref pos, data.Length);
         }
 
-        public static string GetString(System.Windows.Forms.TreeNode node, int startIndex, int maxLength)
+        public static string GetString(byte[] data, ref int startIndex, int maxLength)
         {
-            byte[] data = node.Tag as byte[];
-            if (data != null)
-                return GetString(data, startIndex, maxLength);
-            return "";
+            int len = Array.IndexOf(data, (byte)0, startIndex, maxLength) - startIndex;
+            if (len < 0)
+                len = maxLength;
+            startIndex += maxLength;
+            return Encoding.ASCII.GetString(data, startIndex - maxLength, len);
         }
 
-        public static string GetString(byte[] data, int startIndex)
+        public static float GetFloat(byte[] data, ref int pos)
         {
-            return GetString(data, startIndex, data.Length);
+            pos += 4;
+            return BitConverter.ToSingle(data, pos - 4);
         }
 
-        public static string GetString(byte[] data, int startIndex, int maxLength)
+        public static Int16 GetShort(byte[] data, ref int pos)
         {
-            int index = data.ToList().FindIndex(startIndex, maxLength, delegate(byte value) { return value == 0; }) - startIndex;
-            if (index < 0 || index > maxLength - 1)
-                index = maxLength;
-            return System.Text.Encoding.ASCII.GetString(data, startIndex, index).Trim();
+            pos += 2;
+            return BitConverter.ToInt16(data, pos - 2);
+        }
+
+        public static UInt16 GetWord(byte[] data, ref int pos)
+        {
+            pos += 2;
+            return BitConverter.ToUInt16(data, pos - 2);
+        }
+
+        public static Int32 GetInt(byte[] data, ref int pos)
+        {
+            pos += 4;
+            return BitConverter.ToInt32(data, pos - 4);
+        }
+
+        public static UInt32 GetDWord(byte[] data, ref int pos)
+        {
+            pos += 4;
+            return BitConverter.ToUInt32(data, pos - 4);
         }
 
         /// <summary>
@@ -64,11 +84,6 @@ namespace UTFEditor
                         x = ((x & 1) == 1) ? (x >> 1) ^ (FLHASH_POLYNOMIAL << (LOGICAL_BITS - 16)) : x >> 1;
                     createIDTable[i] = x;
                 }
-                if (2926433351 != CreateID("st01_to_st03_hole")) throw new Exception("Create ID hash algoritm is broken!");
-                if (2460445762 != CreateID("st02_to_st01_hole")) throw new Exception("Create ID hash algoritm is broken!");
-                if (2263303234 != CreateID("st03_to_st01_hole")) throw new Exception("Create ID hash algoritm is broken!");
-                if (2284213505 != CreateID("li05_to_li01")) throw new Exception("Create ID hash algoritm is broken!");
-                if (2293678337 != CreateID("li01_to_li05")) throw new Exception("Create ID hash algoritm is broken!");
             }
 
             byte[] tNickName = Encoding.ASCII.GetBytes(nickName.ToLowerInvariant());
@@ -85,16 +100,16 @@ namespace UTFEditor
             return hash;
         }
 
-	    // CRC32 table for Freelancer
+        // CRC32 table for Freelancer
         static UInt32[] flcrc32tbl =
-	    {
-            0x0, 0x9073096, 0x120E612C, 0x1B0951BA, 
+        {
+            0x00000000, 0x09073096, 0x120E612C, 0x1B0951BA, 
             0xFF6DC419, 0xF66AF48F, 0xED63A535, 0xE46495A3, 
             0xFEDB8832, 0xF7DCB8A4, 0xECD5E91E, 0xE5D2D988, 
-            0x01B64C2B, 0x8B17CBD, 0x13B82D07, 0x1ABF1D91, 
+            0x01B64C2B, 0x08B17CBD, 0x13B82D07, 0x1ABF1D91, 
             0xFDB71064, 0xF4B020F2, 0xEFB97148, 0xE6BE41DE, 
-            0x02DAD47D, 0xBDDE4EB, 0x10D4B551, 0x19D385C7, 
-            0x036C9856, 0xA6BA8C0, 0x1162F97A, 0x1865C9EC, 
+            0x02DAD47D, 0x0BDDE4EB, 0x10D4B551, 0x19D385C7, 
+            0x036C9856, 0x0A6BA8C0, 0x1162F97A, 0x1865C9EC, 
             0xFC015C4F, 0xF5066CD9, 0xEE0F3D63, 0xE7080DF5, 
             0xFB6E20C8, 0xF269105E, 0xE96041E4, 0xE0677172, 
             0x0403E4D1, 0x0D04D447, 0x160D85FD, 0x1F0AB56B, 
@@ -121,50 +136,49 @@ namespace UTFEditor
             0x0EDEF90E, 0x07D9C998, 0x1CD09822, 0x15D7A8B4, 
             0xF1B33D17, 0xF8B40D81, 0xE3BD5C3B, 0xEABA6CAD, 
             0xEDB88320, 0xE4BFB3B6, 0xFFB6E20C, 0xF6B1D29A, 
-            0x12D54739, 0x1BD277AF, 0xDB2615, 0x9DC1683, 
-            0x13630B12, 0x1A643B84, 0x16D6A3E, 0x86A5AA8, 
+            0x12D54739, 0x1BD277AF, 0x00DB2615, 0x09DC1683, 
+            0x13630B12, 0x1A643B84, 0x016D6A3E, 0x086A5AA8,
             0xEC0ECF0B, 0xE509FF9D, 0xFE00AE27, 0xF7079EB1, 
-            0x100F9344, 0x1908A3D2, 0x201F268, 0xB06C2FE, 
+            0x100F9344, 0x1908A3D2, 0x0201F268, 0x0B06C2FE, 
             0xEF62575D, 0xE66567CB, 0xFD6C3671, 0xF46B06E7, 
             0xEED41B76, 0xE7D32BE0, 0xFCDA7A5A, 0xF5DD4ACC, 
-            0x11B9DF6F, 0x18BEEFF9, 0x3B7BE43, 0xAB08ED5, 
-            0x16D6A3E8, 0x1FD1937E, 0x4D8C2C4, 0xDDFF252, 
+            0x11B9DF6F, 0x18BEEFF9, 0x03B7BE43, 0x0AB08ED5, 
+            0x16D6A3E8, 0x1FD1937E, 0x04D8C2C4, 0x0DDFF252, 
             0xE9BB67F1, 0xE0BC5767, 0xFBB506DD, 0xF2B2364B, 
             0xE80D2BDA, 0xE10A1B4C, 0xFA034AF6, 0xF3047A60, 
-            0x1760EFC3, 0x1E67DF55, 0x56E8EEF, 0xC69BE79, 
+            0x1760EFC3, 0x1E67DF55, 0x056E8EEF, 0x0C69BE79, 
             0xEB61B38C, 0xE266831A, 0xF96FD2A0, 0xF068E236, 
-            0x140C7795, 0x1D0B4703, 0x60216B9, 0xF05262F, 
-            0x15BA3BBE, 0x1CBD0B28, 0x7B45A92, 0xEB36A04, 
+            0x140C7795, 0x1D0B4703, 0x060216B9, 0x0F05262F, 
+            0x15BA3BBE, 0x1CBD0B28, 0x07B45A92, 0x0EB36A04, 
             0xEAD7FFA7, 0xE3D0CF31, 0xF8D99E8B, 0xF1DEAE1D, 
-            0x1B64C2B0, 0x1263F226, 0x96AA39C, 0x6D930A, 
+            0x1B64C2B0, 0x1263F226, 0x096AA39C, 0x006D930A, 
             0xE40906A9, 0xED0E363F, 0xF6076785, 0xFF005713, 
             0xE5BF4A82, 0xECB87A14, 0xF7B12BAE, 0xFEB61B38, 
-            0x1AD28E9B, 0x13D5BE0D, 0x8DCEFB7, 0x1DBDF21, 
+            0x1AD28E9B, 0x13D5BE0D, 0x08DCEFB7, 0x01DBDF21, 
             0xE6D3D2D4, 0xEFD4E242, 0xF4DDB3F8, 0xFDDA836E, 
-            0x19BE16CD, 0x10B9265B, 0xBB077E1, 0x2B74777, 
-            0x18085AE6, 0x110F6A70, 0xA063BCA, 0x3010B5C, 
+            0x19BE16CD, 0x10B9265B, 0x0BB077E1, 0x02B74777, 
+            0x18085AE6, 0x110F6A70, 0x0A063BCA, 0x03010B5C, 
             0xE7659EFF, 0xEE62AE69, 0xF56BFFD3, 0xFC6CCF45, 
             0xE00AE278, 0xE90DD2EE, 0xF2048354, 0xFB03B3C2, 
-            0x1F672661, 0x166016F7, 0xD69474D, 0x46E77DB, 
-            0x1ED16A4A, 0x17D65ADC, 0xCDF0B66, 0x5D83BF0, 
+            0x1F672661, 0x166016F7, 0x0D69474D, 0x046E77DB, 
+            0x1ED16A4A, 0x17D65ADC, 0x0CDF0B66, 0x05D83BF0, 
             0xE1BCAE53, 0xE8BB9EC5, 0xF3B2CF7F, 0xFAB5FFE9, 
-            0x1DBDF21C, 0x14BAC28A, 0xFB39330, 0x6B4A3A6, 
+            0x1DBDF21C, 0x14BAC28A, 0x0FB39330, 0x06B4A3A6, 
             0xE2D03605, 0xEBD70693, 0xF0DE5729, 0xF9D967BF, 
             0xE3667A2E, 0xEA614AB8, 0xF1681B02, 0xF86F2B94, 
-            0x1C0BBE37, 0x150C8EA1, 0xE05DF1B, 0x702EF8D, 
+            0x1C0BBE37, 0x150C8EA1, 0x0E05DF1B, 0x0702EF8D, 
         };
 
-	    /// Get a CRC code for a model name. This type of CRC is used in model files.
+        /// Get a CRC code for a model name. This type of CRC is used in model files.
         /// Many thanks to Anton's CRCTool source for the algorithm and the CRC table!
         public static uint FLModelCRC(string str)
         {
-            byte[] data = ASCIIEncoding.ASCII.GetBytes(str.ToLowerInvariant());
+            byte[] data = Encoding.ASCII.GetBytes(str.ToLowerInvariant());
 
             uint crc = 0xFFFFFFFF;
             for (uint i = 0; i < str.Length; i++)
-                crc = ((crc >> 8) & 0x00FFFFFF) ^ flcrc32tbl[(crc ^ (data[i])) & 0xFF];
-            crc = crc ^ 0xFFFFFFFF;
-            return crc;
+                crc = (crc >> 8) ^ flcrc32tbl[(byte)crc ^ data[i]];
+            return ~crc;
         }
 
         /// <summary>
@@ -174,7 +188,7 @@ namespace UTFEditor
         /// <returns></returns>
         public static double DegreeToRadian(double angle)
         {
-            return Math.PI * angle / 180.0;
+            return angle * Math.PI / 180;
         }
 
         /// <summary>
@@ -184,7 +198,159 @@ namespace UTFEditor
         /// <returns></returns>
         public static double RadianToDegree(double angle)
         {
-            return angle * (180.0 / Math.PI);
+            return angle * 180 / Math.PI;
+        }
+
+        /// <summary>
+        /// Convert orientation (matrix) to rotation (pitch/yaw/roll).
+        /// Same as what Freelancer does when saving a game.
+        /// </summary>
+        public static void OrientationToRotation(
+            float XX, float XY, float XZ,
+            float YX, float YY, float YZ,
+            float ZX, float ZY, float ZZ,
+            out float pitch, out float yaw, out float roll)
+        {
+            double p, y, r;
+            double h = Math.Sqrt(XX * XX + YX * YX);
+            if (h > 1 / 524288.0)
+            {
+                p = Math.Atan2( ZY, ZZ);
+                y = Math.Atan2(-ZX, h);
+                r = Math.Atan2( YX, XX);
+            }
+            else
+            {
+                p = Math.Atan2(-YZ, YY);
+                y = Math.Atan2(-ZX, h);
+                r = 0;
+            }
+            pitch = (float)RadianToDegree(p);
+            yaw   = (float)RadianToDegree(y);
+            roll  = (float)RadianToDegree(r);
+        }
+
+        // cos(±90°) and sin(±180°) are supposed to be zero, but they end up
+        // just being really small, as do some other calculations.  Let's
+        // explicitly treat exceedingly small numbers as zero.
+        public static float check(double value)
+        {
+            if (Math.Abs(value) < 1e-12)
+                return 0;
+            return (float)value;
+        }
+
+        /// <summary>
+        /// Translate rotation (pitch/yaw/roll) to orientation (matrix).
+        /// Same as EulerMatrix in common.dll.
+        /// </summary>
+        /// <param name="pitch"></param>
+        /// <param name="yaw"></param>
+        /// <param name="roll"></param>
+        public static void RotationToOrientation(float pitch, float yaw, float roll,
+            out float XX, out float XY, out float XZ,
+            out float YX, out float YY, out float YZ,
+            out float ZX, out float ZY, out float ZZ)
+        {
+            // Assuming the angles are in degrees.
+            double p = DegreeToRadian(pitch);
+            double y = DegreeToRadian(yaw);
+            double r = DegreeToRadian(roll);
+
+            double cp = Math.Cos(p);
+            double sp = Math.Sin(p);
+            double cy = Math.Cos(y);
+            double sy = Math.Sin(y);
+            double cr = Math.Cos(r);
+            double sr = Math.Sin(r);
+
+            XX = check(cy * cr);
+            XY = check(sp * sy * cr +  cp * -sr);
+            XZ = check(cp * sy * cr + -sp * -sr);
+            YX = check(cy * sr);
+            YY = check(sp * sy * sr +  cp * cr);
+            YZ = check(cp * sy * sr + -sp * cr);
+            ZX = check(-sy);
+            ZY = check(sp * cy);
+            ZZ = check(cp * cy);
+        }
+        
+        /// <summary>
+        /// Case-insensitive, multiple string comparison.
+        /// </summary>
+        public static bool StrIEq(string str, params string[] test)
+        {
+            return (StrIEqP(str, test) != 0);
+        }
+        
+        /// <summary>
+        /// Case-insensitive, multiple string comparison.
+        /// </summary>
+        public static int StrIEqP(string str, params string[] test)
+        {
+            for (int i = 0; i < test.Length; ++i)
+                if (str.Equals(test[i], StringComparison.OrdinalIgnoreCase))
+                    return i + 1;
+            return 0;
+        }
+
+        /// <summary>
+        /// Determine if a character would generate an invalid float value.
+        /// </summary>
+        /// <param name="val">Existing valid number</param>
+        /// <param name="ch">Character to add</param>
+        /// <param name="pos">Position of new character</param>
+        /// <returns></returns>
+        public static bool ValidFloatChar(string val, char ch, int pos)
+        {
+            int exponent = val.IndexOfAny(new char[]{ 'e', 'E' });
+
+            if (ch >= '0' && ch <= '9')
+            {
+                // Restrict exponent to two digits.
+                if (exponent != -1 && pos > exponent && exponent != val.Length - 1)
+                {
+                    ++exponent;
+                    if (val[exponent] == '+' || val[exponent] == '-')
+                        ++exponent;
+                    if (val.Length - exponent > 1)
+                        return false;
+                }
+                // Digits can go anywhere, except before a sign.
+                return (pos == val.Length || (val[pos] != '+' && val[pos] != '-'));
+            }
+            
+            if (ch == '+' || ch == '-')
+            {
+                // Sign can only occur once, at the start of the number,
+                // or after the exponent.
+                if (pos == 0 || pos == exponent + 1)
+                {
+                    return (pos == val.Length || (val[pos] != '+' && val[pos] != '-'));
+                }
+                return false;
+            }
+
+            int point = val.IndexOf(NumberFormatInfo.CurrentInfo.NumberDecimalSeparator);
+            
+            if (ch == 'e' || ch == 'E')
+            {
+                // Exponent can only occur once, after the point, after a digit.
+                return (exponent == -1 && pos > point &&
+                        pos != 0 && Char.IsDigit(val[pos - 1]));
+            }
+            
+            if (ch == NumberFormatInfo.CurrentInfo.NumberDecimalSeparator[0])
+            {
+                // Point can only occur once, and not in the exponent.
+                return (point == -1 && (exponent == -1 || pos <= exponent));
+            }
+
+            return (ch == '\b' ||   // Backspace
+                    ch == 26   ||   // Ctrl+Z - Undo
+                    ch ==  3   ||   // Ctrl+C - Copy
+                    ch == 22   ||   // Ctrl+V - Paste
+                    ch == 24);      // Ctrl+X - Cut
         }
     }
 }

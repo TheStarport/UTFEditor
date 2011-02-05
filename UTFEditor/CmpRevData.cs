@@ -10,8 +10,6 @@ namespace UTFEditor
         public class Part
         {
             public string ParentName;
-
-
             public string ChildName;
             public float OriginX;
             public float OriginY;
@@ -31,12 +29,12 @@ namespace UTFEditor
             public float AxisRotX;
             public float AxisRotY;
             public float AxisRotZ;
-            public float Unknown;
-            public float Angle;
+            public float Min;
+            public float Max;
         };
 
         /// <summary>
-        /// The list of parts in the fix data.
+        /// The list of parts in the rev data.
         /// </summary>
         public List<Part> Parts = new List<Part>();
 
@@ -51,55 +49,46 @@ namespace UTFEditor
             {
                 Part part = new Part();
 
-                int index = data.ToList().FindIndex(pos, 0x40, delegate(byte value) { return value == 0; }) - pos;
-                if (index < 0 || index > 0x3F)
-                    index = 0x3F;
-                part.ParentName = System.Text.Encoding.ASCII.GetString(data, pos, index).Trim();
-                pos += 0x40;
+                part.ParentName = Utilities.GetString(data, ref pos, 0x40);
+                part.ChildName  = Utilities.GetString(data, ref pos, 0x40);
 
-                index = data.ToList().FindIndex(pos, 0x40, delegate(byte value) { return value == 0; }) - pos;
-                if (index < 0 || index > 0x3F)
-                    index = 0x3F;
-                part.ChildName = System.Text.Encoding.ASCII.GetString(data, pos, index).Trim(); 
-                pos += 0x40;
-  
-                part.OriginX = BitConverter.ToSingle(data, pos); pos += 4;
-                part.OriginY = BitConverter.ToSingle(data, pos); pos += 4;
-                part.OriginZ = BitConverter.ToSingle(data, pos); pos += 4;
+                part.OriginX    = Utilities.GetFloat(data, ref pos);
+                part.OriginY    = Utilities.GetFloat(data, ref pos);
+                part.OriginZ    = Utilities.GetFloat(data, ref pos);
 
-                part.OffsetX = BitConverter.ToSingle(data, pos); pos += 4;
-                part.OffsetY = BitConverter.ToSingle(data, pos); pos += 4;
-                part.OffsetZ = BitConverter.ToSingle(data, pos); pos += 4;
+                part.OffsetX    = Utilities.GetFloat(data, ref pos);
+                part.OffsetY    = Utilities.GetFloat(data, ref pos);
+                part.OffsetZ    = Utilities.GetFloat(data, ref pos);
 
-                part.RotMatXX = BitConverter.ToSingle(data, pos); pos += 4;
-                part.RotMatXY = BitConverter.ToSingle(data, pos); pos += 4;
-                part.RotMatXZ = BitConverter.ToSingle(data, pos); pos += 4;
+                part.RotMatXX   = Utilities.GetFloat(data, ref pos);
+                part.RotMatXY   = Utilities.GetFloat(data, ref pos);
+                part.RotMatXZ   = Utilities.GetFloat(data, ref pos);
 
-                part.RotMatYX = BitConverter.ToSingle(data, pos); pos += 4;
-                part.RotMatYY = BitConverter.ToSingle(data, pos); pos += 4;
-                part.RotMatYZ = BitConverter.ToSingle(data, pos); pos += 4;
+                part.RotMatYX   = Utilities.GetFloat(data, ref pos);
+                part.RotMatYY   = Utilities.GetFloat(data, ref pos);
+                part.RotMatYZ   = Utilities.GetFloat(data, ref pos);
 
-                part.RotMatZX = BitConverter.ToSingle(data, pos); pos += 4;
-                part.RotMatZY = BitConverter.ToSingle(data, pos); pos += 4;
-                part.RotMatZZ = BitConverter.ToSingle(data, pos); pos += 4;
+                part.RotMatZX   = Utilities.GetFloat(data, ref pos);
+                part.RotMatZY   = Utilities.GetFloat(data, ref pos);
+                part.RotMatZZ   = Utilities.GetFloat(data, ref pos);
 
-                part.AxisRotX = BitConverter.ToSingle(data, pos); pos += 4;
-                part.AxisRotY = BitConverter.ToSingle(data, pos); pos += 4;
-                part.AxisRotZ = BitConverter.ToSingle(data, pos); pos += 4;
+                part.AxisRotX   = Utilities.GetFloat(data, ref pos);
+                part.AxisRotY   = Utilities.GetFloat(data, ref pos);
+                part.AxisRotZ   = Utilities.GetFloat(data, ref pos);
 
-                part.Unknown = BitConverter.ToSingle(data, pos); pos += 4;
-                part.Angle = BitConverter.ToSingle(data, pos); pos += 4;
+                part.Min        = Utilities.GetFloat(data, ref pos);
+                part.Max        = Utilities.GetFloat(data, ref pos);
 
                 Parts.Add(part);
             }
         }
 
         /// <summary>
-        /// Return a byte array containing the fix data.
+        /// Return a byte array containing the rev data.
         /// </summary>
         public byte[] GetBytes()
         {
-            List<byte> data = new List<byte>();
+            List<byte> data = new List<byte>(0xD0 * Parts.Count);
             foreach (Part part in Parts)
             {
                 if (part.ParentName.Length > 0x3F)
@@ -138,9 +127,8 @@ namespace UTFEditor
                 data.AddRange(BitConverter.GetBytes(part.AxisRotY));
                 data.AddRange(BitConverter.GetBytes(part.AxisRotZ));
 
-                data.AddRange(BitConverter.GetBytes(part.Unknown));
-                data.AddRange(BitConverter.GetBytes(part.Angle));
-
+                data.AddRange(BitConverter.GetBytes(part.Min));
+                data.AddRange(BitConverter.GetBytes(part.Max));
             }
 
             return data.ToArray();

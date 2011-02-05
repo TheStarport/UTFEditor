@@ -20,6 +20,7 @@ namespace UTFEditor
             this.parent = parent;
             this.node = node;
             InitializeComponent();
+            this.Text = parent.GetVMeshRefName(node);
         }
 
         private void EditVMeshRef_Load(object sender, EventArgs e)
@@ -28,34 +29,27 @@ namespace UTFEditor
             {
                 data = new VMeshRef(node.Tag as byte[]);
                 textBoxHdrSize.Text = String.Format("0x{0:X}", data.HeaderSize);
-                textBoxHdrSize.ReadOnly = true;
                 textBoxVMeshLibId.Text = String.Format("0x{0:X8}", data.VMeshLibId);
-                textBoxVMeshLibId.ReadOnly = true;
+                textBoxVMeshLibName.Text = parent.FindVMeshName(data.VMeshLibId, false);
                 textBoxStartMesh.Text = data.StartMesh.ToString();
-                textBoxStartMesh.ReadOnly = true;
                 textBoxNumMeshes.Text = data.NumMeshes.ToString();
-                textBoxNumMeshes.ReadOnly = true;
                 
                 textBoxStartVert.Text = data.StartVert.ToString();
-                textBoxStartVert.ReadOnly = true;
                 NumVert.Text = data.NumVert.ToString();
-                NumVert.ReadOnly = true;
 
-                textBoxStartRefVertices.Text = data.StartRefVert.ToString();
-                textBoxStartRefVertices.ReadOnly = true;
-                textBoxNumRefVertices.Text = data.NumRefVert.ToString();
-                textBoxNumRefVertices.ReadOnly = true;
+                textBoxStartIndex.Text = data.StartIndex.ToString();
+                textBoxNumIndices.Text = data.NumIndex.ToString();
 
-                textBoxBBMaxX.Text = String.Format("{0:0.000000}", data.BoundingBoxMaxX);
-                textBoxBBMaxY.Text = String.Format("{0:0.000000}", data.BoundingBoxMaxY);
-                textBoxBBMaxZ.Text = String.Format("{0:0.000000}", data.BoundingBoxMaxZ);
-                textBoxBBMinX.Text = String.Format("{0:0.000000}", data.BoundingBoxMinX);
-                textBoxBBMinY.Text = String.Format("{0:0.000000}", data.BoundingBoxMinY);
-                textBoxBBMinZ.Text = String.Format("{0:0.000000}", data.BoundingBoxMinZ);
-                textBoxCenterX.Text = String.Format("{0:0.000000}", data.CenterX);
-                textBoxCenterY.Text = String.Format("{0:0.000000}", data.CenterY);
-                textBoxCenterZ.Text = String.Format("{0:0.000000}", data.CenterZ);
-                textBoxRadius.Text = String.Format("{0:0.000000}", data.Radius);
+                textBoxBBMaxX.Text  = data.BoundingBoxMaxX.ToString("g");
+                textBoxBBMaxY.Text  = data.BoundingBoxMaxY.ToString("g");
+                textBoxBBMaxZ.Text  = data.BoundingBoxMaxZ.ToString("g");
+                textBoxBBMinX.Text  = data.BoundingBoxMinX.ToString("g");
+                textBoxBBMinY.Text  = data.BoundingBoxMinY.ToString("g");
+                textBoxBBMinZ.Text  = data.BoundingBoxMinZ.ToString("g");
+                textBoxCenterX.Text = data.CenterX.ToString("g");
+                textBoxCenterY.Text = data.CenterY.ToString("g");
+                textBoxCenterZ.Text = data.CenterZ.ToString("g");
+                textBoxRadius.Text  = data.Radius.ToString("g");
             }
             catch (Exception ex)
             {

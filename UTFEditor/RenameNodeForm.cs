@@ -26,7 +26,7 @@ namespace UTFEditor
             string oldName = node.Name;
             object oldData = node.Tag;
             this.node.Text = textBox1.Text;
-            this.Name = textBox1.Text;
+            this.node.Name = textBox1.Text;
             parent.NodeChanged(node, oldName, oldData);
             Close();
         }

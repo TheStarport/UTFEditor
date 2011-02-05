@@ -15,13 +15,49 @@ namespace UTFEditor
 {
     public partial class UTFEditor : Form
     {
+        const string UTFfilter = "FL UTF Files|*.3db;*.ale;*.anm;*.cmp;*.dfm;*.mat;*.sph;*.txm;*.utf;*.vms|" +
+                                 "Model Files (*.3db)|*.3db|" +
+                                 "Alchemy Files (*.ale)|*.ale|" +
+                                 "Animation Files (*.anm)|*.anm|" +
+                                 "Compound Files (*.cmp)|*.cmp|" +
+                                 "Deformable Files (*.dfm)|*.dfm|" +
+                                 "Material Files (*.mat)|*.mat|" +
+                                 "Sphere Files (*.sph)|*.sph|" +
+                                 "Texture Files (*.txm)|*.txm|" +
+                                 "Audio Files (*.utf)|*.utf|" +
+                                 "VMesh Files (*.vms)|*.vms|" +
+                                 "All Files|*";
+
         private int childFormNumber = 0;
 
-        public UTFEditor()
+        public UTFEditor(string[] args)
         {
             InitializeComponent();
             SetSelectedNode(null);
             LoadRecentFiles();
+
+            foreach (string arg in args)
+            {
+                try
+                {
+                    LoadUTFFile(arg);
+                }
+                catch { }
+            }
+        }
+
+        /// <summary>
+        /// Open and show a UTF file. Throws exception on failure.
+        /// </summary>
+        /// <param name="name">File to open</param>
+        private void LoadUTFFile(string name)
+        {
+            UTFForm childForm = new UTFForm(this, name);
+            childForm.LoadUTFFile(name);
+            childForm.MdiParent = this;
+            childForm.Show();
+
+            UpdateRecentFiles(childForm.fileName);
         }
 
         /// <summary>
@@ -37,23 +73,39 @@ namespace UTFEditor
             childForm.Show();
         }
 
+        private void UTFEditor_DragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop))
+                e.Effect = DragDropEffects.Copy;
+            else
+                e.Effect = DragDropEffects.None;
+        }
+
+        private void UTFEditor_DragDrop(object sender, DragEventArgs e)
+        {
+            string[] files = e.Data.GetData(DataFormats.FileDrop) as string[];
+            foreach (string file in files)
+            {
+                try
+                {
+                    LoadUTFFile(file);
+                }
+                catch { }
+            }
+        }
+
         /// <summary>
         /// Display an open dialog file and then open the selected file.
         /// </summary>
         private void OpenFile(object sender, EventArgs e)
         {
             openFileDialog1.FileName = "";
-            openFileDialog1.Filter = "FL UTF Files|*.dfm;*.cmp;*.utf;*.3db;*.mat;*.txm|All Files|*.*";
+            openFileDialog1.Filter = UTFfilter;
             if (openFileDialog1.ShowDialog(this) == DialogResult.OK)
             {
                 try
                 {
-                    UTFForm childForm = new UTFForm(this, openFileDialog1.FileName);
-                    childForm.LoadUTFFile(openFileDialog1.FileName);
-                    childForm.MdiParent = this;
-                    childForm.Show();
-
-                    UpdateRecentFiles(childForm.Text);
+                    LoadUTFFile(openFileDialog1.FileName);
                 }
                 catch (Exception ex)
                 {
@@ -70,11 +122,7 @@ namespace UTFEditor
             try
             {
                 ToolStripMenuItem item = sender as ToolStripMenuItem;
-
-                UTFForm childForm = new UTFForm(this, item.Text);
-                childForm.LoadUTFFile(item.Text);
-                childForm.MdiParent = this;
-                childForm.Show();
+                LoadUTFFile(item.Text);
             }
             catch (Exception ex)
             {
@@ -93,12 +141,14 @@ namespace UTFEditor
             {
                 UTFForm childForm = this.ActiveMdiChild as UTFForm;
 
-                saveFileDialog1.Filter = "FL UTF Files|*.dfm;*.cmp;*.utf;*.3db;*.mat;*.txm|All Files|*.*";
+                saveFileDialog1.Filter = UTFfilter;
+                saveFileDialog1.FileName = childForm.fileName;
                 if (saveFileDialog1.ShowDialog(this) == DialogResult.OK)
                 {
                     try
                     {
                         childForm.SaveUTFFile(saveFileDialog1.FileName);
+                        UpdateRecentFiles(saveFileDialog1.FileName);
                     }
                     catch (Exception ex)
                     {
@@ -173,90 +223,6 @@ namespace UTFEditor
             }
         }
 
-        public void SetSelectedNode(TreeNode node)
-        {
-            textBoxCurSelASCII.Text = "";
-            textBoxCurSelHex.Text = "";
-            textBoxCurSelSize.Text = "";
-
-            buttonAddNode.Enabled = false;
-            buttonDelNodes.Enabled = false;
-            buttonRenameNode.Enabled = false;
-
-            buttonEditString.Enabled = false;
-            buttonEditIntArray.Enabled = false;
-            buttonEditFloatArray.Enabled = false;
-            buttonPlaySound.Enabled = false;
-            buttonEditAnimChannel.Enabled = false;
-            buttonEditVMeshRef.Enabled = false;
-
-            buttonImport.Enabled = false;
-            buttonExport.Enabled = false;
-
-            buttonExportVMeshData.Enabled = false;
-            buttonExportVMeshRef.Enabled = false;
-            buttonExportVWireData.Enabled = false;
-            
-            if (this.ActiveMdiChild is UTFForm)
-            {
-                buttonAddNode.Enabled = true;
-                buttonRenameNode.Enabled = true;
-            }
-
-            if (node != null)
-            {
-                byte[] data = node.Tag as byte[];
-                if (data != null)
-                {
-                    textBoxCurSelASCII.Text = System.Text.Encoding.ASCII.GetString(data, 0, (data.Length < 0x20 ? data.Length : 0x20));
-                    textBoxCurSelHex.Text = BitConverter.ToString(data, 0, (data.Length<0x20?data.Length:0x20)).Replace("-", " ");
-                    textBoxCurSelSize.Text = data.Length.ToString();
-
-                    if (node.Text == "VMeshData" && data.Length > 0)
-                    {
-                        buttonExportVMeshData.Enabled = true;
-                    }
-
-                    if (node.Text == "VMeshRef" && data.Length > 0)
-                    {
-                        buttonExportVMeshRef.Enabled = true;
-                        buttonEditVMeshRef.Enabled = true;
-                    }
-
-                    if (node.Text == "VWireData" && data.Length > 0)
-                    {
-                        buttonExportVWireData.Enabled = true;
-                    }
-
-                    if (node.Text.StartsWith("0x") && data.Length > 0 && data[0] == 'R')
-                    {
-                        buttonPlaySound.Enabled = true;
-                    }
-
-                    if (node.Text == "Channel" && node.Nodes.Count == 2)
-                    {
-                        buttonEditAnimChannel.Enabled = true;
-                    }
-
-                    if (node.Nodes.Count > 0)
-                    {
-                        buttonDelNodes.Enabled = true;
-                    }
-                    else
-                    {
-                        buttonDelNodes.Enabled = true;
-
-                        buttonImport.Enabled = true;
-                        buttonExport.Enabled = true;
-
-                        buttonEditString.Enabled = true;
-                        buttonEditIntArray.Enabled = true;
-                        buttonEditFloatArray.Enabled = true;
-                    }
-                }
-            }
-        }
-
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (this.ActiveMdiChild is UTFForm)
@@ -264,7 +230,7 @@ namespace UTFEditor
                 UTFForm childForm = this.ActiveMdiChild as UTFForm;
                 try
                 {
-                    childForm.SaveUTFFile(childForm.Text);
+                    childForm.SaveUTFFile(childForm.fileName);
                 }
                 catch (Exception ex)
                 {
@@ -273,49 +239,14 @@ namespace UTFEditor
             }
         }
 
-        private void buttonAddNode_Click(object sender, EventArgs e)
+        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (this.ActiveMdiChild is UTFForm)
-            {
-                UTFForm childForm = this.ActiveMdiChild as UTFForm;
-                childForm.AddNode("New");
-            }
+            new AboutForm().ShowDialog(this);
         }
 
-        private void buttonDelNodes_Click(object sender, EventArgs e)
+        private void helpToolStripButton_Click(object sender, EventArgs e)
         {
-            if (this.ActiveMdiChild is UTFForm)
-            {
-                UTFForm childForm = this.ActiveMdiChild as UTFForm;
-                childForm.DeleteSelectedNodes();
-            }
-        }
-
-        private void buttonRenameNode_Click(object sender, EventArgs e)
-        {
-            if (this.ActiveMdiChild is UTFForm)
-            {
-                UTFForm childForm = this.ActiveMdiChild as UTFForm;
-                childForm.RenameNode();
-            }
-        }
-
-        private void buttonImport_Click(object sender, EventArgs e)
-        {
-            if (this.ActiveMdiChild is UTFForm)
-            {
-                UTFForm childForm = this.ActiveMdiChild as UTFForm;
-                childForm.ImportData();
-            }
-        }
-
-        private void buttonExport_Click(object sender, EventArgs e)
-        {
-            if (this.ActiveMdiChild is UTFForm)
-            {
-                UTFForm childForm = this.ActiveMdiChild as UTFForm;
-                childForm.ExportData();
-            }
+            new AboutForm().ShowDialog(this);
         }
 
         /// <summary>
@@ -369,30 +300,371 @@ namespace UTFEditor
             }
         }
 
-        private void buttonExportVMeshData_Click(object sender, EventArgs e)
+
+        private void UTFEditor_MdiChildActivate(object sender, EventArgs e)
         {
+            if (this.ActiveMdiChild == null)
+                SetSelectedNode(null);
+        }
+
+        public void SelectGrid()
+        {
+            dataView.Select();
+        }
+
+        public void SetSelectedNode(TreeNode node)
+        {
+            UTFForm childForm;
+            Editable edit;
+            Viewable view;
+            bool     data;
             if (this.ActiveMdiChild is UTFForm)
             {
-                UTFForm childForm = this.ActiveMdiChild as UTFForm;
-                childForm.ExportVMeshData();
+                childForm = this.ActiveMdiChild as UTFForm;
+                edit = childForm.IsEditable(node);
+                view = childForm.IsViewable(node);
+                data = childForm.ContainsData(node);
+                buttonAddNode.Enabled = !data;
+                buttonDelNodes.Enabled =
+                buttonRenameNode.Enabled = (node != null);
+            }
+            else
+            {
+                childForm = null;
+                edit = Editable.No;
+                view = Viewable.No;
+                data = false;
+                buttonAddNode.Enabled =
+                buttonDelNodes.Enabled =
+                buttonRenameNode.Enabled = false;
+            }
+
+            dataView.Rows.Clear();
+            // Hide the last two columns, show them as needed.
+            dataView.Columns[2].Visible = dataView.Columns[3].Visible = false;
+            // Restore the style after a hex dump.
+            dataView.Columns[1].DefaultCellStyle =
+            dataView.Columns[2].DefaultCellStyle = dataView.DefaultCellStyle;
+            dataView.Columns[0].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCellsExceptHeader;
+            dataView.Columns[1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
+            if (data)
+            {
+                byte[] val = node.Tag as byte[];
+                DisplayData(childForm, node, true);
+                if (dataView.Rows.Count == 1)
+                    dataView.Rows.Add();
+                dataView[0, 1].Value = String.Format("({0} {1})", val.Length, (val.Length == 1) ? "byte" : "bytes");
+            }
+            else
+            {
+                if (node != null)
+                    foreach (TreeNode n in node.Nodes)
+                        DisplayData(childForm, n, false);
+            }
+            buttonApply.Enabled = false;
+
+            buttonImport.Enabled = (node != null && node.Nodes.Count == 0);
+            buttonExport.Enabled = data;
+
+            buttonEdit.Enabled = (edit != Editable.No);
+
+            buttonView.Enabled = (view != Viewable.No);
+            buttonView.Text = (view == Viewable.Wave) ? "Play" : "View";
+       }
+
+        private void DisplayData(UTFForm childForm, TreeNode node, bool fullHex)
+        {
+            if (!childForm.ContainsData(node))
+                return;
+
+            Editable edit = childForm.IsEditable(node);
+            Viewable view = childForm.IsViewable(node);
+
+            byte[] data = node.Tag as byte[];
+            int row = dataView.Rows.Add();
+            dataView[0, row].Value = node.Name;
+            int pos = 0;
+
+            if (edit == Editable.String)
+            {
+                dataView[1, row].Value = Utilities.GetString(node);
+                dataView[1, row].ReadOnly = false;
+                return;
+            }
+
+            // Special case for a hardpoint's min/max nodes, to show degrees rather than radians.
+            if (edit == Editable.Hardpoint && Utilities.StrIEq(node.Name, "Min", "Max"))
+            {
+                DataGridViewCell cell = dataView[1, row];
+                cell.Value = Utilities.RadianToDegree(Utilities.GetFloat(data, ref pos));
+                cell.ValueType = typeof(double);
+                cell.Style.Format = "0.##";
+                cell.ReadOnly = false;
+                return;
+            }
+
+            if (view == Viewable.Texture)
+            {
+                DDSHeader dds = new DDSHeader();
+                if (dds.Read(data, out pos))
+                {
+                    dataView[1, row].Value = String.Format("{0}x{1}", dds.width, dds.height);
+                    if (dds.pflags == 4)
+                    {
+                        dataView[2, row].Value = dds.FourCC;
+                    }
+                    else
+                    {
+                        dataView[2, row].Value = String.Format("{0}bpp {1}", dds.bpp, (dds.pflags == 0x40) ? "RGB" : "RGBA");
+                    }
+                    dataView[3, row].Value = String.Format("{0} {1}", dds.mipmapcount, (dds.mipmapcount == 1) ? "level" : "levels");
+                    dataView.Columns[2].Visible = dataView.Columns[3].Visible = true;
+                    return;
+                }
+                TgaHeader tga = new TgaHeader();
+                if (tga.Read(data, out pos))
+                {
+                    dataView[1, row].Value = String.Format("{0}x{1}", tga.Image_Width, tga.Image_Height);
+                    string type;
+                    switch (tga.Image_Type)
+                    {
+                        case 1: type = "map"; break;
+                        case 2: type = (tga.Pixel_Depth == 32) ? "RGBA" : "RGB"; break;
+                        default: type = "unknown"; break;
+                    }
+                    dataView[2, row].Value = String.Format("{0}bpp {1}", tga.Pixel_Depth, type);
+                    dataView.Columns[2].Visible = true;
+                    return;
+                }
+            }
+            else
+            {
+                string format = null;
+                Type type = null;
+                switch (edit)
+                {
+                    case Editable.Float:
+                    case Editable.Color:
+                    case Editable.Hardpoint:
+                        type = typeof(float);
+                        format = "{0:g}";
+                        break;
+                    case Editable.Int:
+                        type = typeof(int);
+                        format = "{0}";
+                        break;
+                    case Editable.IntHex:
+                        type = typeof(int);
+                        format = "0x{0:X}";
+                        break;
+                }
+                if (type != null)
+                {
+                    int col = 1;
+                    if (data.Length > 4)
+                    {
+                        dataView.Columns[1].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCellsExceptHeader;
+                        dataView.Columns[2].Visible = true;
+                        if (data.Length > 8)
+                            dataView.Columns[3].Visible = true;
+                    }
+                    while (pos < data.Length)
+                    {
+                        if (col == 4)
+                        {
+                            col = 1;
+                            row = dataView.Rows.Add();
+                        }
+                        object num;
+                        if (type == typeof(float))
+                            num = Utilities.GetFloat(data, ref pos);
+                        else
+                            num = Utilities.GetInt(data, ref pos);
+                        dataView[col, row].ReadOnly = false;
+                        dataView[col++, row].Value = String.Format(format, num);
+                    }
+                    return;
+                }
+            }
+
+            dataView.Columns[2].Visible = true;
+            if (fullHex)
+            {
+                DataGridViewCellStyle style = dataView.DefaultCellStyle.Clone();
+                style.Font = new Font(FontFamily.GenericMonospace, style.Font.SizeInPoints);
+                dataView.Columns[1].DefaultCellStyle =
+                dataView.Columns[2].DefaultCellStyle = style;
+                dataView.Columns[0].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                dataView.Columns[1].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCellsExceptHeader;
+            }
+            int len = Math.Min((fullHex) ? 80 : 8, data.Length);
+            for (pos = 0; pos < len; )
+            {
+                if (pos != 0)
+                    row = dataView.Rows.Add();
+                int curlen = Math.Min(8, len - pos);
+                dataView[1, row].Value = BitConverter.ToString(data, pos, curlen).Replace('-', ' ');
+                StringBuilder sb = new StringBuilder(8);
+                while (curlen-- != 0)
+                {
+                    byte b = data[pos++];
+                    sb.Append((b >= 32 && b <= 126) ? (char)b : '.');
+                }
+                dataView[2, row].Value = sb.ToString();
             }
         }
 
-        private void buttonExportVMeshRef_Click(object sender, EventArgs e)
+        private void dataView_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e)
         {
-            if (this.ActiveMdiChild is UTFForm)
+            TextBox tb = e.Control as TextBox;
+            if (tb != null)
             {
-                UTFForm childForm = this.ActiveMdiChild as UTFForm;
-                childForm.ExportVMeshRef();
+                tb.KeyPress -= new KeyPressEventHandler(tb_KeyPress);
+                tb.KeyPress += new KeyPressEventHandler(tb_KeyPress);
+                tb.TextChanged -= new EventHandler(tb_TextChanged);
+                tb.TextChanged += new EventHandler(tb_TextChanged);
             }
         }
 
-        private void buttonExportVWireData_Click(object sender, EventArgs e)
+        private void tb_TextChanged(object sender, EventArgs e)
+        {
+            TextBox tb = (TextBox)sender;
+            float val;
+            if (tb.TextLength == 0 || Single.TryParse(tb.Text, out val))
+            {
+                tb.ForeColor = DefaultForeColor;
+            }
+            else
+            {
+                tb.ForeColor = Color.Red;
+            }
+        }
+
+        private void tb_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            TextBox tb = (TextBox)sender;
+            // Since we can't seem to get the caret position, if there's an
+            // actual selection, just replace it.
+            if (tb.SelectionLength == 0 && !Utilities.ValidFloatChar(tb.Text, e.KeyChar, tb.SelectionStart))
+                e.Handled = true;
+        }
+
+        private void dataView_CellParsing(object sender, DataGridViewCellParsingEventArgs e)
+        {
+            //string val = e.Value.ToString();
+            //if (val.Length == 0)
+            //{
+            //    e.Value = 0d;
+            //    e.ParsingApplied = true;
+            //}
+            //else
+            //{
+            //    double num;
+            //    if (Double.TryParse(val, out num))
+            //    {
+            //        e.Value = num;
+            //        e.ParsingApplied = true;
+            //        dataView[e.ColumnIndex, e.RowIndex].ErrorText = null;
+            //    }
+            //    else
+            //    {
+            //        dataView[e.ColumnIndex, e.RowIndex].ErrorText = "Parsing failed";
+            //    }
+            //}
+        }
+
+        private void dataView_CellValidating(object sender, DataGridViewCellValidatingEventArgs e)
+        {
+            //if (dataView[e.ColumnIndex, e.RowIndex].ValueType == typeof(double))
+            //{
+            //    double num;
+            //    if (Double.TryParse(e.FormattedValue.ToString(), out num))
+            //    {
+            //        dataView[e.ColumnIndex, e.RowIndex].ToolTipText = null;
+            //    }
+            //    else
+            //    {
+            //        dataView[e.ColumnIndex, e.RowIndex].ToolTipText = "Parsing failed";
+            //        e.Cancel = true;
+            //    }
+            //}
+        }
+
+        private void dataView_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        {
+            buttonApply.Enabled = true;
+        }
+
+        private void buttonApply_Click(object sender, EventArgs e)
+        {
+
+            buttonApply.Enabled = false;
+            // If clicked, focus will shift to the next item,
+            // make it go back to the grid.
+            dataView.Select();
+        }
+
+        private void buttonAddNode_Click(object sender, EventArgs e)
         {
             if (this.ActiveMdiChild is UTFForm)
             {
                 UTFForm childForm = this.ActiveMdiChild as UTFForm;
-                childForm.ExportVWireData();
+                childForm.AddNode("New");
+            }
+        }
+
+        private void buttonDelNodes_Click(object sender, EventArgs e)
+        {
+            if (this.ActiveMdiChild is UTFForm)
+            {
+                UTFForm childForm = this.ActiveMdiChild as UTFForm;
+                childForm.DeleteSelectedNodes();
+            }
+        }
+
+        private void buttonRenameNode_Click(object sender, EventArgs e)
+        {
+            if (this.ActiveMdiChild is UTFForm)
+            {
+                UTFForm childForm = this.ActiveMdiChild as UTFForm;
+                childForm.RenameNode();
+            }
+        }
+
+        private void buttonEdit_Click(object sender, EventArgs e)
+        {
+            if (this.ActiveMdiChild is UTFForm)
+            {
+                UTFForm childForm = this.ActiveMdiChild as UTFForm;
+                childForm.EditNode();
+            }
+        }
+
+        private void buttonView_Click(object sender, EventArgs e)
+        {
+            if (this.ActiveMdiChild is UTFForm)
+            {
+                UTFForm childForm = this.ActiveMdiChild as UTFForm;
+                childForm.ViewNode();
+            }
+        }
+
+        private void buttonImport_Click(object sender, EventArgs e)
+        {
+            if (this.ActiveMdiChild is UTFForm)
+            {
+                UTFForm childForm = this.ActiveMdiChild as UTFForm;
+                childForm.ImportData();
+            }
+        }
+
+        private void buttonExport_Click(object sender, EventArgs e)
+        {
+            if (this.ActiveMdiChild is UTFForm)
+            {
+                UTFForm childForm = this.ActiveMdiChild as UTFForm;
+                childForm.ExportData();
             }
         }
 
@@ -401,7 +673,25 @@ namespace UTFEditor
             if (this.ActiveMdiChild is UTFForm)
             {
                 UTFForm childForm = this.ActiveMdiChild as UTFForm;
-                childForm.EditFixData();
+                childForm.EditFixData("Fix");
+            }
+        }
+
+        private void buttonEditLooseData_Click(object sender, EventArgs e)
+        {
+            if (this.ActiveMdiChild is UTFForm)
+            {
+                UTFForm childForm = this.ActiveMdiChild as UTFForm;
+                childForm.EditFixData("Loose");
+            }
+        }
+
+        private void buttonEditRevData_Click(object sender, EventArgs e)
+        {
+            if (this.ActiveMdiChild is UTFForm)
+            {
+                UTFForm childForm = this.ActiveMdiChild as UTFForm;
+                childForm.EditRevData("Rev");
             }
         }
 
@@ -410,17 +700,16 @@ namespace UTFEditor
             if (this.ActiveMdiChild is UTFForm)
             {
                 UTFForm childForm = this.ActiveMdiChild as UTFForm;
-                childForm.EditPrisData();
+                childForm.EditRevData("Pris");
             }
         }
 
-
-        private void buttonEditRevData_Click(object sender, EventArgs e)
+        private void buttonEditSphereData_Click(object sender, EventArgs e)
         {
             if (this.ActiveMdiChild is UTFForm)
             {
                 UTFForm childForm = this.ActiveMdiChild as UTFForm;
-                childForm.EditRevData();
+                childForm.EditSphereData();
             }
         }
 
@@ -438,7 +727,7 @@ namespace UTFEditor
              if (this.ActiveMdiChild is UTFForm)
             {
                 UTFForm childForm = this.ActiveMdiChild as UTFForm;
-                childForm.EditIntArray();
+                childForm.EditIntArray(false);
             }
         }
 
@@ -451,49 +740,12 @@ namespace UTFEditor
             }
         }
   
-        private void buttonEditAnimChannel_Click(object sender, EventArgs e)
-        {
-            if (this.ActiveMdiChild is UTFForm)
-            {
-                UTFForm childForm = this.ActiveMdiChild as UTFForm;
-                childForm.MakeAnimFrames();
-            }
-        }
-
-        private void buttonPlaySound_Click(object sender, EventArgs e)
-        {
-            if (this.ActiveMdiChild is UTFForm)
-            {
-                UTFForm childForm = this.ActiveMdiChild as UTFForm;
-                childForm.PlaySound();
-            }
-        }
-
-        private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            new AboutForm().ShowDialog(this);
-        }
-
-        private void helpToolStripButton_Click(object sender, EventArgs e)
-        {
-            new AboutForm().ShowDialog(this);
-        }
-
         private void buttonShowModel_Click(object sender, EventArgs e)
         {
             if (this.ActiveMdiChild is UTFForm)
             {
                 UTFForm childForm = this.ActiveMdiChild as UTFForm;
                 childForm.ShowModel();
-            }
-        }
-
-        private void buttonEditVMeshRef_Click(object sender, EventArgs e)
-        {
-            if (this.ActiveMdiChild is UTFForm)
-            {
-                UTFForm childForm = this.ActiveMdiChild as UTFForm;
-                childForm.EditVMeshRef();
             }
         }
 
@@ -511,7 +763,7 @@ namespace UTFEditor
                     childForm.MdiParent = this;
                     childForm.Show(); */
 
-                    // UpdateRecentFiles(childForm.FilePath);
+                    // UpdateRecentFiles(childForm.fileName);
                 }
                 catch (Exception ex)
                 {

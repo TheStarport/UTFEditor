@@ -130,8 +130,8 @@ namespace UTFEditor
             int pos = 0;
 
             // Read header.
-            UInt32 Tag = BitConverter.ToUInt32(data, pos); pos += 4;
-            float Version = BitConverter.ToSingle(data, pos); pos += 4;
+            UInt32 Tag = Utilities.GetDWord(data, ref pos);
+            float Version = Utilities.GetFloat(data, ref pos);
             if (Tag != 0x73726576 || Version != 2.0f)
             {
                 throw new Exception("Unsupported sur header.");
@@ -140,88 +140,91 @@ namespace UTFEditor
             while (pos < data.Length)
             {
                 // ID Header
-                UInt32 CRC = BitConverter.ToUInt32(data, pos); pos += 4;
-                UInt32 Type = BitConverter.ToUInt32(data, pos); pos += 4;
+                UInt32 CRC = Utilities.GetDWord(data, ref pos);
+                UInt32 count = Utilities.GetDWord(data, ref pos);
 
-                // If the next bytes equal the "!fxd" then skip over this.
-                // This header exists only when Type is greater than 2
-                if (Utilities.GetString(data, pos, 4) == "!fxd")
+                while (count-- != 0)
                 {
-                     pos += 4;
-                }
+                    string tag = Utilities.GetString(data, ref pos, 4);
 
-                // Read the bounding box
-                if (Utilities.GetString(data, pos, 4) == "exts")
-                {
-                    pos += 4;
-                    float BoundingBoxMinX = BitConverter.ToSingle(data, pos); pos += 4;
-                    float BoundingBoxMinY = BitConverter.ToSingle(data, pos); pos += 4;
-                    float BoundingBoxMinZ = BitConverter.ToSingle(data, pos); pos += 4;
-                    float BoundingBoxMaxX = BitConverter.ToSingle(data, pos); pos += 4;
-                    float BoundingBoxMaxY = BitConverter.ToSingle(data, pos); pos += 4;
-                    float BoundingBoxMaxZ = BitConverter.ToSingle(data, pos); pos += 4;
-                }
-
-                // Read the surface header 
-                if (Utilities.GetString(data, pos, 4) == "surf")
-                {
-                    uint SurfaceTag = BitConverter.ToUInt32(data, pos); pos += 4;
-                    int OffsetToNextComponent = BitConverter.ToInt32(data, pos); pos += 4; OffsetToNextComponent += pos;
-
-                    // Read the surface details
-                    float CenterX = BitConverter.ToSingle(data, pos); pos += 4;
-                    float CenterY = BitConverter.ToSingle(data, pos); pos += 4;
-                    float CenterZ = BitConverter.ToSingle(data, pos); pos += 4;
-                    float InertiaMomentX = BitConverter.ToSingle(data, pos); pos += 4;
-                    float InertiaMomentY = BitConverter.ToSingle(data, pos); pos += 4;
-                    float InertiaMomentZ = BitConverter.ToSingle(data, pos); pos += 4;
-                    float Radius = BitConverter.ToSingle(data, pos); pos += 4;
-                    ushort Unknown = BitConverter.ToUInt16(data, pos); pos += 2;
-                    ushort NumTriangles = BitConverter.ToUInt16(data, pos); pos += 2;
-                    int OffsetToBits = BitConverter.ToInt32(data, pos); pos += 4; OffsetToBits += pos;
-                    pos += 12;
-
-                    // Triangle data.
-                    int vertBufStart = data.Length;
-                    while (pos < vertBufStart)
+                    if (tag == "!fxd")
                     {
-                        // Read the triangle group header. We ignore data that we don't need.
-                        SurTriangleGroupHeader hdrTri = new SurTriangleGroupHeader();
-                        hdrTri.OffsetToVertex = BitConverter.ToInt32(data, pos); pos += 4;
-                        hdrTri.TriangleID = BitConverter.ToUInt32(data, pos); pos += 4;
-                        hdrTri.Type = (byte)(data[pos] >> 4);
-                        hdrTri.NumRefVerts = (ushort)(BitConverter.ToUInt16(data, pos) & 0x0FFF); pos += 2;
-                        hdrTri.NumTriangles = BitConverter.ToUInt16(data, pos); pos += 2;
+                        // all there is
+                    }
 
-                        vertBufStart = pos + (int)hdrTri.OffsetToVertex;
+                    // Read the bounding box
+                    if (tag == "exts")
+                    {
+                        float BoundingBoxMinX = Utilities.GetFloat(data, ref pos);
+                        float BoundingBoxMinY = Utilities.GetFloat(data, ref pos);
+                        float BoundingBoxMinZ = Utilities.GetFloat(data, ref pos);
+                        float BoundingBoxMaxX = Utilities.GetFloat(data, ref pos);
+                        float BoundingBoxMaxY = Utilities.GetFloat(data, ref pos);
+                        float BoundingBoxMaxZ = Utilities.GetFloat(data, ref pos);
+                    }
 
-                        for (int i = 0; i < hdrTri.NumTriangles; i++)
+                    // Read the surface header
+                    if (tag == "surf")
+                    {
+                        uint SurfaceTag = Utilities.GetDWord(data, ref pos);
+                        int OffsetToNextComponent = Utilities.GetInt(data, ref pos);
+                        OffsetToNextComponent += pos;
+
+                        // Read the surface details
+                        float CenterX = Utilities.GetFloat(data, ref pos);
+                        float CenterY = Utilities.GetFloat(data, ref pos);
+                        float CenterZ = Utilities.GetFloat(data, ref pos);
+                        float InertiaMomentX = Utilities.GetFloat(data, ref pos);
+                        float InertiaMomentY = Utilities.GetFloat(data, ref pos);
+                        float InertiaMomentZ = Utilities.GetFloat(data, ref pos);
+                        float Radius = Utilities.GetFloat(data, ref pos);
+                        ushort Unknown = Utilities.GetWord(data, ref pos);
+                        ushort NumTriangles = Utilities.GetWord(data, ref pos);
+                        int OffsetToBits = Utilities.GetInt(data, ref pos); OffsetToBits += pos;
+                        pos += 12;
+
+                        // Triangle data.
+                        int vertBufStart = data.Length;
+                        while (pos < vertBufStart)
                         {
-                            // Read a triangle. Note a number of fields are skipped over.
-                            SurTriangle tri = new SurTriangle();
-                            tri.TriID = (uint)(BitConverter.ToInt16(data, pos) >> 4); pos += 4;
-                            tri.Vertex1 = BitConverter.ToUInt16(data, pos); pos += 4;
-                            tri.Vertex2 = BitConverter.ToUInt16(data, pos); pos += 4;
-                            tri.Vertex3 = BitConverter.ToUInt16(data, pos); pos += 4;
-                            Triangles.Add(tri);
+                            // Read the triangle group header. We ignore data that we don't need.
+                            SurTriangleGroupHeader hdrTri = new SurTriangleGroupHeader();
+                            hdrTri.OffsetToVertex = Utilities.GetInt(data, ref pos);
+                            hdrTri.TriangleID = Utilities.GetDWord(data, ref pos);
+                            hdrTri.Type = (byte)(data[pos] >> 4);
+                            hdrTri.NumRefVerts = (ushort)(Utilities.GetWord(data, ref pos) & 0x0FFF);
+                            hdrTri.NumTriangles = Utilities.GetWord(data, ref pos);
+
+                            vertBufStart = pos + (int)hdrTri.OffsetToVertex;
+
+                            for (int i = 0; i < hdrTri.NumTriangles; i++)
+                            {
+                                // Read a triangle. Note a number of fields are skipped over.
+                                SurTriangle tri = new SurTriangle();
+                                tri.TriID = (uint)(Utilities.GetShort(data, ref pos) >> 4); pos += 2;
+                                tri.Vertex1 = Utilities.GetWord(data, ref pos); pos += 2;
+                                tri.Vertex2 = Utilities.GetWord(data, ref pos); pos += 2;
+                                tri.Vertex3 = Utilities.GetWord(data, ref pos); pos += 2;
+                                Triangles.Add(tri);
+                            }
                         }
-                    }
 
-                    // Vertices
-                    while (pos < OffsetToBits)
-                    {
-                        SurVertex vertex = new SurVertex();
-                        vertex.X = BitConverter.ToSingle(data, pos); pos += 4;
-                        vertex.Y = BitConverter.ToSingle(data, pos); pos += 4;
-                        vertex.Z = BitConverter.ToSingle(data, pos); pos += 4;
-                        vertex.TriID = BitConverter.ToUInt32(data, pos); pos += 4;
-                        Vertices.Add(vertex);
-                    }
+                        // Vertices
+                        while (pos < OffsetToBits)
+                        {
+                            SurVertex vertex = new SurVertex();
+                            vertex.X = Utilities.GetFloat(data, ref pos);
+                            vertex.Y = Utilities.GetFloat(data, ref pos);
+                            vertex.Z = Utilities.GetFloat(data, ref pos);
+                            vertex.TriID = Utilities.GetDWord(data, ref pos);
+                            Vertices.Add(vertex);
+                        }
 
-                    // bits section
-                    while (pos < OffsetToNextComponent)
-                    {
-                        pos++;
+                        // bits section
+                        while (pos < OffsetToNextComponent)
+                        {
+                            pos++;
+                        }
                     }
                 }
             }

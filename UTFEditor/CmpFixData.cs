@@ -14,9 +14,6 @@ namespace UTFEditor
             public float OriginX;
             public float OriginY;
             public float OriginZ;
-            public float OffsetX;
-            public float OffsetY;
-            public float OffsetZ;
             public float RotMatXX;
             public float RotMatXY;
             public float RotMatXZ;
@@ -44,30 +41,24 @@ namespace UTFEditor
             {
                 Part part = new Part();
 
-                part.ParentName = Utilities.GetString(data, pos, 0x40); pos += 0x40;
-                part.ChildName = Utilities.GetString(data, pos, 0x30); pos += 0x30;
+                part.ParentName = Utilities.GetString(data, ref pos, 0x40);
+                part.ChildName  = Utilities.GetString(data, ref pos, 0x40);
 
-                pos += 4; // unknown
+                part.OriginX    = Utilities.GetFloat(data, ref pos);
+                part.OriginY    = Utilities.GetFloat(data, ref pos);
+                part.OriginZ    = Utilities.GetFloat(data, ref pos);
 
-                part.OriginX = BitConverter.ToSingle(data, pos); pos += 4;
-                part.OriginY = BitConverter.ToSingle(data, pos); pos += 4;
-                part.OriginZ = BitConverter.ToSingle(data, pos); pos += 4;
+                part.RotMatXX   = Utilities.GetFloat(data, ref pos);
+                part.RotMatXY   = Utilities.GetFloat(data, ref pos);
+                part.RotMatXZ   = Utilities.GetFloat(data, ref pos);
 
-                part.OffsetX = BitConverter.ToSingle(data, pos); pos += 4;
-                part.OffsetY = BitConverter.ToSingle(data, pos); pos += 4;
-                part.OffsetZ = BitConverter.ToSingle(data, pos); pos += 4;
+                part.RotMatYX   = Utilities.GetFloat(data, ref pos);
+                part.RotMatYY   = Utilities.GetFloat(data, ref pos);
+                part.RotMatYZ   = Utilities.GetFloat(data, ref pos);
 
-                part.RotMatXX = BitConverter.ToSingle(data, pos); pos += 4;
-                part.RotMatXY = BitConverter.ToSingle(data, pos); pos += 4;
-                part.RotMatXZ = BitConverter.ToSingle(data, pos); pos += 4;
-
-                part.RotMatYX = BitConverter.ToSingle(data, pos); pos += 4;
-                part.RotMatYY = BitConverter.ToSingle(data, pos); pos += 4;
-                part.RotMatYZ = BitConverter.ToSingle(data, pos); pos += 4;
-
-                part.RotMatZX = BitConverter.ToSingle(data, pos); pos += 4;
-                part.RotMatZY = BitConverter.ToSingle(data, pos); pos += 4;
-                part.RotMatZZ = BitConverter.ToSingle(data, pos); pos += 4;
+                part.RotMatZX   = Utilities.GetFloat(data, ref pos);
+                part.RotMatZY   = Utilities.GetFloat(data, ref pos);
+                part.RotMatZZ   = Utilities.GetFloat(data, ref pos);
 
                 Parts.Add(part);
             }
@@ -87,21 +78,15 @@ namespace UTFEditor
                 for (int i = 0; i < 0x40 - part.ParentName.Length; i++)
                     data.Add(0);
 
-                if (part.ChildName.Length > 0x2F)
-                    part.ChildName = part.ChildName.Substring(0, 0x2F);
-                data.AddRange(ASCIIEncoding.ASCII.GetBytes(part.ChildName));
-                for (int i = 0; i < 0x30 - part.ChildName.Length; i++)
-                    data.Add(0);
+                if (part.ChildName.Length > 0x3F)
+                    part.ChildName = part.ChildName.Substring(0, 0x3F);
+                        data.AddRange(ASCIIEncoding.ASCII.GetBytes(part.ChildName));
+                for (int i = 0; i < 0x40 - part.ChildName.Length; i++)
+                            data.Add(0);
                 
-                data.AddRange(BitConverter.GetBytes((int)0));
-
                 data.AddRange(BitConverter.GetBytes(part.OriginX));
                 data.AddRange(BitConverter.GetBytes(part.OriginY));
                 data.AddRange(BitConverter.GetBytes(part.OriginZ));
-
-                data.AddRange(BitConverter.GetBytes(part.OffsetX));
-                data.AddRange(BitConverter.GetBytes(part.OffsetY));
-                data.AddRange(BitConverter.GetBytes(part.OffsetZ));
 
                 data.AddRange(BitConverter.GetBytes(part.RotMatXX));
                 data.AddRange(BitConverter.GetBytes(part.RotMatXY));

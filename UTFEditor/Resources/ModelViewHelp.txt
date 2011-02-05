@@ -1,0 +1,39 @@
+{\rtf1{\b\ul KEYS}\par
+\par
+1            Bottom view\par
+2            Top view\par
+3            Back view\par
+4            Front view\par
+5            Right view\par
+6            Left view\par
+\par
+A            Increase brightness\par
+Z            Decrease brightness\par
+Shift+A      Full brightness\par
+Shift+Z      Zero brightness\par
+\par
+B            Toggle background between white & black\par
+W            Toggle model between solid & wireframe\par
+\par
+*            Increase size of hardpoint display\par
+/            Decrease size of hardpoint display\par
++            Zoom in\par
+-            Zoom out\par
+\par
+Arrows       Move the model (with Shift for finer movement)\par
+Page Up      Rotate 15° (1° with Shift) anticlockwise around the Y axis\par
+Page Down    Rotate 15° (1° with Shift) clockwise around the Y axis\par
+Ctrl+Page    Rotate around the X axis\par
+Alt+Page     Rotate around the Z axis\par
+Home         Move to center, remove rotation\par
+\par
+Escape       Close\par
+\par
+{\b\ul MOUSE}\par
+\par
+Left         Rotate around the Y axis (left/right) and X axis (up/down)\par
+Right        Zoom out/in (up/down) or rotate about the Z axis (left/right)\par
+Both         Move the model (or Shift+Left)\par
+Wheel        Zoom out/in (up/down)\par
+\par
+}

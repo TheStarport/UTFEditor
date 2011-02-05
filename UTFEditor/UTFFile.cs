@@ -10,9 +10,15 @@ namespace UTFEditor
     class UTFFile
     {
         /// <summary>
-        /// The file this form is editing.
+        /// The list of hardpoints.
         /// </summary>
-        public string FilePath { get; private set; }
+        public TreeNode Hardpoints { get; private set; }
+
+        /// <summary>
+        /// The list of parts.
+        /// </summary>
+        public TreeNode Parts { get; private set; }
+        List<string> partnames = new List<string>();
 
         /// <summary>
         /// Try to load a UTF file. Throw an exception on failure.
@@ -20,7 +26,6 @@ namespace UTFEditor
         /// <param name="filePath">The file to load.</param>
         public TreeNode LoadUTFFile(string filePath)
         {
-            this.FilePath = filePath;
             byte[] buf;
 
             using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
@@ -31,28 +36,36 @@ namespace UTFEditor
             }
 
             int pos = 0;
-            int sig = BitConverter.ToInt32(buf, pos); pos += 4;
-            int ver = BitConverter.ToInt32(buf, pos); pos += 4;
+            int sig = Utilities.GetInt(buf, ref pos);
+            int ver = Utilities.GetInt(buf, ref pos);
             if (sig != 0x20465455 || ver != 0x101)
                 throw new Exception("Unsupported");
 
             // get node chunk info
-            int nodeBlockOffset = BitConverter.ToInt32(buf, pos); pos += 4;
-            int nodeSize = BitConverter.ToInt32(buf, pos); pos += 4;
+            int nodeBlockOffset = Utilities.GetInt(buf, ref pos);
+            int nodeSize = Utilities.GetInt(buf, ref pos);
 
-            int unknown1 = BitConverter.ToInt32(buf, pos); pos += 4;
-            int header_size = BitConverter.ToInt32(buf, pos); pos += 4;
+            int unknown1 = Utilities.GetInt(buf, ref pos);
+            int header_size = Utilities.GetInt(buf, ref pos);
 
             // get string chunk info
-            int stringBlockOffset = BitConverter.ToInt32(buf, pos); pos += 4;
-            int stringBlockSize = BitConverter.ToInt32(buf, pos); pos += 8;
+            int stringBlockOffset = Utilities.GetInt(buf, ref pos);
+            int stringBlockSize = Utilities.GetInt(buf, ref pos); pos += 4;
 
             // get data chunk info
-            int dataBlockOffset = BitConverter.ToInt32(buf, pos); pos += 4;
+            int dataBlockOffset = Utilities.GetInt(buf, ref pos);
 
             // A dummy root node that we throw away.
             TreeNode dummyRoot = new TreeNode();
             dummyRoot.Text = "DUMMYROOT";
+
+            // A node to store all the hardpoints.
+            Hardpoints = new TreeNode();
+            Hardpoints.Text = "Hardpoints";
+
+            // A node to store all the parts.
+            Parts = new TreeNode();
+            Parts.Text = "Parts";
 
             // Load the nodes recursively.
             parseNode(buf, nodeBlockOffset, 0, stringBlockOffset, dataBlockOffset, dummyRoot);
@@ -77,17 +90,17 @@ namespace UTFEditor
             {
                 int nodeOffset = offset;
 
-                int peerOffset = BitConverter.ToInt32(buf, offset); offset += 4;        // next node on same level
-                int nameOffset = BitConverter.ToInt32(buf, offset); offset += 4;        // string for this node
-                int flags = BitConverter.ToInt32(buf, offset); offset += 4;             // bit 4 set = intermediate, bit 7 set = leaf
-                int zero = BitConverter.ToInt32(buf, offset); offset += 4;              // always seems to be zero
-                int childOffset = BitConverter.ToInt32(buf, offset); offset += 4;       // next node in if intermediate, offset to data if leaf
-                int allocatedSize = BitConverter.ToInt32(buf, offset); offset += 4;     // leaf node only, 0 for intermediate
-                int size = BitConverter.ToInt32(buf, offset); offset += 4;              // leaf node only, 0 for intermediate
-                int size2 = BitConverter.ToInt32(buf, offset); offset += 4;             // leaf node only, 0 for intermediate
-                int u1 = BitConverter.ToInt32(buf, offset); offset += 4;                // seems to be timestamps. can be zero
-                int u2 = BitConverter.ToInt32(buf, offset); offset += 4;
-                int u3 = BitConverter.ToInt32(buf, offset); offset += 4;
+                int peerOffset = Utilities.GetInt(buf, ref offset);        // next node on same level
+                int nameOffset = Utilities.GetInt(buf, ref offset);        // string for this node
+                int flags = Utilities.GetInt(buf, ref offset);             // bit 4 set = intermediate, bit 7 set = leaf
+                int zero = Utilities.GetInt(buf, ref offset);              // always seems to be zero
+                int childOffset = Utilities.GetInt(buf, ref offset);       // next node in if intermediate, offset to data if leaf
+                int allocatedSize = Utilities.GetInt(buf, ref offset);     // leaf node only, 0 for intermediate
+                int size = Utilities.GetInt(buf, ref offset);              // leaf node only, 0 for intermediate
+                int size2 = Utilities.GetInt(buf, ref offset);             // leaf node only, 0 for intermediate
+                int u1 = Utilities.GetInt(buf, ref offset);                // timestamps. can be zero
+                int u2 = Utilities.GetInt(buf, ref offset);
+                int u3 = Utilities.GetInt(buf, ref offset);
 
                 // Extract the node name
                 int len = 0;
@@ -101,8 +114,8 @@ namespace UTFEditor
                     if (size != size2)
                         MessageBox.Show("Possible compression being used on " + name, "Warning");
 
-                    data = new byte[allocatedSize];
-                    Buffer.BlockCopy(buf, childOffset + dataBlockOffset, data, 0, allocatedSize);
+                    data = new byte[size];
+                    Buffer.BlockCopy(buf, childOffset + dataBlockOffset, data, 0, size);
                 }
                 else
                 {
@@ -117,14 +130,57 @@ namespace UTFEditor
 
                 if (childOffset > 0 && flags == 0x10)
                     parseNode(buf, nodeBlockStart, childOffset, stringBlockOffset, dataBlockOffset, node);
+                if (Utilities.StrIEq(parent.Text, "Fixed", "Revolute"))
+                    Hardpoints.Nodes.Add(name, name);
+                else if (Utilities.StrIEq(name, "Fix", "Trans", "Loose"))
+                    AddParts(0xB0, data);
+                else if (Utilities.StrIEq(name, "Pris", "Rev"))
+                    AddParts(0xD0, data);
+                else if (Utilities.StrIEq(name, "Sphere"))
+                    AddParts(0xD4, data);
 
-                if (peerOffset > 0)
-                    parseNode(buf, nodeBlockStart, peerOffset, stringBlockOffset, dataBlockOffset, parent);
-
-                if ((flags & 0x80) == 0x80)
+                if (peerOffset == 0)
                     break;
 
-                break;
+                offset = nodeBlockStart + peerOffset;
+            }
+        }
+
+        /// <summary>
+        /// Add the parent and child names from the Cons(truct) nodes.
+        /// </summary>
+        /// <param name="size">size of each part</param>
+        /// <param name="data">list of parts</param>
+        private void AddParts(int size, byte[] data)
+        {
+            for (int i = 0; i < data.Length; i += size - 128)
+            {
+                string parent = Utilities.GetString(data, ref i, 64);
+                string child  = Utilities.GetString(data, ref i, 64);
+                TreeNode[] nodes = Parts.Nodes.Find(parent, true);
+                TreeNode node;
+                if (nodes.Length == 0)
+                {
+                    nodes = Parts.Nodes.Find(child, true);
+                    if (nodes.Length == 0)
+                    {
+                        node = Parts.Nodes.Add(parent, parent);
+                    }
+                    else
+                    {
+                        TreeNode childNode = nodes[0];
+                        node = childNode.Parent;
+                        node.Nodes.Remove(childNode);
+                        node = node.Nodes.Add(parent, parent);
+                        node.Nodes.Add(childNode);
+                        return;
+                    }
+                }
+                else
+                {
+                    node = nodes[0];
+                }
+                node.Nodes.Add(child, child);
             }
         }
 
@@ -157,9 +213,10 @@ namespace UTFEditor
             {
                 BinaryWriter w = new BinaryWriter(fs);
 
-                int node_offset = 0x38;			// right after the header
+                int node_offset = 0x38;         // right after the header
                 int string_offset = node_offset + nodeBlock.Count;
-                int data_offset = string_offset + stringBlock.Count;
+                int stringBlock_Alloc = (stringBlock.Count + 3) & ~3;
+                int data_offset = string_offset + stringBlock_Alloc;
 
                 int sig = 0x20465455;
                 int ver = 0x101;
@@ -171,16 +228,17 @@ namespace UTFEditor
                 w.Write((int)0);
                 w.Write((int)0x2c);
                 w.Write(string_offset);
-                w.Write(stringBlock.Count);
+                w.Write(stringBlock_Alloc);
                 w.Write(stringBlock.Count);
                 w.Write((int)data_offset);
                 w.Write((int)0);
                 w.Write((int)0);
-                w.Write((int)0);
-                w.Write((int)0);
+                w.Write(DateTime.SpecifyKind(DateTime.Now, DateTimeKind.Utc).ToFileTime());
 
                 w.Write(nodeBlock.ToArray());
                 w.Write(stringBlock.ToArray());
+                for (int i = stringBlock.Count; i < stringBlock_Alloc; ++i)
+                    w.Write((byte)0);
                 w.Write(dataBlock.ToArray());
 
                 fs.Close();
@@ -202,11 +260,17 @@ namespace UTFEditor
         {
             int firstNodeOffset = nodeBlock.Count;
 
+            int datetime;
+            DateTime now = DateTime.Now;
+            datetime = ((now.Year - 1980) << 9) | (now.Month << 5) | (now.Day) |
+                        (now.Hour << 27) | (now.Minute << 21) | ((now.Second >> 1) << 16);
+
             TreeNode childNode = anode.FirstNode;
             do
             {
                 string name = childNode.Text;
                 byte[] data = childNode.Tag as byte[];
+                int allocLength = (data.Length + 3) & ~3;
 
                 if (childNode.Nodes.Count == 0)
                 {
@@ -218,12 +282,14 @@ namespace UTFEditor
                     nodeBlock.AddRange(BitConverter.GetBytes((int)0)); // zero
                     nodeBlock.AddRange(BitConverter.GetBytes(dataBlock.Count)); // data offset
                     dataBlock.AddRange(data);
+                    for (int i = data.Length; i < allocLength; ++i)
+                        dataBlock.Add(0);
+                    nodeBlock.AddRange(BitConverter.GetBytes(allocLength)); // allocated data size
                     nodeBlock.AddRange(BitConverter.GetBytes(data.Length)); // data size
                     nodeBlock.AddRange(BitConverter.GetBytes(data.Length)); // data size2
-                    nodeBlock.AddRange(BitConverter.GetBytes(data.Length)); // allocated data size
-                    nodeBlock.AddRange(BitConverter.GetBytes((int)0));
-                    nodeBlock.AddRange(BitConverter.GetBytes((int)0));
-                    nodeBlock.AddRange(BitConverter.GetBytes((int)0));
+                    nodeBlock.AddRange(BitConverter.GetBytes(datetime));
+                    nodeBlock.AddRange(BitConverter.GetBytes(datetime));
+                    nodeBlock.AddRange(BitConverter.GetBytes(datetime));
 
                     if (childNode.NextNode != null)
                     {
@@ -241,12 +307,12 @@ namespace UTFEditor
                     nodeBlock.AddRange(BitConverter.GetBytes((int)0x10)); // flags
                     nodeBlock.AddRange(BitConverter.GetBytes((int)0)); // zero
                     nodeBlock.AddRange(BitConverter.GetBytes((int)0)); // child offset
+                    nodeBlock.AddRange(BitConverter.GetBytes(0)); // allocated data size
                     nodeBlock.AddRange(BitConverter.GetBytes(0)); // data size
                     nodeBlock.AddRange(BitConverter.GetBytes(0)); // data size2
-                    nodeBlock.AddRange(BitConverter.GetBytes(0)); // allocated data size
-                    nodeBlock.AddRange(BitConverter.GetBytes((int)0));
-                    nodeBlock.AddRange(BitConverter.GetBytes((int)0));
-                    nodeBlock.AddRange(BitConverter.GetBytes((int)0));
+                    nodeBlock.AddRange(BitConverter.GetBytes(datetime));
+                    nodeBlock.AddRange(BitConverter.GetBytes(datetime));
+                    nodeBlock.AddRange(BitConverter.GetBytes(datetime));
 
                     int childNodeOffset = BuildNode(nodeBlock, dataBlock, nameOffsets, childNode);
 
