@@ -131,13 +131,14 @@ namespace UTFEditor
             public float scale = 1;
             public VertexBuffer display;
             public VertexBuffer revolute;
+            public IndexBuffer indices;
             public float max;
             public float min;
 
             // Define the vertices for the hardpoint display.
             static public CustomVertex.PositionColored[] displayvertices =
             {
-                new CustomVertex.PositionColored( 0, 0,  0, 0xff0000),
+                /*new CustomVertex.PositionColored( 0, 0,  0, 0xff0000),
                 new CustomVertex.PositionColored( 1, 1,  0, 0xff0000),
                 new CustomVertex.PositionColored(-1, 1,  0, 0xff0000),
 
@@ -151,7 +152,116 @@ namespace UTFEditor
 
                 new CustomVertex.PositionColored( 1, 1,  0, 0x0000ff),
                 new CustomVertex.PositionColored( 0, 1, -2, 0x0000ff),
-                new CustomVertex.PositionColored(-1, 1,  0, 0x0000ff),
+                new CustomVertex.PositionColored(-1, 1,  0, 0x0000ff),*/
+                // Dummy central vertex
+                
+                new CustomVertex.PositionColored( 0, 0, 0, 0),
+                
+                // Central white cube
+                
+                new CustomVertex.PositionColored( -0.5f, -0.5f,  -0.5f, 0xaaaaaa),
+                new CustomVertex.PositionColored( -0.5f, 0.5f,  -0.5f, 0xaaaaaa),
+                new CustomVertex.PositionColored( 0.5f, 0.5f,  -0.5f, 0xaaaaaa),
+                new CustomVertex.PositionColored( 0.5f, -0.5f,  -0.5f, 0xaaaaaa),
+                new CustomVertex.PositionColored( -0.5f, -0.5f,  0.5f, 0xaaaaaa),
+                new CustomVertex.PositionColored( 0.5f, -0.5f,  0.5f, 0xaaaaaa),
+                new CustomVertex.PositionColored( 0.5f, 0.5f,  0.5f, 0xaaaaaa),
+                new CustomVertex.PositionColored( -0.5f, 0.5f,  0.5f, 0xaaaaaa),
+                
+                // Y axis
+                
+                new CustomVertex.PositionColored( -0.125f, -0.25f,  -0.125f, 0x00aa00),
+                new CustomVertex.PositionColored( -0.125f, 1.75f,  -0.125f, 0x00aa00),
+                new CustomVertex.PositionColored( 0.125f, 1.75f,  -0.125f, 0x00aa00),
+                new CustomVertex.PositionColored( 0.125f, -0.25f,  -0.125f, 0x00aa00),
+                new CustomVertex.PositionColored( -0.125f, -0.25f,  0.125f, 0x00aa00),
+                new CustomVertex.PositionColored( 0.125f, -0.25f,  0.125f, 0x00aa00),
+                new CustomVertex.PositionColored( 0.125f, 1.75f,  0.125f, 0x00aa00),
+                new CustomVertex.PositionColored( -0.125f, 1.75f,  0.125f, 0x00aa00),
+                
+                // X axis
+                
+                new CustomVertex.PositionColored( -0.25f, 0.125f,  -0.125f, 0xaa0000),
+                new CustomVertex.PositionColored( 1.75f, 0.125f,  -0.125f, 0xaa0000),
+                new CustomVertex.PositionColored( 1.75f, -0.125f,  -0.125f, 0xaa0000),
+                new CustomVertex.PositionColored( -0.25f, -0.125f,  -0.125f, 0xaa0000),
+                new CustomVertex.PositionColored( -0.25f, 0.125f,  0.125f, 0xaa0000),
+                new CustomVertex.PositionColored( -0.25f, -0.125f,  0.125f, 0xaa0000),
+                new CustomVertex.PositionColored( 1.75f, -0.125f,  0.125f, 0xaa0000),
+                new CustomVertex.PositionColored( 1.75f, 0.125f,  0.125f, 0xaa0000),
+                
+                // Z axis
+                
+                new CustomVertex.PositionColored( 0.125f, 0.125f,  -0.25f, 0x0000aa),
+                new CustomVertex.PositionColored( 0.125f, 0.125f,  1.75f, 0x0000aa),
+                new CustomVertex.PositionColored( 0.125f, 0.125f,  1.75f, 0x0000aa),
+                new CustomVertex.PositionColored( 0.125f, -0.125f,  -0.25f, 0x0000aa),
+                new CustomVertex.PositionColored( -0.125f, 0.125f,  -0.25f, 0x0000aa),
+                new CustomVertex.PositionColored( -0.125f, -0.125f,  -0.25f, 0x0000aa),
+                new CustomVertex.PositionColored( -0.125f, -0.125f,  1.75f, 0x0000aa),
+                new CustomVertex.PositionColored( -0.125f, 0.125f,  1.75f, 0x0000aa),
+            };
+            
+            static public int[] displayindexes =
+            {
+                // Central white cube
+				1, 2, 3, 
+				3, 4, 1, 
+				5, 6, 7, 
+				7, 8, 5, 
+				1, 4, 6, 
+				6, 5, 1, 
+				4, 3, 7, 
+				7, 6, 4, 
+				3, 2, 8, 
+				8, 7, 3, 
+				2, 1, 5, 
+				5, 8, 2, 
+				
+				// Y axis
+				
+				9, 10, 11, 
+				11, 12, 9, 
+				13, 14, 15, 
+				15, 16, 13, 
+				9, 12, 14, 
+				14, 13, 9, 
+				12, 11, 15, 
+				15, 14, 12, 
+				11, 10, 16, 
+				16, 15, 11, 
+				10, 9, 13, 
+				13, 16, 10, 
+                
+                // X axis
+				
+				17, 18, 19, 
+				19, 20, 17, 
+				21, 22, 23, 
+				23, 24, 21, 
+				17, 20, 22, 
+				22, 21, 17, 
+				20, 19, 23, 
+				23, 22, 20, 
+				19, 18, 24, 
+				24, 23, 19, 
+				18, 17, 21, 
+				21, 24, 18, 
+				
+				// Z axis
+				
+				25, 26, 27, 
+				27, 28, 25, 
+				29, 30, 31, 
+				31, 32, 29, 
+				25, 28, 30, 
+				30, 29, 25, 
+				28, 27, 31, 
+				31, 30, 28, 
+				27, 26, 32, 
+				32, 31, 27, 
+				26, 25, 29, 
+				29, 32, 26, 
             };
         };
         Hardpoint hp = new Hardpoint();
@@ -237,11 +347,18 @@ namespace UTFEditor
                 hp.display.Dispose();
                 hp.revolute.Dispose();
             }
-            hp.display = new VertexBuffer(typeof(CustomVertex.PositionColored), 12, dev, Usage.WriteOnly, CustomVertex.PositionColored.Format, Pool.Default);
+			hp.display = new VertexBuffer(typeof(CustomVertex.PositionColored), Hardpoint.displayvertices.Length, dev, Usage.WriteOnly, CustomVertex.PositionColored.Format, Pool.Default);
             hp.display.SetData(Hardpoint.displayvertices, 0, LockFlags.None);
             hp.revolute = new VertexBuffer(typeof(CustomVertex.PositionColored), 26, dev, Usage.WriteOnly, CustomVertex.PositionColored.Format, Pool.Default);
             hp.max = Single.MaxValue;
             hp.min = Single.MinValue;
+            
+            if (hp.indices != null)
+            {
+				hp.indices.Dispose();
+            }
+			hp.indices = new IndexBuffer(device, Hardpoint.displayindexes.Length * sizeof(int), Usage.WriteOnly, Pool.Default, false);
+			hp.indices.SetData(Hardpoint.displayindexes, 0, LockFlags.None);
             
             DataChanged(null, "", null);
         }
@@ -1176,7 +1293,8 @@ namespace UTFEditor
                     catch { }
                 }
                 device.SetStreamSource(0, hp.display, 0);
-                device.DrawPrimitives(PrimitiveType.TriangleList, 0, 4);
+                device.Indices = hp.indices;
+				device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, Hardpoint.displayvertices.Length, 0, Hardpoint.displayindexes.Length / 3);
 
                 device.RenderState.Lighting = true;
             }
