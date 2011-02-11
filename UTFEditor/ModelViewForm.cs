@@ -1358,5 +1358,11 @@ namespace UTFEditor
             DataChanged(null, "", null);
             Invalidate();
         }
+        
+        public override void Refresh()
+        {
+			base.Refresh();
+			Render();
+        }
     }
 }

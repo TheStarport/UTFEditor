@@ -352,5 +352,25 @@ namespace UTFEditor
                     ch == 22   ||   // Ctrl+V - Paste
                     ch == 24);      // Ctrl+X - Cut
         }
+        
+        public static bool ValidIntChar(string val, char ch, int pos, bool unsigned)
+        {
+			bool validchar = false;
+			if (ch >= '0' && ch <= '9') validchar = true;
+			if (ch == 'x' && pos == 1 && val.Length >= 1 && val[0] == '0' && !val.Contains("x")) validchar = true;
+			if(val.Length >= 2 && val.Substring(0, 2) == "0x") {
+				if (ch >= 'a' && ch <= 'f' || ch >= 'A' && ch <= 'F') validchar = true;
+			}
+			else if (!unsigned && ch == '-' && pos == 0 && !val.Contains("-")) validchar = true;
+			
+			// TODO: Validate integer sizes (unsigned and signed)
+			if(validchar) return true;
+
+			return (ch == '\b' ||   // Backspace
+					ch == 26 ||   // Ctrl+Z - Undo
+					ch == 3 ||   // Ctrl+C - Copy
+					ch == 22 ||   // Ctrl+V - Paste
+					ch == 24);      // Ctrl+X - Cut
+        }
     }
 }

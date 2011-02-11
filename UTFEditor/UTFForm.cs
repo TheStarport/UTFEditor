@@ -67,6 +67,8 @@ namespace UTFEditor
         /// The name of the UTF file.
         /// </summary>
         public string fileName;
+        
+        private ModelViewForm modelView;
 
         /// <summary>
         /// This object encapsulates treenodes to copy from one treeview to another.
@@ -1288,7 +1290,7 @@ namespace UTFEditor
         /// </summary>
         /// <param name="node"></param>
         /// <returns></returns>
-        private TreeNode FindHardpoint(TreeNode node)
+        public TreeNode FindHardpoint(TreeNode node)
         {
             try
             {
@@ -1304,6 +1306,11 @@ namespace UTFEditor
             }
             catch { }
             return null;
+        }
+        
+        public TreeNode GetSelectedNode()
+        {
+			return treeView1.SelectedNode;
         }
 
 
@@ -1407,7 +1414,10 @@ namespace UTFEditor
         {
             try
             {
-                new ModelViewForm(this, treeView1, fileName).Show(this);
+				if(modelView == null) {
+					modelView = new ModelViewForm(this, treeView1, fileName);
+					modelView.Show(this);
+				}
             }
             catch (Exception ex)
             {
@@ -1578,6 +1588,9 @@ namespace UTFEditor
                 this.Text = this.Text.Insert(0, "*");
                 fileChangesNotSaved = true;
             }
+            
+            if(modelView != null)
+				modelView.Refresh();
         }
 
         public void Modified(TreeNode node)
@@ -1592,11 +1605,19 @@ namespace UTFEditor
         {
             if (fileChangesNotSaved)
             {
-                if (MessageBox.Show("Changes not saved. Save now?", "Save Changes for '" + Path.GetFileName(fileName) + "'", MessageBoxButtons.YesNo) == DialogResult.Yes)
+				DialogResult r = MessageBox.Show("Changes not saved. Save now?", "Save Changes for '" + Path.GetFileName(fileName) + "'", MessageBoxButtons.YesNoCancel);
+                if (r == DialogResult.Yes)
                 {
                     SaveUTFFile(fileName);
                 }
+                else if (r == DialogResult.Cancel)
+                {
+					e.Cancel = true;
+					return;
+				}
             }
+            
+            if(modelView != null) modelView.Close();
         }
 
         private void UTFForm_Activated(object sender, EventArgs e)
