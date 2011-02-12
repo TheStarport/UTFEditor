@@ -1417,12 +1417,24 @@ namespace UTFEditor
 				if(modelView == null) {
 					modelView = new ModelViewForm(this, treeView1, fileName);
 					modelView.Show(this);
+					modelView.FormClosed += new FormClosedEventHandler(modelView_FormClosed);
+					modelView.HardpointMoved += new EventHandler(modelView_HardpointMoved);
 				}
             }
             catch (Exception ex)
             {
                 MessageBox.Show(this, "Error '" + ex.Message + "'", "Error");
             }
+        }
+
+		void modelView_HardpointMoved(object sender, EventArgs e)
+		{
+			parent.SetSelectedNode(treeView1.SelectedNode);
+		}
+
+		private void modelView_FormClosed(object sender, FormClosedEventArgs e)
+        {
+			modelView = null;
         }
 
         private void treeView1_AfterLabelEdit(object sender, NodeLabelEditEventArgs e)

@@ -64,6 +64,8 @@ namespace UTFEditor
 
         /// The current X/Y/Z origin.
         float orgX = 0, orgY = 0, orgZ = 0;
+        
+        DateTime lastClickTime;
 
         /// <summary>
         /// Mesh group data.
@@ -89,7 +91,9 @@ namespace UTFEditor
             public uint crc;
             public VMeshData VMeshData;
             public VertexBuffer VertexBuffer;
-            public IndexBuffer IndexBuffer;
+			public IndexBuffer IndexBuffer;
+			public CustomVertex.PositionNormalTextured[] Vertices;
+			public ushort[] Indices;
         }
 
         /// <summary>
@@ -128,7 +132,7 @@ namespace UTFEditor
         /// </summary>
         public class Hardpoint
         {
-            public float scale = 1;
+            public float scale = 3;
             public VertexBuffer display;
             public VertexBuffer revolute;
             public IndexBuffer indices;
@@ -138,73 +142,59 @@ namespace UTFEditor
             // Define the vertices for the hardpoint display.
             static public CustomVertex.PositionColored[] displayvertices =
             {
-                /*new CustomVertex.PositionColored( 0, 0,  0, 0xff0000),
-                new CustomVertex.PositionColored( 1, 1,  0, 0xff0000),
-                new CustomVertex.PositionColored(-1, 1,  0, 0xff0000),
-
-                new CustomVertex.PositionColored( 0, 0,  0, 0x00ff00),
-                new CustomVertex.PositionColored(-1, 1,  0, 0x00ff00),
-                new CustomVertex.PositionColored( 0, 1, -2, 0x00ff00),
-
-                new CustomVertex.PositionColored( 0, 0,  0, 0x007f00),
-                new CustomVertex.PositionColored( 0, 1, -2, 0x007f00),
-                new CustomVertex.PositionColored( 1, 1,  0, 0x007f00),
-
-                new CustomVertex.PositionColored( 1, 1,  0, 0x0000ff),
-                new CustomVertex.PositionColored( 0, 1, -2, 0x0000ff),
-                new CustomVertex.PositionColored(-1, 1,  0, 0x0000ff),*/
                 // Dummy central vertex
                 
                 new CustomVertex.PositionColored( 0, 0, 0, 0),
                 
                 // Central white cube
                 
-                new CustomVertex.PositionColored( -0.5f, -0.5f,  -0.5f, 0xaaaaaa),
-                new CustomVertex.PositionColored( -0.5f, 0.5f,  -0.5f, 0xaaaaaa),
-                new CustomVertex.PositionColored( 0.5f, 0.5f,  -0.5f, 0xaaaaaa),
-                new CustomVertex.PositionColored( 0.5f, -0.5f,  -0.5f, 0xaaaaaa),
+                new CustomVertex.PositionColored( -0.5f, -0.5f,  -0.5f, 0x666666),
+                new CustomVertex.PositionColored( -0.5f, 0.5f,  -0.5f, 0x666666),
+                new CustomVertex.PositionColored( 0.5f, 0.5f,  -0.5f, 0x888888),
+                new CustomVertex.PositionColored( 0.5f, -0.5f,  -0.5f, 0x888888),
                 new CustomVertex.PositionColored( -0.5f, -0.5f,  0.5f, 0xaaaaaa),
                 new CustomVertex.PositionColored( 0.5f, -0.5f,  0.5f, 0xaaaaaa),
-                new CustomVertex.PositionColored( 0.5f, 0.5f,  0.5f, 0xaaaaaa),
-                new CustomVertex.PositionColored( -0.5f, 0.5f,  0.5f, 0xaaaaaa),
+                new CustomVertex.PositionColored( 0.5f, 0.5f,  0.5f, 0xcccccc),
+                new CustomVertex.PositionColored( -0.5f, 0.5f,  0.5f, 0xcccccc),
                 
                 // Y axis
                 
                 new CustomVertex.PositionColored( -0.125f, -0.25f,  -0.125f, 0x00aa00),
-                new CustomVertex.PositionColored( -0.125f, 1.75f,  -0.125f, 0x00aa00),
-                new CustomVertex.PositionColored( 0.125f, 1.75f,  -0.125f, 0x00aa00),
+                new CustomVertex.PositionColored( -0.125f, 2.75f,  -0.125f, 0x00dd00),
+                new CustomVertex.PositionColored( 0.125f, 2.75f,  -0.125f, 0x00dd00),
                 new CustomVertex.PositionColored( 0.125f, -0.25f,  -0.125f, 0x00aa00),
                 new CustomVertex.PositionColored( -0.125f, -0.25f,  0.125f, 0x00aa00),
                 new CustomVertex.PositionColored( 0.125f, -0.25f,  0.125f, 0x00aa00),
-                new CustomVertex.PositionColored( 0.125f, 1.75f,  0.125f, 0x00aa00),
-                new CustomVertex.PositionColored( -0.125f, 1.75f,  0.125f, 0x00aa00),
+                new CustomVertex.PositionColored( 0.125f, 2.75f,  0.125f, 0x00dd00),
+                new CustomVertex.PositionColored( -0.125f, 2.75f,  0.125f, 0x00dd00),
                 
                 // X axis
                 
                 new CustomVertex.PositionColored( -0.25f, 0.125f,  -0.125f, 0xaa0000),
-                new CustomVertex.PositionColored( 1.75f, 0.125f,  -0.125f, 0xaa0000),
-                new CustomVertex.PositionColored( 1.75f, -0.125f,  -0.125f, 0xaa0000),
+                new CustomVertex.PositionColored( 2.75f, 0.125f,  -0.125f, 0xdd0000),
+                new CustomVertex.PositionColored( 2.75f, -0.125f,  -0.125f, 0xdd0000),
                 new CustomVertex.PositionColored( -0.25f, -0.125f,  -0.125f, 0xaa0000),
                 new CustomVertex.PositionColored( -0.25f, 0.125f,  0.125f, 0xaa0000),
                 new CustomVertex.PositionColored( -0.25f, -0.125f,  0.125f, 0xaa0000),
-                new CustomVertex.PositionColored( 1.75f, -0.125f,  0.125f, 0xaa0000),
-                new CustomVertex.PositionColored( 1.75f, 0.125f,  0.125f, 0xaa0000),
+                new CustomVertex.PositionColored( 2.75f, -0.125f,  0.125f, 0xdd0000),
+                new CustomVertex.PositionColored( 2.75f, 0.125f,  0.125f, 0xdd0000),
                 
                 // Z axis
                 
                 new CustomVertex.PositionColored( 0.125f, 0.125f,  -0.25f, 0x0000aa),
-                new CustomVertex.PositionColored( 0.125f, 0.125f,  1.75f, 0x0000aa),
-                new CustomVertex.PositionColored( 0.125f, 0.125f,  1.75f, 0x0000aa),
+                new CustomVertex.PositionColored( 0.125f, 0.125f,  2.75f, 0x0000dd),
+                new CustomVertex.PositionColored( 0.125f, -0.125f,  2.75f, 0x0000dd),
                 new CustomVertex.PositionColored( 0.125f, -0.125f,  -0.25f, 0x0000aa),
                 new CustomVertex.PositionColored( -0.125f, 0.125f,  -0.25f, 0x0000aa),
                 new CustomVertex.PositionColored( -0.125f, -0.125f,  -0.25f, 0x0000aa),
-                new CustomVertex.PositionColored( -0.125f, -0.125f,  1.75f, 0x0000aa),
-                new CustomVertex.PositionColored( -0.125f, 0.125f,  1.75f, 0x0000aa),
+                new CustomVertex.PositionColored( -0.125f, -0.125f,  2.75f, 0x0000dd),
+                new CustomVertex.PositionColored( -0.125f, 0.125f,  2.75f, 0x0000dd),
             };
             
             static public int[] displayindexes =
             {
                 // Central white cube
+                
 				1, 2, 3, 
 				3, 4, 1, 
 				5, 6, 7, 
@@ -368,6 +358,7 @@ namespace UTFEditor
         /// </summary>
         public void DataChanged(TreeNode changedNode, string oldName, object oldData)
         {
+			
             MeshGroups.Clear();
             foreach (MeshDataBuffer bd in MeshDataBuffers)
             {
@@ -423,10 +414,12 @@ namespace UTFEditor
                 }
 
                 // Copy data into GPU buffers
-                md.VertexBuffer = new VertexBuffer(typeof(CustomVertex.PositionNormalTextured), vertices.Count, device, Usage.WriteOnly, CustomVertex.PositionNormalTextured.Format, Pool.Default);
+				md.VertexBuffer = new VertexBuffer(typeof(CustomVertex.PositionNormalTextured), vertices.Count, device, Usage.None, CustomVertex.PositionNormalTextured.Format, Pool.Default);
                 md.VertexBuffer.SetData(vertices.ToArray(), 0, LockFlags.None);
-                md.IndexBuffer = new IndexBuffer(typeof(UInt16), indices.Count, device, Usage.WriteOnly, Pool.Default);
+                md.Vertices = vertices.ToArray();
+                md.IndexBuffer = new IndexBuffer(typeof(UInt16), indices.Count, device, Usage.None, Pool.Default);
                 md.IndexBuffer.SetData(indices.ToArray(), 0, LockFlags.None);
+                md.Indices = indices.ToArray();
 
                 // Save the group.
                 MeshDataBuffers.Add(md);
@@ -792,8 +785,8 @@ namespace UTFEditor
 
             if (textures_Count > 0)
             {
-                device.Lights[0].Enabled = false;
-                device.Lights[1].Enabled = false;
+				device.Lights[0].Enabled = false;
+				device.Lights[1].Enabled = false;
                 device.RenderState.DiffuseMaterialSource = ColorSource.Material;
                 device.RenderState.SpecularMaterialSource = ColorSource.Material;
             }
@@ -956,7 +949,16 @@ namespace UTFEditor
         {
             lastPosition = e.Location;
             right = RightType.RightFirst;
-        }
+            lastClickTime = DateTime.Now;
+		}
+
+		private void modelView_Panel1_MouseUp(object sender, MouseEventArgs e)
+		{
+			TimeSpan t = DateTime.Now.Subtract(lastClickTime);
+
+			if (t.TotalMilliseconds < 200 && GetHardpointNode() != null && (Control.ModifierKeys & Keys.Control) != Keys.None)
+				PlaceHardpoint(e.X, e.Y);
+		}
 
         /// <summary>
         /// Rotate the model if the LEFT mouse button is pressed.
@@ -1035,6 +1037,7 @@ namespace UTFEditor
         private void ModelViewForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             parent.DelObserver(this);
+            device.Dispose();
         }
 
         /// <summary>
@@ -1170,7 +1173,7 @@ namespace UTFEditor
             posX = posY = 0;
             orgX = orgY = orgZ = 0;
             brightness = 0;
-            hp.scale = 1;
+            hp.scale = 3;
             scale = (modelView.Panel1.Height - 1) / distance;
             if (scale < 0.001f)
                 scale = 0.001f;
@@ -1208,20 +1211,35 @@ namespace UTFEditor
             }
             catch { }
         }
+        
+        private TreeNode GetHardpointNode()
+        {
+			TreeNode node = utf.SelectedNode;
+			if(node == null) return null;
+			try {
+				if (node.Parent.Text == "Hardpoints")
+					node = rootNode.Nodes.Find(node.Name, true)[0];
+				else if (!Utilities.StrIEq(node.Parent.Name, "Fixed", "Revolute"))
+				{
+					node = node.Parent;
+					if (!Utilities.StrIEq(node.Parent.Name, "Fixed", "Revolute"))
+						return null;
+				}
+				
+				return node;
+			}
+			catch(Exception)
+			{
+				return null;
+			}
+        }
 
         private void ShowHardpoint()
         {
-            TreeNode node = utf.SelectedNode;
+			TreeNode node = GetHardpointNode();
+			if(node == null) return;
             try
             {
-                if (node.Parent.Text == "Hardpoints")
-                    node = rootNode.Nodes.Find(node.Name, true)[0];
-                else if (!Utilities.StrIEq(node.Parent.Name, "Fixed", "Revolute"))
-                {
-                    node = node.Parent;
-                    if (!Utilities.StrIEq(node.Parent.Name, "Fixed", "Revolute"))
-                        return;
-                }
                 TreeNode n = node.Nodes["Position"];
                 byte[] data = n.Tag as byte[];
                 int pos = 0;
@@ -1245,11 +1263,7 @@ namespace UTFEditor
                 m.M14 = m.M24 = m.M34 = 0;
 
                 device.SetTexture(0, null);
-                device.Transform.World = Matrix.Multiply(Matrix.Multiply(Matrix.Multiply(
-                                Matrix.Scaling(hp.scale, hp.scale, hp.scale),
-                                m),
-                                MeshGroups[mapFileToMesh[node.Parent.Parent.Parent.Name]].Transform),
-                                Matrix.Translation(orgX, orgY, orgZ));
+				device.Transform.World = Matrix.Scaling(hp.scale, hp.scale, hp.scale) * m * MeshGroups[mapFileToMesh[node.Parent.Parent.Parent.Name]].Transform * Matrix.Translation(orgX, orgY, orgZ);
                                 
                 device.RenderState.Lighting = false;
                 device.RenderState.FillMode = FillMode.Solid;
@@ -1305,6 +1319,105 @@ namespace UTFEditor
         {
             modelView.Focus();
         }
+        
+        private void PlaceHardpoint(int ix, int iy)
+        {
+			if(ix < 0 || iy < 0 || ix > device.Viewport.Width || iy > device.Viewport.Height) return;
+
+			float x = (ix + posX - device.Viewport.Width / 2.0f) * 0.5f + device.Viewport.Width / 2.0f;
+			float y = (iy - posY - device.Viewport.Height / 2.0f) * 0.5f + device.Viewport.Height / 2.0f;
+
+			Vector3 near = new Vector3(x, y, 0);
+			Vector3 far = new Vector3(x, y, 1);
+
+			TreeNode node = GetHardpointNode();
+			if(node == null) return;
+
+			near.Unproject(device.Viewport, device.Transform.Projection, device.Transform.View, MeshGroups[mapFileToMesh[node.Parent.Parent.Parent.Name]].Transform * Matrix.Translation(orgX, orgY, orgZ));
+			far.Unproject(device.Viewport, device.Transform.Projection, device.Transform.View, MeshGroups[mapFileToMesh[node.Parent.Parent.Parent.Name]].Transform * Matrix.Translation(orgX, orgY, orgZ));
+			
+			float minDist = Single.MaxValue;
+			Vector3 faceNormal = Vector3.Empty;
+			foreach (MeshGroup mg in MeshGroups)
+            {
+                device.SetStreamSource(0, mg.MeshDataBuffer.VertexBuffer, 0);
+                device.VertexFormat = CustomVertex.PositionNormalTextured.Format;
+                device.Indices = mg.MeshDataBuffer.IndexBuffer;
+
+                device.Transform.World = Matrix.Multiply(mg.Transform, Matrix.Translation(orgX, orgY, orgZ));
+                
+                int endMesh = mg.RefData.StartMesh + mg.RefData.NumMeshes;
+                for (int mn = mg.RefData.StartMesh; mn < endMesh; mn++)
+                {
+                    VMeshData.TMeshHeader mesh = mg.MeshDataBuffer.VMeshData.Meshes[mn];
+
+					int numVert = mesh.EndVertex - mesh.StartVertex + 1;
+					int numTriangles = mesh.NumRefVertices / 3;
+
+					Mesh m = new Mesh(numTriangles, numVert, 0, CustomVertex.PositionNormalTextured.Format, device);
+					m.VertexBuffer.SetData(mg.MeshDataBuffer.Vertices, 0, LockFlags.None);
+					m.IndexBuffer.SetData(mg.MeshDataBuffer.Indices, 0, LockFlags.None);
+					IntersectInformation hit;
+					if (m.Intersect(near, far, out hit) && hit.Dist < minDist)
+					{
+						minDist = hit.Dist;
+						
+						ushort[] intersectedIndices = new ushort[3]; 
+						
+						ushort[] indices = (ushort[])m.LockIndexBuffer( typeof(ushort), LockFlags.ReadOnly, m.NumberFaces * 3);
+						Array.Copy(indices, hit.FaceIndex * 3, intersectedIndices, 0, 3); 
+						m.UnlockIndexBuffer();
+						
+						CustomVertex.PositionNormalTextured[] tempIntersectedVertices = new CustomVertex.PositionNormalTextured[3];
+						
+						CustomVertex.PositionNormalTextured[] meshVertices =
+							(CustomVertex.PositionNormalTextured[])m.LockVertexBuffer(typeof(CustomVertex.PositionNormalTextured), LockFlags.ReadOnly, m.NumberVertices); 
+						tempIntersectedVertices[0] = meshVertices[ intersectedIndices[0] ]; 
+						tempIntersectedVertices[1] = meshVertices[ intersectedIndices[1] ]; 
+						tempIntersectedVertices[2] = meshVertices[ intersectedIndices[2] ]; 
+						m.UnlockVertexBuffer();
+
+						Vector3 v1 = tempIntersectedVertices[1].Position - tempIntersectedVertices[0].Position;
+						Vector3 v2 = tempIntersectedVertices[2].Position - tempIntersectedVertices[0].Position;
+						faceNormal = Vector3.Cross(v1, v2);
+						faceNormal.Normalize();
+						Vector3 avgNormals = (tempIntersectedVertices[0].Normal + tempIntersectedVertices[1].Normal + tempIntersectedVertices[2].Normal);
+						avgNormals.Normalize();
+						if(Vector3.Dot(faceNormal, avgNormals) > 0) faceNormal *= -1.0f;
+					}
+					m.Dispose();
+				}
+			}
+			if(minDist == Single.MaxValue) return;
+			Vector3 loc = minDist * far + near;
+
+			HardpointData hpNew = new HardpointData(node);
+			hpNew.PosX = loc.X;
+			hpNew.PosY = loc.Y;
+			hpNew.PosZ = loc.Z;
+			
+			if (Control.ModifierKeys == (Keys.Shift | Keys.Control))
+			{
+				Matrix transMat = Matrix.LookAtRH(new Vector3(0, 0, 0), faceNormal, new Vector3(0, 1, 0));
+				if (transMat.Determinant == 0)
+					transMat = Matrix.RotationX(180);
+				hpNew.RotMatXX = transMat.M11;
+				hpNew.RotMatXY = transMat.M12;
+				hpNew.RotMatXZ = transMat.M13;
+
+				hpNew.RotMatYX = transMat.M21;
+				hpNew.RotMatYY = transMat.M22;
+				hpNew.RotMatYZ = transMat.M23;
+
+				hpNew.RotMatZX = transMat.M31;
+				hpNew.RotMatZY = transMat.M32;
+				hpNew.RotMatZZ = transMat.M33;
+			}
+			
+			hpNew.Write();
+			OnHardpointMoved();
+			Refresh();
+		}
 
         private void modelView_KeyDown(object sender, KeyEventArgs e)
         {
@@ -1469,7 +1582,7 @@ namespace UTFEditor
                     Close();
                     break;
             }
-        }
+		}
 
         private void spinnerLevel_ValueChanged(object sender, EventArgs e)
         {
@@ -1481,6 +1594,13 @@ namespace UTFEditor
         {
 			base.Refresh();
 			Render();
+        }
+        
+        public event EventHandler HardpointMoved;
+        
+        protected void OnHardpointMoved()
+        {
+			this.HardpointMoved(this, new EventArgs());
         }
     }
 }
