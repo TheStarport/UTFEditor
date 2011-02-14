@@ -76,6 +76,7 @@ namespace UTFEditor
             public VMeshRef RefData;
             public Matrix Transform;
             public MeshDataBuffer MeshDataBuffer;
+            public Mesh[] M;
         };
 
         /// <summary>
@@ -90,10 +91,8 @@ namespace UTFEditor
         {
             public uint crc;
             public VMeshData VMeshData;
-            public VertexBuffer VertexBuffer;
-			public IndexBuffer IndexBuffer;
-			public CustomVertex.PositionNormalTextured[] Vertices;
-			public ushort[] Indices;
+            public CustomVertex.PositionNormalTextured[] V;
+            public UInt16[] I;
         }
 
         /// <summary>
@@ -358,13 +357,12 @@ namespace UTFEditor
         /// </summary>
         public void DataChanged(TreeNode changedNode, string oldName, object oldData)
         {
-			
-            MeshGroups.Clear();
-            foreach (MeshDataBuffer bd in MeshDataBuffers)
+			foreach (MeshGroup bd in MeshGroups)
             {
-                bd.VertexBuffer.Dispose();
-                bd.IndexBuffer.Dispose();
-            }
+				foreach(Mesh m in bd.M)
+					m.Dispose();
+			}
+			MeshGroups.Clear();
             MeshDataBuffers.Clear();
 
             TreeNode VMeshLibrary = rootNode.Nodes["VMeshLibrary"];
@@ -405,21 +403,17 @@ namespace UTFEditor
                     vertices.Add(new CustomVertex.PositionNormalTextured(vert.X, vert.Y, vert.Z, vert.NormalX, vert.NormalY, vert.NormalZ, vert.S, vert.T));
                 }
 
-                List<UInt16> indices = new List<UInt16>();
+				List<UInt16> indices = new List<UInt16>();
                 foreach (VMeshData.TTriangle tri in md.VMeshData.Triangles)
-                {
+				{
                     indices.Add((UInt16)tri.Vertex1);
-                    indices.Add((UInt16)tri.Vertex2);
-                    indices.Add((UInt16)tri.Vertex3);
+					indices.Add((UInt16)tri.Vertex2);
+					indices.Add((UInt16)tri.Vertex3);
                 }
 
                 // Copy data into GPU buffers
-				md.VertexBuffer = new VertexBuffer(typeof(CustomVertex.PositionNormalTextured), vertices.Count, device, Usage.None, CustomVertex.PositionNormalTextured.Format, Pool.Default);
-                md.VertexBuffer.SetData(vertices.ToArray(), 0, LockFlags.None);
-                md.Vertices = vertices.ToArray();
-                md.IndexBuffer = new IndexBuffer(typeof(UInt16), indices.Count, device, Usage.None, Pool.Default);
-                md.IndexBuffer.SetData(indices.ToArray(), 0, LockFlags.None);
-                md.Indices = indices.ToArray();
+				md.I = indices.ToArray();
+				md.V = vertices.ToArray();
 
                 // Save the group.
                 MeshDataBuffers.Add(md);
@@ -495,7 +489,40 @@ namespace UTFEditor
                         mg.RefData = new VMeshRef(node.Tag as byte[]);
                         mg.Transform = Matrix.Identity;
                         mg.MeshDataBuffer = FindMatchingMeshData(mg.RefData);
+                        mg.M = new Mesh[mg.RefData.NumMeshes];
                         mapFileToMesh[fileName] = MeshGroups.Count;
+
+						int endMesh = mg.RefData.StartMesh + mg.RefData.NumMeshes;
+                        /*for (int mn = mg.RefData.StartMesh; mn < endMesh; mn++)
+						{
+							VMeshData.TMeshHeader mesh = mg.MeshDataBuffer.VMeshData.Meshes[mn];
+							AttributeRange currentMesh = new AttributeRange();
+							currentMesh.AttributeId = mn;
+							currentMesh.FaceCount = mesh.NumRefVertices / 3;
+							currentMesh.FaceStart = mesh.TriangleStart / 3;
+							currentMesh.VertexCount = mesh.EndVertex - mesh.StartVertex + 1;
+							currentMesh.VertexStart = mg.RefData.StartVert + mesh.StartVertex;
+							mg.MeshDataBuffer.AR[mn] = currentMesh;
+						}*/
+
+						//int[] attribBuffer = mg.MeshDataBuffer.M.LockAttributeBufferArray(LockFlags.Discard);
+						for (int mn = mg.RefData.StartMesh; mn < endMesh; mn++)
+						{
+							VMeshData.TMeshHeader mesh = mg.MeshDataBuffer.VMeshData.Meshes[mn];
+							Mesh m = new Mesh(mesh.NumRefVertices / 3, mg.MeshDataBuffer.V.Length, 0, CustomVertex.PositionNormalTextured.Format, device);
+							
+							ushort[] indicesCurrent = new ushort[mesh.NumRefVertices];
+							for (int a = 0; a < indicesCurrent.Length; a++)
+								indicesCurrent[a] = mg.MeshDataBuffer.I[mesh.TriangleStart + a];
+							m.SetIndexBufferData(indicesCurrent, LockFlags.None);
+							
+							CustomVertex.PositionNormalTextured[] verticesCurrent = new CustomVertex.PositionNormalTextured[mesh.EndVertex - mesh.StartVertex + 1];
+							for (int a = 0; a < verticesCurrent.Length; a++)
+								verticesCurrent[a] = mg.MeshDataBuffer.V[mesh.StartVertex + mg.RefData.StartVert + a];
+							m.SetVertexBufferData(verticesCurrent, LockFlags.None);
+							mg.M[mn - mg.RefData.StartMesh] = m;
+						}
+						
                         MeshGroups.Add(mg);
                     }
                 }
@@ -830,41 +857,109 @@ namespace UTFEditor
             SetupLights();
             SetupMatrices();
             
+            int onlyRender = -1, atRender = 0;
+            
             foreach (MeshGroup mg in MeshGroups)
             {
-                device.SetStreamSource(0, mg.MeshDataBuffer.VertexBuffer, 0);
-                device.VertexFormat = CustomVertex.PositionNormalTextured.Format;
-                device.Indices = mg.MeshDataBuffer.IndexBuffer;
+				device.Transform.World = mg.Transform * Matrix.Translation(orgX, orgY, orgZ);
+				device.RenderState.AmbientColor = (utf.SelectedNode.Text == mg.Name) ? 0x3f3f00 : 0;
+				device.RenderState.AmbientColor += brightness;
+				
+				int endMesh = mg.RefData.StartMesh + mg.RefData.NumMeshes;
+				for (int mn = mg.RefData.StartMesh; mn < endMesh; mn++)
+				{
+					//
+					//device.SetStreamSource(0, mg.M[mn - mg.RefData.StartMesh].VertexBuffer, 0, mg.M[mn - mg.RefData.StartMesh].NumberBytesPerVertex);
+					//device.VertexFormat = mg.M[mn - mg.RefData.StartMesh].VertexFormat;
+					//device.Indices = mg.M[mn - mg.RefData.StartMesh].IndexBuffer;
+					//
+					
+					VMeshData.TMeshHeader mesh = mg.MeshDataBuffer.VMeshData.Meshes[mn];
 
-                device.Transform.World = Matrix.Multiply(mg.Transform, Matrix.Translation(orgX, orgY, orgZ));
-                device.RenderState.AmbientColor = (utf.SelectedNode.Text == mg.Name) ? 0x3f3f00 : 0;
-                device.RenderState.AmbientColor += brightness;
+					Texture tex = FindTextureByMaterialID(mesh.MaterialId);
+					if (tex != null)
+					{
+						device.SetTexture(0, tex.texture);
 
-                int endMesh = mg.RefData.StartMesh + mg.RefData.NumMeshes;
-                for (int mn = mg.RefData.StartMesh; mn < endMesh; mn++)
-                {
-                    VMeshData.TMeshHeader mesh = mg.MeshDataBuffer.VMeshData.Meshes[mn];
+						device.TextureState[0].ColorOperation = TextureOperation.Add;
+						device.TextureState[0].ColorArgument1 = TextureArgument.TextureColor;
+						device.TextureState[0].ColorArgument2 = TextureArgument.Diffuse;
+						device.TextureState[0].AlphaOperation = TextureOperation.SelectArg1;
+	                    
+						device.SamplerState[0].MipFilter = TextureFilter.Linear;
+						device.SamplerState[0].MinFilter = TextureFilter.Linear;
+						device.SamplerState[0].MagFilter = TextureFilter.Linear;
+					}
+					
+					/*foreach(AttributeRange r in mg.MeshDataBuffer.M.GetAttributeTable())
+						System.Diagnostics.Debug.WriteLine(r.AttributeId + " : " + r.FaceStart + " -> " + r.FaceCount);*/
+					
+					/*int numVert = mesh.EndVertex - mesh.StartVertex + 1;
+					int numTriangles = mesh.NumRefVertices / 3;
+					System.Diagnostics.Debug.WriteLine("Start vertex: " + (mg.RefData.StartVert + mesh.StartVertex) + ", count: " + numVert);
+					System.Diagnostics.Debug.WriteLine("Start triangle: " + (mesh.TriangleStart / 3) + ", count: " + numTriangles);
 
-                    Texture tex = FindTextureByMaterialID(mesh.MaterialId);
-                    if (tex != null)
-                    {
-                        device.SetTexture(0, tex.texture);
+					int[] attribBuffer = mg.MeshDataBuffer.M.LockAttributeBufferArray(LockFlags.ReadOnly);
+					for(int x = 0; x < attribBuffer.Length; )
+					{
+						System.Diagnostics.Debug.WriteLine("Value " + attribBuffer[x] + " at " + x);
+						while (x + 1 < attribBuffer.Length && attribBuffer[x] == attribBuffer[x + 1]) x++;
+						x++;
+					}
+					mg.MeshDataBuffer.M.UnlockAttributeBuffer(attribBuffer);*/
 
-                        device.TextureState[0].ColorOperation = TextureOperation.Add;
-                        device.TextureState[0].ColorArgument1 = TextureArgument.TextureColor;
-                        device.TextureState[0].ColorArgument2 = TextureArgument.Diffuse;
-                        device.TextureState[0].AlphaOperation = TextureOperation.SelectArg1;
+					if(onlyRender == atRender || onlyRender < 0)
+						mg.M[mn - mg.RefData.StartMesh].DrawSubset(0);
+					atRender++;
+					
+					//
+					//int numVert = mesh.EndVertex - mesh.StartVertex + 1;
+					//int numTriangles = mesh.NumRefVertices / 3;
+					//device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, numVert, 0, numTriangles);
+					//
+				}
+				/*device.SetStreamSource(0, mg.MeshDataBuffer.M.VertexBuffer, 0, mg.MeshDataBuffer.M.NumberBytesPerVertex);
+				device.VertexFormat = mg.MeshDataBuffer.M.VertexFormat;
+				device.Indices = mg.MeshDataBuffer.M.IndexBuffer;
+
+				device.Transform.World = Matrix.Multiply(mg.Transform, Matrix.Translation(orgX, orgY, orgZ));
+				device.RenderState.AmbientColor = (utf.SelectedNode.Text == mg.Name) ? 0x3f3f00 : 0;
+				device.RenderState.AmbientColor += brightness;
+
+				int endMesh = mg.RefData.StartMesh + mg.RefData.NumMeshes;
+				for (int mn = mg.RefData.StartMesh; mn < endMesh; mn++)
+				{
+					VMeshData.TMeshHeader mesh = mg.MeshDataBuffer.VMeshData.Meshes[mn];
+
+					Texture tex = FindTextureByMaterialID(mesh.MaterialId);
+					if (tex != null)
+					{
+						device.SetTexture(0, tex.texture);
+
+						device.TextureState[0].ColorOperation = TextureOperation.Add;
+						device.TextureState[0].ColorArgument1 = TextureArgument.TextureColor;
+						device.TextureState[0].ColorArgument2 = TextureArgument.Diffuse;
+						device.TextureState[0].AlphaOperation = TextureOperation.SelectArg1;
                         
-                        device.SamplerState[0].MipFilter = TextureFilter.Linear;
-                        device.SamplerState[0].MinFilter = TextureFilter.Linear;
-                        device.SamplerState[0].MagFilter = TextureFilter.Linear;
-                    }
+						device.SamplerState[0].MipFilter = TextureFilter.Linear;
+						device.SamplerState[0].MinFilter = TextureFilter.Linear;
+						device.SamplerState[0].MagFilter = TextureFilter.Linear;
+					}
 
-                    int numVert = mesh.EndVertex - mesh.StartVertex + 1;
-                    int numTriangles = mesh.NumRefVertices / 3;
-                    device.DrawIndexedPrimitives(PrimitiveType.TriangleList, mg.RefData.StartVert + mesh.StartVertex, 0, numVert, mesh.TriangleStart, numTriangles);
-                }
-            }
+					int numVert = mesh.EndVertex - mesh.StartVertex + 1;
+					int numTriangles = mesh.NumRefVertices / 3;
+					//device.DrawIndexedPrimitives(PrimitiveType.TriangleList, mg.RefData.StartVert + mesh.StartVertex, 0, mg.MeshDataBuffer.M.NumberVertices, mesh.TriangleStart, mg.MeshDataBuffer.M.NumberFaces);
+					device.DrawIndexedPrimitives(PrimitiveType.TriangleList, mg.RefData.StartVert + mesh.StartVertex, 0, numVert, mesh.TriangleStart, numTriangles);
+				}*/
+				/*device.VertexFormat = mg.MeshDataBuffer.M.VertexFormat;
+				device.SetStreamSource(0, mg.MeshDataBuffer.M.VertexBuffer, 0, mg.MeshDataBuffer.M.NumberBytesPerVertex);
+
+				device.Transform.World = Matrix.Multiply(mg.Transform, Matrix.Translation(orgX, orgY, orgZ));
+				device.RenderState.AmbientColor = (utf.SelectedNode.Text == mg.Name) ? 0x3f3f00 : 0;
+				device.RenderState.AmbientColor += brightness;
+
+				device.DrawPrimitives(PrimitiveType.PointList, 0, mg.MeshDataBuffer.M.NumberVertices);*/
+			}
 
             ShowHardpoint();
 
@@ -1327,40 +1422,35 @@ namespace UTFEditor
 			float x = (ix + posX - device.Viewport.Width / 2.0f) * 0.5f + device.Viewport.Width / 2.0f;
 			float y = (iy - posY - device.Viewport.Height / 2.0f) * 0.5f + device.Viewport.Height / 2.0f;
 
-			Vector3 near = new Vector3(x, y, 0);
-			Vector3 far = new Vector3(x, y, 1);
-
 			TreeNode node = GetHardpointNode();
-			if(node == null) return;
+			if (node == null) return;
 
-			near.Unproject(device.Viewport, device.Transform.Projection, device.Transform.View, MeshGroups[mapFileToMesh[node.Parent.Parent.Parent.Name]].Transform * Matrix.Translation(orgX, orgY, orgZ));
-			far.Unproject(device.Viewport, device.Transform.Projection, device.Transform.View, MeshGroups[mapFileToMesh[node.Parent.Parent.Parent.Name]].Transform * Matrix.Translation(orgX, orgY, orgZ));
+			Vector3 nearFinal = new Vector3(x, y, 0);
+			Vector3 farFinal = new Vector3(x, y, 1);
+
+			Vector3 nearInit = new Vector3(x, y, 0);
+			Vector3 farInit = new Vector3(x, y, 1);
 			
 			float minDist = Single.MaxValue;
 			Vector3 faceNormal = Vector3.Empty;
+			
 			foreach (MeshGroup mg in MeshGroups)
-            {
-                device.SetStreamSource(0, mg.MeshDataBuffer.VertexBuffer, 0);
-                device.VertexFormat = CustomVertex.PositionNormalTextured.Format;
-                device.Indices = mg.MeshDataBuffer.IndexBuffer;
-
-                device.Transform.World = Matrix.Multiply(mg.Transform, Matrix.Translation(orgX, orgY, orgZ));
+			{
+				Vector3 near = new Vector3(nearInit.X, nearInit.Y, nearInit.Z);
+				Vector3 far = new Vector3(farInit.X, farInit.Y, farInit.Z);
+				near.Unproject(device.Viewport, device.Transform.Projection, device.Transform.View, mg.Transform * Matrix.Translation(orgX, orgY, orgZ));
+				far.Unproject(device.Viewport, device.Transform.Projection, device.Transform.View, mg.Transform * Matrix.Translation(orgX, orgY, orgZ));
                 
-                int endMesh = mg.RefData.StartMesh + mg.RefData.NumMeshes;
-                for (int mn = mg.RefData.StartMesh; mn < endMesh; mn++)
+                int mn = 0;
+                foreach (Mesh m in mg.M)
                 {
-                    VMeshData.TMeshHeader mesh = mg.MeshDataBuffer.VMeshData.Meshes[mn];
-
-					int numVert = mesh.EndVertex - mesh.StartVertex + 1;
-					int numTriangles = mesh.NumRefVertices / 3;
-
-					Mesh m = new Mesh(numTriangles, numVert, 0, CustomVertex.PositionNormalTextured.Format, device);
-					m.VertexBuffer.SetData(mg.MeshDataBuffer.Vertices, 0, LockFlags.None);
-					m.IndexBuffer.SetData(mg.MeshDataBuffer.Indices, 0, LockFlags.None);
 					IntersectInformation hit;
 					if (m.Intersect(near, far, out hit) && hit.Dist < minDist)
 					{
+						System.Diagnostics.Debug.WriteLine("Hit on " + mg.Name + "." + mn);
 						minDist = hit.Dist;
+						farFinal = far;
+						nearFinal = near;
 						
 						ushort[] intersectedIndices = new ushort[3]; 
 						
@@ -1385,11 +1475,12 @@ namespace UTFEditor
 						avgNormals.Normalize();
 						if(Vector3.Dot(faceNormal, avgNormals) > 0) faceNormal *= -1.0f;
 					}
-					m.Dispose();
+					mn++;
 				}
 			}
+			
 			if(minDist == Single.MaxValue) return;
-			Vector3 loc = minDist * far + near;
+			Vector3 loc = minDist * farFinal + nearFinal;
 
 			HardpointData hpNew = new HardpointData(node);
 			hpNew.PosX = loc.X;
