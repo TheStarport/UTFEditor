@@ -1430,6 +1430,7 @@ namespace UTFEditor
 		void modelView_HardpointMoved(object sender, EventArgs e)
 		{
 			parent.SetSelectedNode(treeView1.SelectedNode);
+			Modified();
 		}
 
 		private void modelView_FormClosed(object sender, FormClosedEventArgs e)
