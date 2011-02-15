@@ -46,6 +46,12 @@ namespace UTFEditor
             public float T;
             public float U;
             public float V;
+            public float TangentX;
+            public float TangentY;
+            public float TangentZ;
+            public float BinormalX;
+            public float BinormalY;
+            public float BinormalZ;
         };
 
         // Data header - 16 bytes long
@@ -123,6 +129,7 @@ namespace UTFEditor
                 case 0x152:
                 case 0x212:
                 case 0x252:
+                case 0x412:
                     break;
                 default:
                     throw new Exception(String.Format("FVF 0x{0:X} not supported.", FlexibleVertexFormat));
@@ -187,6 +194,17 @@ namespace UTFEditor
                         item.T = Utilities.GetFloat(data, ref pos);
                         item.U = Utilities.GetFloat(data, ref pos);
                         item.V = Utilities.GetFloat(data, ref pos);
+                    }
+                    if ((FlexibleVertexFormat & D3DFVF_TEX4) == D3DFVF_TEX4)
+                    {
+                        item.S = Utilities.GetFloat(data, ref pos);
+                        item.T = Utilities.GetFloat(data, ref pos);
+                        item.TangentX = Utilities.GetFloat(data, ref pos);
+                        item.TangentY = Utilities.GetFloat(data, ref pos);
+                        item.TangentZ = Utilities.GetFloat(data, ref pos);
+                        item.BinormalX = Utilities.GetFloat(data, ref pos);
+                        item.BinormalY = Utilities.GetFloat(data, ref pos);
+                        item.BinormalZ = Utilities.GetFloat(data, ref pos);
                     }
                     Vertices.Add(item);
                 }
