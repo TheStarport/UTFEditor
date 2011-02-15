@@ -689,6 +689,8 @@ namespace UTFEditor
                     st.Append(",   ----U----,   ----V----");
                 if ((decoded.FlexibleVertexFormat & VMeshData.D3DFVF_TEX2) != 0)
                     st.Append(",  ----U1----,  ----V1----,  ----U2----,  ----V2----");
+                if ((decoded.FlexibleVertexFormat & VMeshData.D3DFVF_TEX4) != 0)
+                    st.Append(",  ----U1----,  ----V1----,   Tangent X,   Tangent Y,   Tangent Z,  Binormal X,  Binormal Y,  Binormal Z,");
                 st.AppendLine();
                 for (int count = 0; count < decoded.Vertices.Count; count++)
                 {
@@ -709,11 +711,21 @@ namespace UTFEditor
                             decoded.Vertices[count].S,
                             decoded.Vertices[count].T);
                     if ((decoded.FlexibleVertexFormat & VMeshData.D3DFVF_TEX2) != 0)
-                        st.AppendFormat(",{0,12:F6},{1,12:F6},{2,12:F6}, {3,12:F6}",
+                        st.AppendFormat(",{0,12:F6},{1,12:F6},{2,12:F6},{3,12:F6}",
                             decoded.Vertices[count].S,
                             decoded.Vertices[count].T,
                             decoded.Vertices[count].U,
                             decoded.Vertices[count].V);
+                    if ((decoded.FlexibleVertexFormat & VMeshData.D3DFVF_TEX4) != 0)
+                        st.AppendFormat(",{0,12:F6},{1,12:F6},{2,12:F6},{3,12:F6},{4,12:F6},{5,12:F6},{6,12:F6},{7,12:F6}",
+                            decoded.Vertices[count].S,
+                            decoded.Vertices[count].T,
+                            decoded.Vertices[count].TangentX,
+                            decoded.Vertices[count].TangentY,
+                            decoded.Vertices[count].TangentZ,
+                            decoded.Vertices[count].BinormalX,
+                            decoded.Vertices[count].BinormalY,
+                            decoded.Vertices[count].BinormalZ);
                     st.AppendLine();
                 }
 
