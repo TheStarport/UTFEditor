@@ -131,7 +131,7 @@ namespace UTFEditor
         /// </summary>
         public class Hardpoint
         {
-            public float scale = 3;
+            public float scale = 1;
             public VertexBuffer display;
             public VertexBuffer revolute;
             public IndexBuffer indices;
@@ -180,14 +180,14 @@ namespace UTFEditor
                 
                 // Z axis
                 
-                new CustomVertex.PositionColored( 0.125f, 0.125f,  -0.25f, 0x0000aa),
-                new CustomVertex.PositionColored( 0.125f, 0.125f,  2.75f, 0x0000dd),
-                new CustomVertex.PositionColored( 0.125f, -0.125f,  2.75f, 0x0000dd),
-                new CustomVertex.PositionColored( 0.125f, -0.125f,  -0.25f, 0x0000aa),
-                new CustomVertex.PositionColored( -0.125f, 0.125f,  -0.25f, 0x0000aa),
-                new CustomVertex.PositionColored( -0.125f, -0.125f,  -0.25f, 0x0000aa),
-                new CustomVertex.PositionColored( -0.125f, -0.125f,  2.75f, 0x0000dd),
-                new CustomVertex.PositionColored( -0.125f, 0.125f,  2.75f, 0x0000dd),
+                new CustomVertex.PositionColored( 0.125f, 0.125f,  0.25f, 0x0000aa),
+                new CustomVertex.PositionColored( 0.125f, 0.125f,  -2.75f, 0x0000dd),
+                new CustomVertex.PositionColored( 0.125f, -0.125f,  -2.75f, 0x0000dd),
+                new CustomVertex.PositionColored( 0.125f, -0.125f,  0.25f, 0x0000aa),
+                new CustomVertex.PositionColored( -0.125f, 0.125f,  0.25f, 0x0000aa),
+                new CustomVertex.PositionColored( -0.125f, -0.125f,  0.25f, 0x0000aa),
+                new CustomVertex.PositionColored( -0.125f, -0.125f,  -2.75f, 0x0000dd),
+                new CustomVertex.PositionColored( -0.125f, 0.125f,  -2.75f, 0x0000dd),
             };
             
             static public int[] displayindexes =
@@ -316,6 +316,7 @@ namespace UTFEditor
                 scale = 0.001f;
             else if (scale > 1000)
                 scale = 1000;
+            hp.scale = 25 / scale;
             textBoxScale.Text = scale.ToString("0.###");
         }
 
@@ -1268,12 +1269,12 @@ namespace UTFEditor
             posX = posY = 0;
             orgX = orgY = orgZ = 0;
             brightness = 0;
-            hp.scale = 3;
             scale = (modelView.Panel1.Height - 1) / distance;
             if (scale < 0.001f)
                 scale = 0.001f;
             else if (scale > 1000)
                 scale = 1000;
+            hp.scale = 25 / scale;
             textBoxScale.Text = scale.ToString("0.###");
             // If the scale is the same, the text box won't change, so explicitly invalidate.
             Invalidate();
@@ -1389,11 +1390,11 @@ namespace UTFEditor
                             min = -min - (float)Math.PI / 2;
                             CustomVertex.PositionColored[] rotVert = new CustomVertex.PositionColored[26];
                             // Position the rotation just below the top, so the blue takes precedence.
-                            rotVert[0] = new CustomVertex.PositionColored(0, 0.999f, 0, 0xffff00);
+                            rotVert[0] = new CustomVertex.PositionColored(0, 0, 0, 0xffff00);
                             pos = 1;
                             float delta = (max - min) / 24;
                             for (float angle = max; pos < 26; angle -= delta)
-                                rotVert[pos++] = new CustomVertex.PositionColored(2 * (float)Math.Cos(angle), 0.999f, 2 * (float)Math.Sin(angle), 0xffff00);
+                                rotVert[pos++] = new CustomVertex.PositionColored(2 * (float)Math.Cos(angle), 0, 2 * (float)Math.Sin(angle), 0xffff00);
                             hp.revolute.SetData(rotVert, 0, LockFlags.None);
                         }
                         device.SetStreamSource(0, hp.revolute, 0);
@@ -1427,10 +1428,12 @@ namespace UTFEditor
 
 			Vector3 nearInit = new Vector3(x, y, 0);
 			Vector3 farInit = new Vector3(x, y, 1);
+
+            string nameInit = FindGroupName(node);
+            string nameFinal = null;
 			
 			float minDist = Single.MaxValue;
 			Vector3 faceNormal = Vector3.Empty;
-			Matrix matFinal = Matrix.Identity;
 			
 			foreach (MeshGroup mg in MeshGroups)
 			{
@@ -1448,7 +1451,7 @@ namespace UTFEditor
 						minDist = hit.Dist;
 						farFinal = far;
 						nearFinal = near;
-						matFinal = mg.Transform;
+                        nameFinal = mg.Name;
 						
 						ushort[] intersectedIndices = new ushort[3]; 
 						
@@ -1471,7 +1474,7 @@ namespace UTFEditor
 						faceNormal.Normalize();
 						Vector3 avgNormals = (tempIntersectedVertices[0].Normal + tempIntersectedVertices[1].Normal + tempIntersectedVertices[2].Normal);
 						avgNormals.Normalize();
-						if(Vector3.Dot(faceNormal, avgNormals) > 0) faceNormal *= -1.0f;
+						if(Vector3.Dot(faceNormal, avgNormals) < 0) faceNormal *= -1.0f;
 					}
 					mn++;
 				}
@@ -1480,7 +1483,11 @@ namespace UTFEditor
 			if(minDist == Single.MaxValue) return;
 						
 			Vector3 loc = minDist * (farFinal - nearFinal) + nearFinal;
-			loc.TransformCoordinate(matFinal);
+
+            if (nameInit != null && nameFinal != null && nameFinal != nameInit)
+            {
+                RelinkHardpoint(node, nameFinal);
+            }
 
 			HardpointData hpNew = new HardpointData(node);
 			hpNew.PosX = loc.X;
@@ -1489,7 +1496,7 @@ namespace UTFEditor
 			
 			if (Control.ModifierKeys == (Keys.Shift | Keys.Control))
 			{
-				Matrix transMat = Matrix.LookAtRH(new Vector3(0, 0, 0), faceNormal, new Vector3(0, 1, 0));
+                Matrix transMat = Matrix.LookAtRH(new Vector3(0, 0, 0), faceNormal, new Vector3(0, 1, 0));// *Matrix.RotationX((float)Math.PI / 2); for alternate auto-orient (360 deg weapons)
 				if (transMat.Determinant == 0)
 					transMat = Matrix.RotationX(180);
 				hpNew.RotMatXX = transMat.M11;
@@ -1509,6 +1516,76 @@ namespace UTFEditor
 			OnHardpointMoved();
 			Refresh();
 		}
+
+        private string FindGroupName(TreeNode node)
+        {
+            string fileName = node.Parent.Parent.Parent.Name;
+            TreeNode cmpnd = node.Parent.Parent.Parent.Parent.Nodes["Cmpnd"];
+            foreach (TreeNode n in cmpnd.Nodes)
+            {
+                if (n.Nodes["File name"] != null)
+                {
+                    string tg = System.Text.ASCIIEncoding.ASCII.GetString(n.Nodes["File name"].Tag as byte[]);
+                    tg = tg.Trim(new char[] { '\0' });
+                    if (tg == fileName)
+                    {
+                        string name = System.Text.ASCIIEncoding.ASCII.GetString(n.Nodes["Object name"].Tag as byte[]);
+                        name = name.Trim(new char[] { '\0' });
+                        return name;
+                    }
+                }
+            }
+            return null;
+        }
+
+        private void RelinkHardpoint(TreeNode node, string name)
+        {
+            bool revolute = node.Parent.Text == "Revolute";
+            TreeNode cmpnd = node.Parent.Parent.Parent.Parent.Nodes["Cmpnd"];
+            string fileName = null;
+            foreach (TreeNode n in cmpnd.Nodes)
+            {
+                if (n.Nodes["Object name"] != null)
+                {
+                    string tg = System.Text.ASCIIEncoding.ASCII.GetString(n.Nodes["Object name"].Tag as byte[]);
+                    tg = tg.Trim(new char[] { '\0' });
+                    if (tg == name)
+                    {
+                        fileName = System.Text.ASCIIEncoding.ASCII.GetString(n.Nodes["File name"].Tag as byte[]);
+                        fileName = fileName.Trim(new char[] { '\0' });
+                        break;
+                    }
+                }
+            }
+            if (fileName == null) return;
+
+            foreach (TreeNode n in cmpnd.Parent.Nodes)
+            {
+                if (n.Text == fileName)
+                {
+                    n.TreeView.BeginUpdate();
+
+                    if (n.Nodes["Hardpoints"] == null)
+                    {
+                        TreeNode Hardpoints = new TreeNode("Hardpoints");
+                        Hardpoints.Name = Hardpoints.Text;
+                        Hardpoints.Tag = new byte[0];
+                        n.Nodes.Add(Hardpoints);
+                    }
+                    if (n.Nodes["Hardpoints"].Nodes[revolute ? "Revolute" : "Fixed"] == null)
+                    {
+                        TreeNode FixRev = new TreeNode(revolute ? "Revolute" : "Fixed");
+                        FixRev.Name = FixRev.Text;
+                        FixRev.Tag = new byte[0];
+                        n.Nodes["Hardpoints"].Nodes.Add(FixRev);
+                    }
+                    node.Remove();
+                    n.Nodes["Hardpoints"].Nodes[revolute ? "Revolute" : "Fixed"].Nodes.Add(node);
+                    n.TreeView.EndUpdate();
+                    return;
+                }
+            }
+        }
 
         private void modelView_KeyDown(object sender, KeyEventArgs e)
         {
