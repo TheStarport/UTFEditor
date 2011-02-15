@@ -1415,12 +1415,9 @@ namespace UTFEditor
             modelView.Focus();
         }
         
-        private void PlaceHardpoint(int ix, int iy)
+        private void PlaceHardpoint(int x, int y)
         {
-			if(ix < 0 || iy < 0 || ix > device.Viewport.Width || iy > device.Viewport.Height) return;
-
-			float x = (ix + posX - device.Viewport.Width / 2.0f) * 0.5f + device.Viewport.Width / 2.0f;
-			float y = (iy - posY - device.Viewport.Height / 2.0f) * 0.5f + device.Viewport.Height / 2.0f;
+			if(x < 0 || y < 0 || x > device.Viewport.Width || y > device.Viewport.Height) return;
 
 			TreeNode node = GetHardpointNode();
 			if (node == null) return;
@@ -1433,6 +1430,7 @@ namespace UTFEditor
 			
 			float minDist = Single.MaxValue;
 			Vector3 faceNormal = Vector3.Empty;
+			Matrix matFinal = Matrix.Identity;
 			
 			foreach (MeshGroup mg in MeshGroups)
 			{
@@ -1445,12 +1443,12 @@ namespace UTFEditor
                 foreach (Mesh m in mg.M)
                 {
 					IntersectInformation hit;
-					if (m.Intersect(near, far, out hit) && hit.Dist < minDist)
+					if (m.Intersect(near, far - near, out hit) && hit.Dist < minDist)
 					{
-						System.Diagnostics.Debug.WriteLine("Hit on " + mg.Name + "." + mn);
 						minDist = hit.Dist;
 						farFinal = far;
 						nearFinal = near;
+						matFinal = mg.Transform;
 						
 						ushort[] intersectedIndices = new ushort[3]; 
 						
@@ -1480,7 +1478,9 @@ namespace UTFEditor
 			}
 			
 			if(minDist == Single.MaxValue) return;
-			Vector3 loc = minDist * farFinal + nearFinal;
+						
+			Vector3 loc = minDist * (farFinal - nearFinal) + nearFinal;
+			loc.TransformCoordinate(matFinal);
 
 			HardpointData hpNew = new HardpointData(node);
 			hpNew.PosX = loc.X;
