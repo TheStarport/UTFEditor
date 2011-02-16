@@ -844,7 +844,7 @@ namespace UTFEditor
             device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, background, 1.0f, 0);
             device.BeginScene();
 
-            if (checkBoxSolid.Checked)
+            if (true)//(checkBoxSolid.Checked)
             {
                 device.RenderState.CullMode = Cull.Clockwise;
                 device.RenderState.FillMode = FillMode.Solid;
@@ -1275,7 +1275,8 @@ namespace UTFEditor
             else if (scale > 1000)
                 scale = 1000;
             hp.scale = 25 / scale;
-            textBoxScale.Text = scale.ToString("0.###");
+			textBoxScale.Text = scale.ToString("0.###");
+			toolStripBrightnessSet.Text = "0.0";
             // If the scale is the same, the text box won't change, so explicitly invalidate.
             Invalidate();
         }
@@ -1592,72 +1593,47 @@ namespace UTFEditor
             switch (e.KeyCode)
             {
                 case Keys.F1:
-                    new ViewTextForm("Model View Help", Properties.Resources.ModelViewHelp).Show();
+                    ShowHelp();
                     break;
 
                 // Bottom view
                 case Keys.D1:
-                    rotY = rotZ = 0;
-                    rotX = -(float)Math.PI / 2;
-                    Invalidate();
+                    ResetView(Viewpoint.Bottom);
                     break;
 
                 // Top view
                 case Keys.D2:
-                    rotY = rotZ = 0;
-                    rotX = (float)Math.PI / 2;
-                    Invalidate();
+                    ResetView(Viewpoint.Top);
                     break;
 
                 // Back view
                 case Keys.D3:
-                    rotX = rotY = rotZ = 0;
-                    Invalidate();
+                    ResetView(Viewpoint.Back);
                     break;
 
                 // Front view
                 case Keys.D4:
-                    rotX = rotZ = 0;
-                    rotY = (float)Math.PI;
-                    Invalidate();
+                    ResetView(Viewpoint.Front);
                     break;
 
                 // Right view
                 case Keys.D5:
-                    rotX = rotZ = 0;
-                    rotY = -(float)Math.PI / 2;
-                    Invalidate();
+                    ResetView(Viewpoint.Right);
                     break;
 
                 // Left view
-                case Keys.D6:
-                    rotX = rotZ = 0;
-                    rotY = (float)Math.PI / 2;
-                    Invalidate();
+				case Keys.D6:
+					ResetView(Viewpoint.Left);
                     break;
 
                 // Increase brightness
-                case Keys.A:
-                    if (brightness != 0x808080)
-                    {
-                        if (e.Shift)
-                            brightness = 0x808080;
-                        else
-                            brightness += 0x080808;
-                        Invalidate();
-                    }
+				case Keys.A:
+					ChangeBrightness(true, e.Shift);
                     break;
 
                 // Decrease brightness
                 case Keys.Z:
-                    if (brightness != 0)
-                    {
-                        if (e.Shift)
-                            brightness = 0;
-                        else
-                            brightness -= 0x080808;
-                        Invalidate();
-                    }
+                    ChangeBrightness(false, e.Shift);
                     break;
 
                 // Toggle background between black and white
@@ -1668,7 +1644,7 @@ namespace UTFEditor
 
                 // Toggle solid and wireframe
                 case Keys.W:
-                    checkBoxSolid.Checked = !checkBoxSolid.Checked;
+                    //checkBoxSolid.Checked = !checkBoxSolid.Checked;
                     break;
 
                 // Increase the hardpoint display
@@ -1770,5 +1746,135 @@ namespace UTFEditor
         {
 			this.HardpointMoved(this, new EventArgs());
         }
+        
+        private void ShowHelp()
+        {
+			new ViewTextForm("Model View Help", Properties.Resources.ModelViewHelp).Show();
+        }
+        
+        private enum Viewpoint
+        {
+			Bottom,
+			Top,
+			Right,
+			Left,
+			Front,
+			Back
+        }
+        
+        private void ResetView(Viewpoint v)
+        {
+			switch(v)
+			{
+				case Viewpoint.Bottom:
+					rotY = rotZ = 0;
+					rotX = -(float)Math.PI / 2;
+					break;
+				case Viewpoint.Top:
+					rotY = rotZ = 0;
+					rotX = (float)Math.PI / 2;
+					break;
+				case Viewpoint.Back:
+					rotX = rotY = rotZ = 0;
+					break;
+				case Viewpoint.Front:
+					rotX = rotZ = 0;
+					rotY = (float)Math.PI;
+					break;
+				case Viewpoint.Right:
+					rotX = rotZ = 0;
+					rotY = -(float)Math.PI / 2;
+					break;
+				case Viewpoint.Left:
+					rotX = rotZ = 0;
+					rotY = (float)Math.PI / 2;
+					break;
+			}
+			Invalidate();
+        }
+        
+        private void ChangeBrightness(bool increase, bool extreme)
+        {
+			if(extreme)
+			{
+				if (increase) brightness = 0x808080;
+				else brightness = 0;
+			}
+			else
+			{
+				if (increase) brightness += 0x080808;
+				else brightness -= 0x080808;
+			}
+			
+			toolStripBrightnessSet.Text = (((float) brightness) / 0x808080).ToString();
+			Invalidate();
+        }
+
+		private void bottomToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			ResetView(Viewpoint.Bottom);
+		}
+
+		private void topToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			ResetView(Viewpoint.Top);
+		}
+
+		private void backToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			ResetView(Viewpoint.Back);
+		}
+
+		private void frontToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			ResetView(Viewpoint.Front);
+		}
+
+		private void rightToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			ResetView(Viewpoint.Right);
+		}
+
+		private void leftToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			ResetView(Viewpoint.Left);
+		}
+
+		private void minimumToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			ChangeBrightness(false, true);
+		}
+
+		private void decreaseToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			ChangeBrightness(false, false);
+		}
+
+		private void increaseToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			ChangeBrightness(true, false);
+		}
+
+		private void maximumToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			ChangeBrightness(true, true);
+		}
+
+		private void toolStripBrightnessSet_TextChanged(object sender, EventArgs e)
+		{
+			try
+			{
+				float newBrightness = Single.Parse(toolStripBrightnessSet.Text);
+				if(newBrightness < 0 || newBrightness > 1) throw new ArgumentOutOfRangeException();
+				
+				brightness = (int) (0x808080 * newBrightness);
+				
+				toolStripBrightnessSet.ForeColor = SystemColors.WindowText;
+			}
+			catch(Exception)
+			{
+				toolStripBrightnessSet.ForeColor = Color.Red;
+			}
+		}
     }
 }
