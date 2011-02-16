@@ -64,6 +64,8 @@ namespace UTFEditor
 
         /// The current X/Y/Z origin.
         float orgX = 0, orgY = 0, orgZ = 0;
+
+        bool wireframe = false;
         
         DateTime lastClickTime;
 
@@ -317,7 +319,8 @@ namespace UTFEditor
             else if (scale > 1000)
                 scale = 1000;
             hp.scale = 25 / scale;
-            textBoxScale.Text = scale.ToString("0.###");
+            ChangeHardpointSize(1);
+            ChangeScale(1);
         }
 
         /// <summary>
@@ -494,19 +497,6 @@ namespace UTFEditor
                         mapFileToMesh[fileName] = MeshGroups.Count;
 
 						int endMesh = mg.RefData.StartMesh + mg.RefData.NumMeshes;
-                        /*for (int mn = mg.RefData.StartMesh; mn < endMesh; mn++)
-						{
-							VMeshData.TMeshHeader mesh = mg.MeshDataBuffer.VMeshData.Meshes[mn];
-							AttributeRange currentMesh = new AttributeRange();
-							currentMesh.AttributeId = mn;
-							currentMesh.FaceCount = mesh.NumRefVertices / 3;
-							currentMesh.FaceStart = mesh.TriangleStart / 3;
-							currentMesh.VertexCount = mesh.EndVertex - mesh.StartVertex + 1;
-							currentMesh.VertexStart = mg.RefData.StartVert + mesh.StartVertex;
-							mg.MeshDataBuffer.AR[mn] = currentMesh;
-						}*/
-
-						//int[] attribBuffer = mg.MeshDataBuffer.M.LockAttributeBufferArray(LockFlags.Discard);
 						for (int mn = mg.RefData.StartMesh; mn < endMesh; mn++)
 						{
 							VMeshData.TMeshHeader mesh = mg.MeshDataBuffer.VMeshData.Meshes[mn];
@@ -844,7 +834,7 @@ namespace UTFEditor
             device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, background, 1.0f, 0);
             device.BeginScene();
 
-            if (true)//(checkBoxSolid.Checked)
+            if (!wireframe)
             {
                 device.RenderState.CullMode = Cull.Clockwise;
                 device.RenderState.FillMode = FillMode.Solid;
@@ -858,8 +848,6 @@ namespace UTFEditor
             SetupLights();
             SetupMatrices();
             
-            int onlyRender = -1, atRender = 0;
-            
             foreach (MeshGroup mg in MeshGroups)
             {
 				device.Transform.World = mg.Transform * Matrix.Translation(orgX, orgY, orgZ);
@@ -869,12 +857,6 @@ namespace UTFEditor
 				int endMesh = mg.RefData.StartMesh + mg.RefData.NumMeshes;
 				for (int mn = mg.RefData.StartMesh; mn < endMesh; mn++)
 				{
-					//
-					//device.SetStreamSource(0, mg.M[mn - mg.RefData.StartMesh].VertexBuffer, 0, mg.M[mn - mg.RefData.StartMesh].NumberBytesPerVertex);
-					//device.VertexFormat = mg.M[mn - mg.RefData.StartMesh].VertexFormat;
-					//device.Indices = mg.M[mn - mg.RefData.StartMesh].IndexBuffer;
-					//
-					
 					VMeshData.TMeshHeader mesh = mg.MeshDataBuffer.VMeshData.Meshes[mn];
 
 					Texture tex = FindTextureByMaterialID(mesh.MaterialId);
@@ -891,75 +873,9 @@ namespace UTFEditor
 						device.SamplerState[0].MinFilter = TextureFilter.Linear;
 						device.SamplerState[0].MagFilter = TextureFilter.Linear;
 					}
-					
-					/*foreach(AttributeRange r in mg.MeshDataBuffer.M.GetAttributeTable())
-						System.Diagnostics.Debug.WriteLine(r.AttributeId + " : " + r.FaceStart + " -> " + r.FaceCount);*/
-					
-					/*int numVert = mesh.EndVertex - mesh.StartVertex + 1;
-					int numTriangles = mesh.NumRefVertices / 3;
-					System.Diagnostics.Debug.WriteLine("Start vertex: " + (mg.RefData.StartVert + mesh.StartVertex) + ", count: " + numVert);
-					System.Diagnostics.Debug.WriteLine("Start triangle: " + (mesh.TriangleStart / 3) + ", count: " + numTriangles);
 
-					int[] attribBuffer = mg.MeshDataBuffer.M.LockAttributeBufferArray(LockFlags.ReadOnly);
-					for(int x = 0; x < attribBuffer.Length; )
-					{
-						System.Diagnostics.Debug.WriteLine("Value " + attribBuffer[x] + " at " + x);
-						while (x + 1 < attribBuffer.Length && attribBuffer[x] == attribBuffer[x + 1]) x++;
-						x++;
-					}
-					mg.MeshDataBuffer.M.UnlockAttributeBuffer(attribBuffer);*/
-
-					if(onlyRender == atRender || onlyRender < 0)
-						mg.M[mn - mg.RefData.StartMesh].DrawSubset(0);
-					atRender++;
-					
-					//
-					//int numVert = mesh.EndVertex - mesh.StartVertex + 1;
-					//int numTriangles = mesh.NumRefVertices / 3;
-					//device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, numVert, 0, numTriangles);
-					//
+					mg.M[mn - mg.RefData.StartMesh].DrawSubset(0);
 				}
-				/*device.SetStreamSource(0, mg.MeshDataBuffer.M.VertexBuffer, 0, mg.MeshDataBuffer.M.NumberBytesPerVertex);
-				device.VertexFormat = mg.MeshDataBuffer.M.VertexFormat;
-				device.Indices = mg.MeshDataBuffer.M.IndexBuffer;
-
-				device.Transform.World = Matrix.Multiply(mg.Transform, Matrix.Translation(orgX, orgY, orgZ));
-				device.RenderState.AmbientColor = (utf.SelectedNode.Text == mg.Name) ? 0x3f3f00 : 0;
-				device.RenderState.AmbientColor += brightness;
-
-				int endMesh = mg.RefData.StartMesh + mg.RefData.NumMeshes;
-				for (int mn = mg.RefData.StartMesh; mn < endMesh; mn++)
-				{
-					VMeshData.TMeshHeader mesh = mg.MeshDataBuffer.VMeshData.Meshes[mn];
-
-					Texture tex = FindTextureByMaterialID(mesh.MaterialId);
-					if (tex != null)
-					{
-						device.SetTexture(0, tex.texture);
-
-						device.TextureState[0].ColorOperation = TextureOperation.Add;
-						device.TextureState[0].ColorArgument1 = TextureArgument.TextureColor;
-						device.TextureState[0].ColorArgument2 = TextureArgument.Diffuse;
-						device.TextureState[0].AlphaOperation = TextureOperation.SelectArg1;
-                        
-						device.SamplerState[0].MipFilter = TextureFilter.Linear;
-						device.SamplerState[0].MinFilter = TextureFilter.Linear;
-						device.SamplerState[0].MagFilter = TextureFilter.Linear;
-					}
-
-					int numVert = mesh.EndVertex - mesh.StartVertex + 1;
-					int numTriangles = mesh.NumRefVertices / 3;
-					//device.DrawIndexedPrimitives(PrimitiveType.TriangleList, mg.RefData.StartVert + mesh.StartVertex, 0, mg.MeshDataBuffer.M.NumberVertices, mesh.TriangleStart, mg.MeshDataBuffer.M.NumberFaces);
-					device.DrawIndexedPrimitives(PrimitiveType.TriangleList, mg.RefData.StartVert + mesh.StartVertex, 0, numVert, mesh.TriangleStart, numTriangles);
-				}*/
-				/*device.VertexFormat = mg.MeshDataBuffer.M.VertexFormat;
-				device.SetStreamSource(0, mg.MeshDataBuffer.M.VertexBuffer, 0, mg.MeshDataBuffer.M.NumberBytesPerVertex);
-
-				device.Transform.World = Matrix.Multiply(mg.Transform, Matrix.Translation(orgX, orgY, orgZ));
-				device.RenderState.AmbientColor = (utf.SelectedNode.Text == mg.Name) ? 0x3f3f00 : 0;
-				device.RenderState.AmbientColor += brightness;
-
-				device.DrawPrimitives(PrimitiveType.PointList, 0, mg.MeshDataBuffer.M.NumberVertices);*/
 			}
 
             ShowHardpoint();
@@ -1000,13 +916,7 @@ namespace UTFEditor
             else
                 scale /= 1.25f;
 
-            if (scale < 0.001f)
-                scale = 0.001f;
-            else if (scale > 1000)
-                scale = 1000;
-
-            // Show it in the text box, which also invalidates.
-            textBoxScale.Text = scale.ToString("0.###");
+            ChangeScale(1);
         }
         
         /// <summary>
@@ -1017,7 +927,7 @@ namespace UTFEditor
         private void trackBarScale_Scroll(object sender, EventArgs e)
         {
             scale = (float)Math.Pow(10, (double)trackBarScale.Value / 100.0);
-            textBoxScale.Text = scale.ToString("0.###");
+            ChangeScale(1);
         }
 
         private void textBoxScale_TextChanged(object sender, EventArgs e)
@@ -1031,8 +941,10 @@ namespace UTFEditor
                 this.trackBarScale.Scroll -= new System.EventHandler(this.trackBarScale_Scroll);
                 trackBarScale.Value = (int)(Math.Log10(scale) * 100);
                 this.trackBarScale.Scroll += new System.EventHandler(this.trackBarScale_Scroll);
+                textBoxScale.ForeColor = SystemColors.WindowText;
                 Invalidate();
             }
+            else textBoxScale.ForeColor = Color.Red;
         }
 
         /// <summary>
@@ -1097,11 +1009,7 @@ namespace UTFEditor
                 {
                     case RightType.RightZoom:
                         scale = (float)Math.Pow(10, Math.Log10(scale) + deltaY / 100f);
-                        if (scale < 0.001f)
-                            scale = 0.001f;
-                        else if (scale > 1000)
-                            scale = 1000;
-                        textBoxScale.Text = scale.ToString("0.###");
+                        ChangeScale(1);
                         break;
 
                     case RightType.RightRotate:
@@ -1268,15 +1176,18 @@ namespace UTFEditor
             rotX = rotY = rotZ = 0;
             posX = posY = 0;
             orgX = orgY = orgZ = 0;
-            brightness = 0;
             scale = (modelView.Panel1.Height - 1) / distance;
             if (scale < 0.001f)
                 scale = 0.001f;
             else if (scale > 1000)
                 scale = 1000;
+            ChangeScale(1);
             hp.scale = 25 / scale;
-			textBoxScale.Text = scale.ToString("0.###");
-			toolStripBrightnessSet.Text = "0.0";
+            ChangeHardpointSize(1);
+
+            SetBackground(false);
+            ChangeBrightness(false, true);
+            SetShading(false);
             // If the scale is the same, the text box won't change, so explicitly invalidate.
             Invalidate();
         }
@@ -1638,41 +1549,32 @@ namespace UTFEditor
 
                 // Toggle background between black and white
                 case Keys.B:
-                    background ^= 0xFFFFFF;
-                    Invalidate();
+                    SetBackground(background == 0xFFFFFF);
                     break;
 
                 // Toggle solid and wireframe
                 case Keys.W:
-                    //checkBoxSolid.Checked = !checkBoxSolid.Checked;
+                    SetShading(!wireframe);
                     break;
 
                 // Increase the hardpoint display
                 case Keys.Multiply:
-                    hp.scale *= 1.25f;
-                    Invalidate();
+                    ChangeHardpointSize(1.25f);
                     break;
 
                 // Decrease the hardpoint display
                 case Keys.Divide:
-                    hp.scale /= 1.25f;
-                    Invalidate();
+                    ChangeHardpointSize(1 / 1.25f);
                     break;
 
                 // Zoom in
                 case Keys.Add:
-                    scale *= 1.25f;
-                    if (scale > 1000)
-                        scale = 1000;
-                    textBoxScale.Text = scale.ToString("0.###");
+                    ChangeScale(1.25f);
                     break;
 
                 // Zoom out
                 case Keys.Subtract:
-                    scale /= 1.25f;
-                    if (scale < 0.001f)
-                        scale = 0.001f;
-                    textBoxScale.Text = scale.ToString("0.###");
+                    ChangeScale(1 / 1.25f);
                     break;
 
                 // Move up
@@ -1810,6 +1712,41 @@ namespace UTFEditor
 			Invalidate();
         }
 
+        private void SetBackground(bool white)
+        {
+            background = white ? 0xFFFFFF : 0;
+            blackToolStripMenuItem.Checked = !white;
+            whiteToolStripMenuItem.Checked = white;
+            Invalidate();
+        }
+
+        private void SetShading(bool w)
+        {
+            wireframe = w;
+            wireframeToolStripMenuItem.Checked = wireframe;
+            solidToolStripMenuItem.Checked = !wireframe;
+            Invalidate();
+        }
+
+        private void ChangeHardpointSize(float value)
+        {
+            hp.scale *= value;
+            
+            toolStripHardpointSizeSet.Text = (1 / hp.scale).ToString();
+            Invalidate();
+        }
+
+        private void ChangeScale(float value)
+        {
+            scale *= value;
+            if (scale > 1000)
+                scale = 1000;
+            if (scale < 0.001f)
+                scale = 0.001f;
+            textBoxScale.Text = scale.ToString("0.###");
+            Invalidate();
+        }
+
 		private void bottomToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			ResetView(Viewpoint.Bottom);
@@ -1876,5 +1813,107 @@ namespace UTFEditor
 				toolStripBrightnessSet.ForeColor = Color.Red;
 			}
 		}
+
+        private void ModelViewForm_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void blackToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SetBackground(false);
+        }
+
+        private void whiteToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SetBackground(true);
+        }
+
+        private void wireframeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SetShading(true);
+        }
+
+        private void solidToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SetShading(false);
+        }
+
+        private void decreaseToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            ChangeHardpointSize(1.5f);
+        }
+
+        private void increaseToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            ChangeHardpointSize(1 / 1.5f);
+        }
+
+        private void toolStripHardpointSizeSet_TextChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                float newScale = Single.Parse(toolStripHardpointSizeSet.Text);
+                if (newScale <= 0) throw new ArgumentOutOfRangeException();
+
+                hp.scale = 1 / newScale;
+
+                toolStripBrightnessSet.ForeColor = SystemColors.WindowText;
+            }
+            catch (Exception)
+            {
+                toolStripBrightnessSet.ForeColor = Color.Red;
+            }
+        }
+
+        private void inToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ChangeScale(1.25f);
+        }
+
+        private void outToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ChangeScale(1 / 1.25f);
+        }
+
+        private void leftToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void leftfineToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void rightToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void rightfineToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void upToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void upfineToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void downToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void downfineToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }
