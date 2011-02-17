@@ -27,8 +27,6 @@ Ctrl+Page    Rotate around the X axis\par
 Alt+Page     Rotate around the Z axis\par
 Home         Move to center, remove rotation\par
 \par
-Escape       Close\par
-\par
 {\b\ul MOUSE}\par
 \par
 Left         Rotate around the Y axis (left/right) and X axis (up/down)\par
