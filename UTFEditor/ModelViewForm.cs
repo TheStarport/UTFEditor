@@ -1171,7 +1171,7 @@ namespace UTFEditor
             return null;
         }
 
-        private void buttonReset_Click(object sender, EventArgs e)
+        private void ResetAll()
         {
             rotX = rotY = rotZ = 0;
             posX = posY = 0;
@@ -1192,7 +1192,7 @@ namespace UTFEditor
             Invalidate();
         }
 
-        private void buttonCenter_Click(object sender, EventArgs e)
+        private void CenterViewOnHardpoint()
         {
             TreeNode node = utf.SelectedNode;
             try
@@ -1245,7 +1245,12 @@ namespace UTFEditor
         private void ShowHardpoint()
         {
 			TreeNode node = GetHardpointNode();
-			if(node == null) return;
+			if(node == null)
+			{
+				centerOnHardpointToolStripMenuItem.Enabled = false;
+				return;
+			}
+			centerOnHardpointToolStripMenuItem.Enabled = true;
             try
             {
                 TreeNode n = node.Nodes["Position"];
@@ -1509,32 +1514,32 @@ namespace UTFEditor
 
                 // Bottom view
                 case Keys.D1:
-                    ResetView(Viewpoint.Bottom);
+                    ResetView(Viewpoint.Defaults.Bottom);
                     break;
 
                 // Top view
                 case Keys.D2:
-                    ResetView(Viewpoint.Top);
+                    ResetView(Viewpoint.Defaults.Top);
                     break;
 
                 // Back view
                 case Keys.D3:
-                    ResetView(Viewpoint.Back);
+                    ResetView(Viewpoint.Defaults.Back);
                     break;
 
                 // Front view
                 case Keys.D4:
-                    ResetView(Viewpoint.Front);
+                    ResetView(Viewpoint.Defaults.Front);
                     break;
 
                 // Right view
                 case Keys.D5:
-                    ResetView(Viewpoint.Right);
+                    ResetView(Viewpoint.Defaults.Right);
                     break;
 
                 // Left view
 				case Keys.D6:
-					ResetView(Viewpoint.Left);
+					ResetView(Viewpoint.Defaults.Left);
                     break;
 
                 // Increase brightness
@@ -1579,53 +1584,46 @@ namespace UTFEditor
 
                 // Move up
                 case Keys.Up:
-                    posY += (e.Shift) ? 1 : 10;
-                    Invalidate();
+                    MoveView(Viewpoint.Move.Up, e.Shift);
                     break;
 
                 // Move down
-                case Keys.Down:
-                    posY -= (e.Shift) ? 1 : 10;
-                    Invalidate();
+				case Keys.Down:
+					MoveView(Viewpoint.Move.Down, e.Shift);
                     break;
 
                 // Move left
-                case Keys.Left:
-                    posX -= (e.Shift) ? 1 : 10;
-                    Invalidate();
+				case Keys.Left:
+					MoveView(Viewpoint.Move.Left, e.Shift);
                     break;
 
                 // Move right
-                case Keys.Right:
-                    posX += (e.Shift) ? 1 : 10;
-                    Invalidate();
+				case Keys.Right:
+					MoveView(Viewpoint.Move.Right, e.Shift);
                     break;
 
                 // Rotate around the Y axis
                 case Keys.PageUp:
                 case Keys.PageDown:
-                    float delta = (float)Math.PI / (e.Shift ? 180 : 12);
-                    if (e.KeyCode == Keys.PageDown)
-                        delta = -delta;
                     switch (e.Modifiers & ~Keys.Shift)
                     {
-                        case Keys.None:    rotY += delta; break;
-                        case Keys.Control: rotX += delta; break;
-                        case Keys.Alt:     rotZ += delta; break;
+                        case Keys.None:    RotateView(Viewpoint.Rotate.Y, e.KeyCode == Keys.PageUp, e.Shift); break;
+						case Keys.Control: RotateView(Viewpoint.Rotate.X, e.KeyCode == Keys.PageUp, e.Shift); break;
+                        case Keys.Alt:     RotateView(Viewpoint.Rotate.Z, e.KeyCode == Keys.PageUp, e.Shift); break;
                     }
-                    Invalidate();
                     break;
 
                 // Reset the view, but keep the origin and scales
                 case Keys.Home:
-                    posX = posY = 0;
-                    rotX = rotY = rotZ = 0;
-                    Invalidate();
-                    break;
-
-                // Close
-                case Keys.Escape:
-                    Close();
+					if(e.Shift)
+					{
+						CenterViewOnHardpoint();
+					}
+					else
+					{
+						ResetPosition();
+						ResetView(Viewpoint.Defaults.Back);
+                    }
                     break;
             }
 		}
@@ -1654,40 +1652,56 @@ namespace UTFEditor
 			new ViewTextForm("Model View Help", Properties.Resources.ModelViewHelp).Show();
         }
         
-        private enum Viewpoint
+        private class Viewpoint
         {
-			Bottom,
-			Top,
-			Right,
-			Left,
-			Front,
-			Back
+			public enum Defaults
+			{
+				Bottom,
+				Top,
+				Right,
+				Left,
+				Front,
+				Back
+			}
+			public enum Move
+			{
+				Up,
+				Down,
+				Left,
+				Right
+			}
+			public enum Rotate
+			{
+				X,
+				Y,
+				Z
+			}
         }
         
-        private void ResetView(Viewpoint v)
+        private void ResetView(Viewpoint.Defaults v)
         {
 			switch(v)
 			{
-				case Viewpoint.Bottom:
+				case Viewpoint.Defaults.Bottom:
 					rotY = rotZ = 0;
 					rotX = -(float)Math.PI / 2;
 					break;
-				case Viewpoint.Top:
+				case Viewpoint.Defaults.Top:
 					rotY = rotZ = 0;
 					rotX = (float)Math.PI / 2;
 					break;
-				case Viewpoint.Back:
+				case Viewpoint.Defaults.Back:
 					rotX = rotY = rotZ = 0;
 					break;
-				case Viewpoint.Front:
+				case Viewpoint.Defaults.Front:
 					rotX = rotZ = 0;
 					rotY = (float)Math.PI;
 					break;
-				case Viewpoint.Right:
+				case Viewpoint.Defaults.Right:
 					rotX = rotZ = 0;
 					rotY = -(float)Math.PI / 2;
 					break;
-				case Viewpoint.Left:
+				case Viewpoint.Defaults.Left:
 					rotX = rotZ = 0;
 					rotY = (float)Math.PI / 2;
 					break;
@@ -1746,35 +1760,82 @@ namespace UTFEditor
             textBoxScale.Text = scale.ToString("0.###");
             Invalidate();
         }
+        
+        private void MoveView(Viewpoint.Move m, bool fine)
+        {
+			int mv = fine ? 1 : 10;
+			switch(m)
+			{
+				case Viewpoint.Move.Up:
+					posY -= mv;
+					break;
+				case Viewpoint.Move.Down:
+					posY += mv;
+					break;
+				case Viewpoint.Move.Left:
+					posX += mv;
+					break;
+				case Viewpoint.Move.Right:
+					posX -= mv;
+					break;
+			}
+			Invalidate();
+        }
+        
+        private void RotateView(Viewpoint.Rotate r, bool clockwise, bool fine)
+        {
+			float delta = (float)Math.PI / (fine ? 180 : 12);
+			if(!clockwise) delta *= -1;
+			
+			switch(r)
+			{
+				case Viewpoint.Rotate.X:
+					rotX += delta;
+					break;
+				case Viewpoint.Rotate.Y:
+					rotY += delta;
+					break;
+				case Viewpoint.Rotate.Z:
+					rotZ += delta;
+					break;
+			}
+			Invalidate();
+        }
+        
+        private void ResetPosition()
+        {
+			posX = posY = 0;
+			Invalidate();
+        }
 
 		private void bottomToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			ResetView(Viewpoint.Bottom);
+			ResetView(Viewpoint.Defaults.Bottom);
 		}
 
 		private void topToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			ResetView(Viewpoint.Top);
+			ResetView(Viewpoint.Defaults.Top);
 		}
 
 		private void backToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			ResetView(Viewpoint.Back);
+			ResetView(Viewpoint.Defaults.Back);
 		}
 
 		private void frontToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			ResetView(Viewpoint.Front);
+			ResetView(Viewpoint.Defaults.Front);
 		}
 
 		private void rightToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			ResetView(Viewpoint.Right);
+			ResetView(Viewpoint.Defaults.Right);
 		}
 
 		private void leftToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			ResetView(Viewpoint.Left);
+			ResetView(Viewpoint.Defaults.Left);
 		}
 
 		private void minimumToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1878,42 +1939,123 @@ namespace UTFEditor
 
         private void leftToolStripMenuItem1_Click(object sender, EventArgs e)
         {
-
+			MoveView(Viewpoint.Move.Left, false);
         }
 
         private void leftfineToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-
+		{
+			MoveView(Viewpoint.Move.Left, true);
         }
 
         private void rightToolStripMenuItem1_Click(object sender, EventArgs e)
-        {
-
+		{
+			MoveView(Viewpoint.Move.Right, false);
         }
 
         private void rightfineToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-
+		{
+			MoveView(Viewpoint.Move.Right, true);
         }
 
         private void upToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-
+		{
+			MoveView(Viewpoint.Move.Up, false);
         }
 
         private void upfineToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-
+		{
+			MoveView(Viewpoint.Move.Up, true);
         }
 
         private void downToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-
+		{
+			MoveView(Viewpoint.Move.Down, false);
         }
 
         private void downfineToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-
+		{
+			MoveView(Viewpoint.Move.Down, true);
         }
+
+		private void anticlockwiseYaxisToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			RotateView(Viewpoint.Rotate.Y, false, false);
+		}
+
+		private void anticlockwiseYaxisToolStripMenuItem1_Click(object sender, EventArgs e)
+		{
+			RotateView(Viewpoint.Rotate.Y, false, true);
+		}
+
+		private void clockwiseYaxisToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			RotateView(Viewpoint.Rotate.Y, true, false);
+		}
+
+		private void clockwiseYaxisToolStripMenuItem1_Click(object sender, EventArgs e)
+		{
+			RotateView(Viewpoint.Rotate.Y, true, true);
+		}
+
+		private void anticlockwiseXaxisToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			RotateView(Viewpoint.Rotate.X, false, false);
+		}
+
+		private void anticlockwiseXaxisToolStripMenuItem1_Click(object sender, EventArgs e)
+		{
+			RotateView(Viewpoint.Rotate.X, false, true);
+		}
+
+		private void clockwiseXaxisToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			RotateView(Viewpoint.Rotate.X, true, false);
+		}
+
+		private void clockwiseXaxisToolStripMenuItem1_Click(object sender, EventArgs e)
+		{
+			RotateView(Viewpoint.Rotate.X, true, true);
+		}
+
+		private void anticlockwiseZaxisToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			RotateView(Viewpoint.Rotate.Z, false, false);
+		}
+
+		private void anticlockwiseZaxisToolStripMenuItem1_Click(object sender, EventArgs e)
+		{
+			RotateView(Viewpoint.Rotate.Z, false, true);
+		}
+
+		private void clockwiseZaxisToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			RotateView(Viewpoint.Rotate.Z, true, false);
+		}
+
+		private void clockwiseZaxisToolStripMenuItem1_Click(object sender, EventArgs e)
+		{
+			RotateView(Viewpoint.Rotate.Z, true, true);
+		}
+
+		private void resetToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			ResetPosition();
+			ResetView(Viewpoint.Defaults.Back);
+		}
+
+		private void centerOnHardpointToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			CenterViewOnHardpoint();
+		}
+
+		private void shortcutsToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			ShowHelp();
+		}
+
+		private void resetAllToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			ResetAll();
+		}
     }
 }
