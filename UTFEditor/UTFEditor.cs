@@ -556,7 +556,7 @@ namespace UTFEditor
                         break;
                     case Editable.IntHex:
                         type = typeof(uint);
-                        format = "0xX";
+                        format = "";// "X2";
                         break;
                 }
                 if (type != null)

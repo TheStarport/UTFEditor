@@ -1160,7 +1160,13 @@ namespace UTFEditor
                             mipNode = node.Nodes["MIP0"];
                         if (mipNode != null)
                         {
-                            using (MemoryStream ms = new MemoryStream(mipNode.Tag as byte[]))
+                            byte[] texture = mipNode.Tag as byte[];
+                            if (texture[0] != 'D') // if 'D' assume DDS (DXT), otherwise TGA.
+                            {
+                                texture = (byte[])texture.Clone();
+                                texture[0x11] |= 0x20; // set the origin flag, flipping the texture
+                            }
+                            using (MemoryStream ms = new MemoryStream(texture))
                             {
                                 return TextureLoader.FromStream(device, ms);
                             }
