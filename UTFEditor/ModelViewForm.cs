@@ -1560,7 +1560,7 @@ namespace UTFEditor
 
                 // Toggle background between black and white
                 case Keys.B:
-                    SetBackground(background == 0xFFFFFF);
+                    SetBackground(background == 0);
                     break;
 
                 // Toggle solid and wireframe
