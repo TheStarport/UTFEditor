@@ -163,6 +163,7 @@
     <Compile Include="RenameNodeForm.Designer.cs">
       <DependentUpon>RenameNodeForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="SUR.cs" />
     <Compile Include="SurFile.cs" />
     <Compile Include="UTFFile.cs" />
     <Compile Include="UTFForm.cs">
