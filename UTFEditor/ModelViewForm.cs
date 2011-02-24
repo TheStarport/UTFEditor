@@ -610,6 +610,14 @@ namespace UTFEditor
                 }
             }
             catch { }
+            
+            // Load SUR, if available
+            try
+            {
+				SUR.LoadFromFile(parent.fileName);
+            }
+            catch(Exception)
+            { }
         }
 
         /// <summary>
@@ -1416,10 +1424,12 @@ namespace UTFEditor
 			hpNew.PosX = loc.X;
 			hpNew.PosY = loc.Y;
 			hpNew.PosZ = loc.Z;
-			
-			if (Control.ModifierKeys == (Keys.Shift | Keys.Control))
+
+			if (Control.ModifierKeys == (Keys.Shift | Keys.Control) || Control.ModifierKeys == (Keys.Control | Keys.Alt))
 			{
-                Matrix transMat = Matrix.LookAtRH(new Vector3(0, 0, 0), faceNormal, new Vector3(0, 1, 0));// *Matrix.RotationX((float)Math.PI / 2); for alternate auto-orient (360 deg weapons)
+				Matrix transMat = transMat = Matrix.LookAtRH(new Vector3(0, 0, 0), faceNormal, new Vector3(0, 1, 0));
+                if((Control.ModifierKeys & Keys.Alt) != Keys.None)
+					transMat *= Matrix.RotationX((float)Math.PI / 2);
 				if (transMat.Determinant == 0)
 					transMat = Matrix.RotationX(180);
 				hpNew.RotMatXX = transMat.M11;

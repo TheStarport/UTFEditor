@@ -211,8 +211,8 @@
             this.viewToolStripMenuItem,
             this.visibilityToolStripMenuItem,
             this.navigationToolStripMenuItem,
-            this.helpToolStripMenuItem,
-            this.resetAllToolStripMenuItem});
+            this.resetAllToolStripMenuItem,
+            this.helpToolStripMenuItem});
 			this.menu.Location = new System.Drawing.Point(0, 0);
 			this.menu.Name = "menu";
 			this.menu.Size = new System.Drawing.Size(624, 24);
@@ -236,7 +236,7 @@
 			// 
 			this.bottomToolStripMenuItem.Name = "bottomToolStripMenuItem";
 			this.bottomToolStripMenuItem.ShortcutKeyDisplayString = "1";
-			this.bottomToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
+			this.bottomToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
 			this.bottomToolStripMenuItem.Text = "Bottom";
 			this.bottomToolStripMenuItem.Click += new System.EventHandler(this.bottomToolStripMenuItem_Click);
 			// 
@@ -244,7 +244,7 @@
 			// 
 			this.topToolStripMenuItem.Name = "topToolStripMenuItem";
 			this.topToolStripMenuItem.ShortcutKeyDisplayString = "2";
-			this.topToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
+			this.topToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
 			this.topToolStripMenuItem.Text = "Top";
 			this.topToolStripMenuItem.Click += new System.EventHandler(this.topToolStripMenuItem_Click);
 			// 
@@ -252,7 +252,7 @@
 			// 
 			this.backToolStripMenuItem.Name = "backToolStripMenuItem";
 			this.backToolStripMenuItem.ShortcutKeyDisplayString = "3";
-			this.backToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
+			this.backToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
 			this.backToolStripMenuItem.Text = "Back";
 			this.backToolStripMenuItem.Click += new System.EventHandler(this.backToolStripMenuItem_Click);
 			// 
@@ -260,7 +260,7 @@
 			// 
 			this.frontToolStripMenuItem.Name = "frontToolStripMenuItem";
 			this.frontToolStripMenuItem.ShortcutKeyDisplayString = "4";
-			this.frontToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
+			this.frontToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
 			this.frontToolStripMenuItem.Text = "Front";
 			this.frontToolStripMenuItem.Click += new System.EventHandler(this.frontToolStripMenuItem_Click);
 			// 
@@ -268,7 +268,7 @@
 			// 
 			this.rightToolStripMenuItem.Name = "rightToolStripMenuItem";
 			this.rightToolStripMenuItem.ShortcutKeyDisplayString = "5";
-			this.rightToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
+			this.rightToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
 			this.rightToolStripMenuItem.Text = "Right";
 			this.rightToolStripMenuItem.Click += new System.EventHandler(this.rightToolStripMenuItem_Click);
 			// 
@@ -276,7 +276,7 @@
 			// 
 			this.leftToolStripMenuItem.Name = "leftToolStripMenuItem";
 			this.leftToolStripMenuItem.ShortcutKeyDisplayString = "6";
-			this.leftToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
+			this.leftToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
 			this.leftToolStripMenuItem.Text = "Left";
 			this.leftToolStripMenuItem.Click += new System.EventHandler(this.leftToolStripMenuItem_Click);
 			// 
