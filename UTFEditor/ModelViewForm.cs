@@ -20,6 +20,10 @@ namespace UTFEditor
         /// The directx device.
         /// </summary>
         Device device = null;
+        SwapChain swap = null;
+        PresentParameters presentParams = null;
+        Surface depthStencil = null;
+        DepthFormat depthFormat;
 
         /// <summary>
         /// The model scale.
@@ -28,7 +32,6 @@ namespace UTFEditor
         float distance;
 
         int background = 0;
-        int brightness = 0;
 
         /// <summary>
         /// The last position of the mouse when the model is being rotated.
@@ -64,11 +67,8 @@ namespace UTFEditor
 
         /// The current X/Y/Z origin.
         float orgX = 0, orgY = 0, orgZ = 0;
-
-        bool wireframe = false;
         
         DateTime lastClickTime;
-        int modelPanelSize = 251;
 
         /// <summary>
         /// Mesh group data.
@@ -293,7 +293,6 @@ namespace UTFEditor
             this.rootNode = utf.Nodes[0];
             this.directoryPath = Path.GetDirectoryName(directoryPath);
             InitializeComponent();
-            InitializeGraphics();
             this.Text += " - " + Path.GetFileName(directoryPath);
             this.MouseWheel += new MouseEventHandler(modelView_MouseWheel);
             parent.AddObserver(this);
@@ -309,29 +308,24 @@ namespace UTFEditor
         /// </summary>
         public void InitializeGraphics()
         {
-            PresentParameters presentParams = new PresentParameters();
+            presentParams = new PresentParameters();
             presentParams.Windowed = true;
-            presentParams.SwapEffect = SwapEffect.Discard;
-            presentParams.BackBufferFormat = Format.Unknown;
-            presentParams.EnableAutoDepthStencil = true;
+			presentParams.SwapEffect = SwapEffect.Discard;
 
-            DepthFormat[] formats = { DepthFormat.D32, DepthFormat.D24X8, DepthFormat.D16 };
-            foreach (DepthFormat format in formats)
-            {
-                try
-                {
-                    presentParams.AutoDepthStencilFormat = format;
-                    device = new Device(0, DeviceType.Hardware, modelView.Panel1, CreateFlags.SoftwareVertexProcessing, presentParams);
-                    break;
-                }
-                catch { }
-            }
-
+			DepthFormat[] formats = { DepthFormat.D32, DepthFormat.D24X8, DepthFormat.D16 };
+			foreach (DepthFormat format in formats)
+			{
+				depthFormat = format;
+				if (Manager.CheckDepthStencilMatch(0, DeviceType.Hardware, Manager.Adapters.Default.CurrentDisplayMode.Format, Manager.Adapters.Default.CurrentDisplayMode.Format, depthFormat)) break;
+			}
+			
+			device = new Device(0, DeviceType.Hardware, modelView.Panel1.Handle, CreateFlags.HardwareVertexProcessing, presentParams);
+            
             if (device == null)
                 throw new Exception("Unable to initialise Directx.");
 
-            device.DeviceReset += new System.EventHandler(this.OnResetDevice);
-            this.OnResetDevice(device, null);
+			this.SetupDevice(device);
+			
             scale = (modelView.Panel1.Height - 1) / distance;
             if (scale < 0.001f)
                 scale = 0.001f;
@@ -339,7 +333,15 @@ namespace UTFEditor
                 scale = 1000;
             hp.scale = 25 / scale;
             ChangeHardpointSize(1);
-            ChangeScale(1);
+			ChangeScale(1);
+			
+			presentParams.BackBufferWidth = modelView.Panel1.Width;
+			presentParams.BackBufferHeight = modelView.Panel1.Height;
+			presentParams.DeviceWindowHandle = modelView.Panel1.Handle;
+
+			swap = new SwapChain(device, presentParams);
+
+			depthStencil = device.CreateDepthStencilSurface(modelView.Panel1.Width, modelView.Panel1.Height, depthFormat, MultiSampleType.None, 0, true);
         }
 
         /// <summary>
@@ -348,31 +350,30 @@ namespace UTFEditor
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        public void OnResetDevice(object sender, EventArgs e)
+		private void SetupDevice(Device dev)
         {
-            Device dev = (Device)sender;
-            dev.RenderState.ZBufferEnable = true;
+			dev.RenderState.ZBufferEnable = true;
 			dev.RenderState.DitherEnable = true;
 
-            if (hp.display != null)
-            {
-                hp.display.Dispose();
-                hp.revolute.Dispose();
-            }
+			if (hp.display != null)
+			{
+				hp.display.Dispose();
+				hp.revolute.Dispose();
+			}
 			hp.display = new VertexBuffer(typeof(CustomVertex.PositionColored), Hardpoint.displayvertices.Length, dev, Usage.WriteOnly, CustomVertex.PositionColored.Format, Pool.Default);
-            hp.display.SetData(Hardpoint.displayvertices, 0, LockFlags.None);
-            hp.revolute = new VertexBuffer(typeof(CustomVertex.PositionColored), 26, dev, Usage.WriteOnly, CustomVertex.PositionColored.Format, Pool.Default);
-            hp.max = Single.MaxValue;
-            hp.min = Single.MinValue;
-            
-            if (hp.indices != null)
-            {
+			hp.display.SetData(Hardpoint.displayvertices, 0, LockFlags.None);
+			hp.revolute = new VertexBuffer(typeof(CustomVertex.PositionColored), 26, dev, Usage.WriteOnly, CustomVertex.PositionColored.Format, Pool.Default);
+			hp.max = Single.MaxValue;
+			hp.min = Single.MinValue;
+
+			if (hp.indices != null)
+			{
 				hp.indices.Dispose();
-            }
+			}
 			hp.indices = new IndexBuffer(device, Hardpoint.displayindexes.Length * sizeof(int), Usage.WriteOnly, Pool.Default, false);
 			hp.indices.SetData(Hardpoint.displayindexes, 0, LockFlags.None);
-            
-            DataChanged(null, "", null);
+
+			DataChanged(null, "", null);
         }
 
         /// <summary>
@@ -455,36 +456,6 @@ namespace UTFEditor
                     mapFileToObj[fileName] = objectName;
                 }
             }
-
-            // Determine if there are any levels.
-            /*TreeNode[] multilevels = rootNode.Nodes.Find("MultiLevel", true);
-            if (multilevels.Length == 0)
-            {
-                labelLevel.Visible = spinnerLevel.Visible = false;
-                spinnerLevel.Value = 0;
-            }
-            else
-            {
-                labelLevel.Visible = spinnerLevel.Visible = true;
-                // Let's assume all parts have the same number of levels.
-                // Turns out that's not a valid assumption, so let's assume
-                // the root part is first and contains the most levels.
-                int level = 0;
-                foreach (TreeNode node in multilevels[0].Nodes)
-                {
-                    try
-                    {
-                        if (node.Name.StartsWith("Level", StringComparison.OrdinalIgnoreCase))
-                        {
-                            int lev = int.Parse(node.Name.Substring(5));
-                            if (lev > level)
-                                level = lev;
-                        }
-                    }
-                    catch { }
-                }
-                spinnerLevel.Maximum = level;
-            }*/
 
             // Scan the level 0 VMeshRefs to build mesh group list for each 
             // of the construction nodes identified in the previous search.
@@ -986,10 +957,14 @@ namespace UTFEditor
         /// </summary>
         private void Render()
         {
-            if (device == null)
+            if (device == null || swap == null || swap.Disposed || depthStencil == null)
                 return;
-
-            device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, background, 1.0f, 0);
+            
+            Surface s = swap.GetBackBuffer(0, BackBufferType.Mono);
+			device.SetRenderTarget(0, s);
+			device.DepthStencilSurface = depthStencil;
+			device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, background, 1.0f, 0);
+			s.Dispose();
             device.BeginScene();
 
             SetupMatrices();
@@ -1018,8 +993,10 @@ namespace UTFEditor
 						device.RenderState.CullMode = Cull.None;
 						device.RenderState.FillMode = FillMode.WireFrame;
 					}
-
-					//device.RenderState.TextureFactor = mg.DisplayInfo.Color.ToArgb();
+					
+					device.RenderState.AlphaBlendEnable = true;
+					device.RenderState.SourceBlend = Blend.BlendFactor;
+					device.RenderState.BlendFactor = mg.DisplayInfo.Color;
 
 					Texture tex = FindTextureByMaterialID(mesh.MaterialId);
 					device.RenderState.TextureFactor = tex.Dc;
@@ -1031,7 +1008,8 @@ namespace UTFEditor
 						device.TextureState[0].ColorOperation = TextureOperation.Modulate;
 						device.TextureState[0].ColorArgument1 = TextureArgument.TextureColor;
 						device.TextureState[0].ColorArgument2 = TextureArgument.TFactor;
-						//device.TextureState[0].AlphaOperation = TextureOperation.SelectArg1;
+						device.TextureState[0].AlphaOperation = TextureOperation.SelectArg1;
+						device.TextureState[0].AlphaArgument1 = TextureArgument.TextureColor;
 
 						device.SamplerState[0].MipFilter = TextureFilter.Linear;
 						device.SamplerState[0].MinFilter = TextureFilter.Linear;
@@ -1052,7 +1030,7 @@ namespace UTFEditor
             ShowHardpoint();
 
             device.EndScene();
-            device.Present(modelView.Panel1);
+            swap.Present();
         }
 
         /// <summary>
@@ -1374,10 +1352,8 @@ namespace UTFEditor
             ChangeHardpointSize(1);
 
             SetBackground(false);
-            ChangeBrightness(false, true);
-            SetShading(false);
             // If the scale is the same, the text box won't change, so explicitly invalidate.
-            Refresh();
+			this.SetupDevice(device);
         }
 
         private void CenterViewOnHardpoint()
@@ -1732,24 +1708,9 @@ namespace UTFEditor
 					ResetView(Viewpoint.Defaults.Left);
                     break;
 
-                // Increase brightness
-				case Keys.A:
-					ChangeBrightness(true, e.Shift);
-                    break;
-
-                // Decrease brightness
-                case Keys.Z:
-                    ChangeBrightness(false, e.Shift);
-                    break;
-
                 // Toggle background between black and white
                 case Keys.B:
                     SetBackground(background == 0);
-                    break;
-
-                // Toggle solid and wireframe
-                case Keys.W:
-                    SetShading(!wireframe);
                     break;
 
                 // Increase the hardpoint display
@@ -1827,7 +1788,7 @@ namespace UTFEditor
         public override void Refresh()
         {
 			base.Refresh();
-			Render();
+			//Render();
         }
         
         public event EventHandler HardpointMoved;
@@ -1898,37 +1859,12 @@ namespace UTFEditor
 			}
 			Invalidate();
         }
-        
-        private void ChangeBrightness(bool increase, bool extreme)
-        {
-			if(extreme)
-			{
-				if (increase) brightness = 0x808080;
-				else brightness = 0;
-			}
-			else
-			{
-				if (increase) brightness += 0x080808;
-				else brightness -= 0x080808;
-			}
-			
-			toolStripBrightnessSet.Text = (((float) brightness) / 0x808080).ToString();
-			Invalidate();
-        }
 
         private void SetBackground(bool white)
         {
             background = white ? 0xFFFFFF : 0;
             blackToolStripMenuItem.Checked = !white;
             whiteToolStripMenuItem.Checked = white;
-            Invalidate();
-        }
-
-        private void SetShading(bool w)
-        {
-            wireframe = w;
-            wireframeToolStripMenuItem.Checked = wireframe;
-            solidToolStripMenuItem.Checked = !wireframe;
             Invalidate();
         }
 
@@ -2028,48 +1964,6 @@ namespace UTFEditor
 			ResetView(Viewpoint.Defaults.Left);
 		}
 
-		private void minimumToolStripMenuItem_Click(object sender, EventArgs e)
-		{
-			ChangeBrightness(false, true);
-		}
-
-		private void decreaseToolStripMenuItem_Click(object sender, EventArgs e)
-		{
-			ChangeBrightness(false, false);
-		}
-
-		private void increaseToolStripMenuItem_Click(object sender, EventArgs e)
-		{
-			ChangeBrightness(true, false);
-		}
-
-		private void maximumToolStripMenuItem_Click(object sender, EventArgs e)
-		{
-			ChangeBrightness(true, true);
-		}
-
-		private void toolStripBrightnessSet_TextChanged(object sender, EventArgs e)
-		{
-			try
-			{
-				float newBrightness = Single.Parse(toolStripBrightnessSet.Text);
-				if(newBrightness < 0 || newBrightness > 1) throw new ArgumentOutOfRangeException();
-				
-				brightness = (int) (0x808080 * newBrightness);
-				
-				toolStripBrightnessSet.ForeColor = SystemColors.WindowText;
-			}
-			catch(Exception)
-			{
-				toolStripBrightnessSet.ForeColor = Color.Red;
-			}
-		}
-
-        private void ModelViewForm_Load(object sender, EventArgs e)
-        {
-
-        }
-
         private void blackToolStripMenuItem_Click(object sender, EventArgs e)
         {
             SetBackground(false);
@@ -2078,16 +1972,6 @@ namespace UTFEditor
         private void whiteToolStripMenuItem_Click(object sender, EventArgs e)
         {
             SetBackground(true);
-        }
-
-        private void wireframeToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            SetShading(true);
-        }
-
-        private void solidToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            SetShading(false);
         }
 
         private void decreaseToolStripMenuItem1_Click(object sender, EventArgs e)
@@ -2109,11 +1993,11 @@ namespace UTFEditor
 
                 hp.scale = 1 / newScale;
 
-                toolStripBrightnessSet.ForeColor = SystemColors.WindowText;
+				toolStripHardpointSizeSet.ForeColor = SystemColors.WindowText;
             }
             catch (Exception)
             {
-                toolStripBrightnessSet.ForeColor = Color.Red;
+				toolStripHardpointSizeSet.ForeColor = Color.Red;
             }
         }
 
@@ -2335,6 +2219,29 @@ namespace UTFEditor
 		private void showModelPanelToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			modelView.Panel2Collapsed = !modelView.Panel2Collapsed;
+		}
+
+		private void modelView_Panel1_Resize(object sender, EventArgs e)
+		{
+			if (device == null || presentParams == null) return;
+
+			if (swap != null) swap.Dispose();
+
+			presentParams.BackBufferWidth = modelView.Panel1.Width;
+			presentParams.BackBufferHeight = modelView.Panel1.Height;
+			
+			if(presentParams.BackBufferWidth == 0 || presentParams.BackBufferHeight == 0) return;
+			
+			presentParams.DeviceWindowHandle = modelView.Panel1.Handle;
+			
+			swap = new SwapChain(device, presentParams);
+			
+			depthStencil = device.CreateDepthStencilSurface(modelView.Panel1.Width, modelView.Panel1.Height, DepthFormat.D24X8, MultiSampleType.None, 0, true);
+		}
+
+		private void ModelViewForm_Load(object sender, EventArgs e)
+		{
+			InitializeGraphics();
 		}
     }
 }
