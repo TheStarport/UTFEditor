@@ -68,6 +68,7 @@ namespace UTFEditor
         bool wireframe = false;
         
         DateTime lastClickTime;
+        int modelPanelSize = 251;
 
         /// <summary>
         /// Mesh group data.
@@ -75,11 +76,29 @@ namespace UTFEditor
         public class MeshGroup
         {
             public string Name;
+            public MeshGroupDisplayInfo DisplayInfo;
             public VMeshRef RefData;
             public Matrix Transform;
             public MeshDataBuffer MeshDataBuffer;
             public Mesh[] M;
-        };
+		};
+
+		public struct MeshGroupDisplayInfo
+		{
+			public bool Display;
+			//public string Name;
+			public int Level;
+			public ShadingMode Shading;
+			public Color Color;
+			public bool Texture;
+		}
+
+		public enum ShadingMode
+		{
+			Flat,
+			Wireframe,
+			Smooth
+		}
 
         /// <summary>
         /// THe list of mesh groups in the model.
@@ -333,7 +352,7 @@ namespace UTFEditor
         {
             Device dev = (Device)sender;
             dev.RenderState.ZBufferEnable = true;
-            dev.RenderState.DitherEnable = true;
+			dev.RenderState.DitherEnable = true;
 
             if (hp.display != null)
             {
@@ -438,7 +457,7 @@ namespace UTFEditor
             }
 
             // Determine if there are any levels.
-            TreeNode[] multilevels = rootNode.Nodes.Find("MultiLevel", true);
+            /*TreeNode[] multilevels = rootNode.Nodes.Find("MultiLevel", true);
             if (multilevels.Length == 0)
             {
                 labelLevel.Visible = spinnerLevel.Visible = false;
@@ -465,31 +484,33 @@ namespace UTFEditor
                     catch { }
                 }
                 spinnerLevel.Maximum = level;
-            }
+            }*/
 
             // Scan the level 0 VMeshRefs to build mesh group list for each 
             // of the construction nodes identified in the previous search.
-            string levelstr = spinnerLevel.Value.ToString();
+            //string levelstr = spinnerLevel.Value.ToString();
             foreach (TreeNode node in rootNode.Nodes.Find("VMeshRef", true))
             {
                 try
                 {
                     string levelName = node.Parent.Parent.Name;
                     string fileName;
+                    bool displayDefault = false;
                     if (levelName.StartsWith("Level", StringComparison.OrdinalIgnoreCase))
                     {
-                        if (levelName.Substring(5) == levelstr)
-                            fileName = node.Parent.Parent.Parent.Parent.Name;
-                        else
-                            continue;
+						fileName = node.Parent.Parent.Parent.Parent.Name;
+                        if (levelName.Substring(5) == "0")
+							displayDefault = true;
                     }
                     else
                         fileName = levelName;
                     string objName;
                     if (mapFileToObj.TryGetValue(fileName, out objName))
                     {
+						MeshGroupDisplayInfo mgdi = GetMeshGroupDisplayInfo(displayDefault, objName, levelName);
                         MeshGroup mg = new MeshGroup();
                         mg.Name = objName;
+                        mg.DisplayInfo = mgdi;
                         mg.RefData = new VMeshRef(node.Tag as byte[]);
                         mg.Transform = Matrix.Identity;
                         mg.MeshDataBuffer = FindMatchingMeshData(mg.RefData);
@@ -614,10 +635,89 @@ namespace UTFEditor
             // Load SUR, if available
             try
             {
-				SUR.LoadFromFile(parent.fileName);
+				//SUR.LoadFromFile(parent.fileName);
             }
             catch(Exception)
             { }
+            
+            modelPanelView.Sort(modelPanelView.Columns[1], ListSortDirection.Ascending);
+        }
+
+		MeshGroupDisplayInfo GetMeshGroupDisplayInfo(bool def, string name, string level)
+        {
+			for(int a = 0; a < modelPanelView.Rows.Count; a++)
+			{
+				DataGridViewTextBoxCell c = (DataGridViewTextBoxCell)modelPanelView[1, a];
+				string cellName = c.Value as string;
+				int[] cellTag = (int[]) c.Tag;
+				if ("Level" + cellTag[0] == level && cellName == name)
+				{
+					MeshGroupDisplayInfo mgdi = new MeshGroupDisplayInfo();
+					mgdi.Display = (bool)((DataGridViewCheckBoxCell)modelPanelView[0, a]).Value;
+					mgdi.Shading = (ShadingMode) Enum.Parse(typeof(ShadingMode), ((DataGridViewComboBoxCell)modelPanelView[2, a]).Value as string);
+					mgdi.Color = GetColor((string)((DataGridViewTextBoxCell)modelPanelView[3, a]).Value);
+					mgdi.Texture = (bool)((DataGridViewCheckBoxCell)modelPanelView[4, a]).Value;
+					Int32.TryParse(level.Substring(5), out mgdi.Level);
+					return mgdi;
+				}
+			}
+			
+			MeshGroupDisplayInfo mgdiDef = new MeshGroupDisplayInfo();
+			mgdiDef.Display = def;
+			mgdiDef.Shading = ShadingMode.Flat;
+			mgdiDef.Texture = true;
+			mgdiDef.Color = Color.FromArgb(255, Color.White);
+			Int32.TryParse(level.Substring(5), out mgdiDef.Level);
+			
+			int rowNum = modelPanelView.Rows.Add();
+			CreateLevelRow(rowNum, mgdiDef.Level, def);
+
+			modelPanelView[0, rowNum].Value = mgdiDef.Display;
+			modelPanelView[1, rowNum].Value = name;
+			modelPanelView[2, rowNum].Value = ShadingMode.Flat.ToString();
+			modelPanelView[3, rowNum].Value = "#FFFFFFFF";
+			modelPanelView[4, rowNum].Value = true;
+			modelPanelView[1, rowNum].Tag = new int[] { mgdiDef.Level, 0 };
+			
+			return mgdiDef;
+        }
+        
+        Color GetColor(string text)
+        {
+			if(text == null) return Color.Black;
+			System.Text.RegularExpressions.Regex r = new System.Text.RegularExpressions.Regex("^#(?<A>[0-9a-fA-F]{2})?(?<R>[0-9a-fA-F]{2})(?<G>[0-9a-fA-F]{2})(?<B>[0-9a-fA-F]{2})$");
+			System.Text.RegularExpressions.Match m = r.Match(text);
+			if(m.Success) return Color.FromArgb(
+						m.Groups["A"].Success ? Int32.Parse(m.Groups["A"].Value, System.Globalization.NumberStyles.HexNumber) : 255,
+						Int32.Parse(m.Groups["R"].Value, System.Globalization.NumberStyles.HexNumber),
+						Int32.Parse(m.Groups["G"].Value, System.Globalization.NumberStyles.HexNumber),
+						Int32.Parse(m.Groups["B"].Value, System.Globalization.NumberStyles.HexNumber)
+						);
+			
+			return Color.FromName(text.Replace(" ", ""));
+        }
+        
+        void CreateLevelRow(int row, int level, bool def)
+        {
+			for(int a = row; a > 0; a--)
+			{
+				int[] data = (int[]) modelPanelView[1, a].Tag;
+				if(data == null) continue;
+				if(data[0] == level && data[1] == 1) return;
+			}
+			
+			row = modelPanelView.Rows.Add();
+			Color defCol = Color.FromArgb(255, Color.White);
+
+			modelPanelView[0, row].Value = def;
+			modelPanelView[1, row].Value = "Level" + level;
+			modelPanelView[2, row].Value = ShadingMode.Flat.ToString();
+			modelPanelView[3, row].Value = "#FFFFFFFF";
+			modelPanelView[4, row].Value = true;
+			modelPanelView[1, row].Tag = new int[] { level, 1 };
+
+			modelPanelView.Rows[row].DefaultCellStyle.BackColor = SystemColors.ControlDarkDark;
+			modelPanelView.Rows[row].DefaultCellStyle.ForeColor = SystemColors.ControlLightLight;
         }
 
         /// <summary>
@@ -793,42 +893,88 @@ namespace UTFEditor
         /// Create some lights and brightness based on the world scale.
         /// </summary>
         private void SetupLights()
-        {
-            Material mtrl = new Material();
-            mtrl.Diffuse = System.Drawing.Color.White;
-            mtrl.Ambient = System.Drawing.Color.White;
-            device.Material = mtrl;
+		{
+			/*device.RenderState.Lighting = true;
+			device.Lights[0].Type = LightType.Directional;
+			device.Lights[0].Diffuse = Color.Blue;
+			//device.Lights[0].DiffuseColor = new ColorValue(scale, scale, scale);
+			device.Lights[0].Direction = new Vector3(1.0f, 1.0f, 1.0f);
+			device.Lights[0].Update();
+			device.Lights[0].Enabled = true;
+			device.RenderState.Ambient = Color.Gray;
+			Material mtrl = new Material();
+			mtrl.Ambient = Color.Black;
+			mtrl.Diffuse = Color.White;
+			device.Material = mtrl;
+			
+			/*
+			device.RenderState.DiffuseMaterialSource = ColorSource.Material;
+			device.RenderState.SpecularMaterialSource = ColorSource.Material;
+			Material mtrl = new Material();
+			mtrl.Ambient = Color.Black;
+			mtrl.Diffuse = Color.White;
+			device.Material = mtrl;
+			
+			/*device.RenderState.Lighting = true;
+			device.Lights[0].Type = LightType.Directional;
+			device.Lights[0].Diffuse = Color.Red;
+			device.Lights[0].DiffuseColor = new ColorValue(scale, scale, scale);
+			device.Lights[0].Direction = new Vector3(1.0f, 1.0f, 1.0f);
+			device.Lights[0].Enabled = true;
+			/*Material mtrl = new Material();
+			mtrl.Ambient = Color.Red;//mgdi.Color;
+			device.Material = mtrl;
+			
+			device.RenderState.Ambient = Color.Red;
+			device.RenderState.Lighting = true;
+			device.Lights[0].Type = LightType.Directional;
+			device.Lights[0].Diffuse = Color.Red;
+			device.Lights[0].DiffuseColor = new ColorValue(scale, scale, scale);
+			device.Lights[0].Direction = new Vector3(1.0f, 1.0f, 1.0f);
+			device.Lights[0].Enabled = true;*/
+			/*Material mtrl = new Material();
+			mtrl.Ambient = Color.Red;//mgdi.Color;
+			device.Material = mtrl;
+			device.RenderState.Lighting = false;
+			device.RenderState.Ambient = Color.Red;*/
 
+			/*device.RenderState.DiffuseMaterialSource = ColorSource.Color1;
+			device.RenderState.EmissiveMaterialSource = ColorSource.Color1;
+			device.RenderState.AmbientMaterialSource = ColorSource.Color1;
+
+			device.RenderState.Lighting = true;
             device.Lights[0].Type = LightType.Directional;
-            device.Lights[0].Diffuse = System.Drawing.Color.White;
+			device.Lights[0].Diffuse = mgdi.Color;
             device.Lights[0].DiffuseColor = new ColorValue(scale, scale, scale);
             device.Lights[0].Direction = new Vector3(1.0f, 1.0f, 1.0f);
 
             device.Lights[1].Type = LightType.Directional;
-            device.Lights[1].Diffuse = System.Drawing.Color.White;
+			device.Lights[1].Diffuse = mgdi.Color;
             device.Lights[1].DiffuseColor = new ColorValue(scale, scale, scale);
             device.Lights[1].Direction = new Vector3(-1.0f, -1.0f, -1.0f);
 
-            if (textures_Count > 0)
-            {
-				device.Lights[0].Enabled = false;
-				device.Lights[1].Enabled = false;
+			if (mgdi.Texture && hasTexture)
+			{
+				device.RenderState.Lighting = true;
+				device.Lights[0].Enabled = true;
+				device.Lights[1].Enabled = true;
                 device.RenderState.DiffuseMaterialSource = ColorSource.Material;
                 device.RenderState.SpecularMaterialSource = ColorSource.Material;
             }
             else
             {
                 device.RenderState.Lighting = false;
-                device.Lights[0].Enabled = true;
-                device.Lights[1].Enabled = true;
-                device.RenderState.DiffuseMaterialSource = ColorSource.Color1;
-                device.RenderState.SpecularMaterialSource = ColorSource.Color1;
+                device.RenderState.Ambient = mgdi.Color;
+                device.Lights[0].Enabled = false;
+				device.Lights[1].Enabled = false;
+                device.RenderState.DiffuseMaterialSource = ColorSource.Material;
+				device.RenderState.SpecularMaterialSource = ColorSource.Material;
             }
 
             device.RenderState.LocalViewer = true;
             device.RenderState.SpecularEnable = true;
             device.RenderState.DitherEnable = true;
-            device.RenderState.NormalizeNormals = false;
+            device.RenderState.NormalizeNormals = false;*/
         }
 
         /// <summary>
@@ -842,44 +988,55 @@ namespace UTFEditor
             device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, background, 1.0f, 0);
             device.BeginScene();
 
-            if (!wireframe)
-            {
-                device.RenderState.CullMode = Cull.Clockwise;
-                device.RenderState.FillMode = FillMode.Solid;
-            }
-            else
-            {
-                device.RenderState.CullMode = Cull.None;
-                device.RenderState.FillMode = FillMode.WireFrame;
-            }
-
-            SetupLights();
             SetupMatrices();
+			SetupLights();
             
             foreach (MeshGroup mg in MeshGroups)
             {
+				if (!mg.DisplayInfo.Display) continue;
+				
 				device.Transform.World = mg.Transform * Matrix.Translation(orgX, orgY, orgZ);
-				device.RenderState.AmbientColor = (utf.SelectedNode.Text == mg.Name) ? 0x3f3f00 : 0;
-				device.RenderState.AmbientColor += brightness;
+				//device.RenderState.AmbientColor = mg.DisplayInfo.Color.ToArgb();//(utf.SelectedNode.Text == mg.Name) ? 0x3f3f00 : 0;
+				//device.RenderState.AmbientColor += brightness;
 				
 				int endMesh = mg.RefData.StartMesh + mg.RefData.NumMeshes;
 				for (int mn = mg.RefData.StartMesh; mn < endMesh; mn++)
 				{
 					VMeshData.TMeshHeader mesh = mg.MeshDataBuffer.VMeshData.Meshes[mn];
 
+					if (mg.DisplayInfo.Shading == ShadingMode.Flat)
+					{
+						device.RenderState.CullMode = Cull.Clockwise;
+						device.RenderState.FillMode = FillMode.Solid;
+					}
+					else
+					{
+						device.RenderState.CullMode = Cull.None;
+						device.RenderState.FillMode = FillMode.WireFrame;
+					}
+
+					device.RenderState.TextureFactor = mg.DisplayInfo.Color.ToArgb();
+
 					Texture tex = FindTextureByMaterialID(mesh.MaterialId);
-					if (tex != null)
+					if (tex != null && mg.DisplayInfo.Texture)
 					{
 						device.SetTexture(0, tex.texture);
 
-						device.TextureState[0].ColorOperation = TextureOperation.Add;
+						device.TextureState[0].ColorOperation = TextureOperation.Modulate;
 						device.TextureState[0].ColorArgument1 = TextureArgument.TextureColor;
-						device.TextureState[0].ColorArgument2 = TextureArgument.Diffuse;
-						device.TextureState[0].AlphaOperation = TextureOperation.SelectArg1;
-	                    
+						device.TextureState[0].ColorArgument2 = TextureArgument.TFactor;
+						//device.TextureState[0].AlphaOperation = TextureOperation.SelectArg1;
+
 						device.SamplerState[0].MipFilter = TextureFilter.Linear;
 						device.SamplerState[0].MinFilter = TextureFilter.Linear;
 						device.SamplerState[0].MagFilter = TextureFilter.Linear;
+					}
+					else
+					{
+						device.SetTexture(0, null);
+
+						device.TextureState[0].ColorOperation = TextureOperation.SelectArg1;
+						device.TextureState[0].ColorArgument1 = TextureArgument.TFactor;
 					}
 
 					mg.M[mn - mg.RefData.StartMesh].DrawSubset(0);
@@ -963,6 +1120,7 @@ namespace UTFEditor
         /// <param name="e"></param>
         private void modelView_MouseDown(object sender, MouseEventArgs e)
         {
+			(sender as Panel).Focus();
             lastPosition = e.Location;
             right = RightType.RightFirst;
             lastClickTime = DateTime.Now;
@@ -1186,7 +1344,9 @@ namespace UTFEditor
         }
 
         private void ResetAll()
-        {
+		{
+			modelPanelView.Rows.Clear();
+			
             rotX = rotY = rotZ = 0;
             posX = posY = 0;
             orgX = orgY = orgZ = 0;
@@ -1203,7 +1363,7 @@ namespace UTFEditor
             ChangeBrightness(false, true);
             SetShading(false);
             // If the scale is the same, the text box won't change, so explicitly invalidate.
-            Invalidate();
+            Refresh();
         }
 
         private void CenterViewOnHardpoint()
@@ -2072,6 +2232,95 @@ namespace UTFEditor
 		private void resetAllToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			ResetAll();
+		}
+
+		private void modelPanelView_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+		{
+			if (e.RowIndex < 0 || e.ColumnIndex < 0 || e.RowIndex > modelPanelView.Rows.Count || e.ColumnIndex > modelPanelView.Columns.Count) return;
+
+			DataGridViewCell c = modelPanelView[e.ColumnIndex, e.RowIndex];
+			
+			string mgName = modelPanelView[1, e.RowIndex].Value as string;
+			int[] mgDat = (int[])modelPanelView[1, e.RowIndex].Tag;
+			if (mgDat == null || mgName == null) return;
+			
+			if(mgDat[1] == 1)
+			{
+				object newVal = modelPanelView[e.ColumnIndex, e.RowIndex].Value;
+				this.SuspendLayout();
+				modelPanelView.UseWaitCursor = true;
+				for(int a = e.RowIndex + 1; a < modelPanelView.Rows.Count; a++)
+				{
+					int[] mgDat2 = (int[])modelPanelView[1, a].Tag;
+					if(mgDat2 != null && mgDat2[1] == 1) break;
+					modelPanelView[e.ColumnIndex, a].Value = newVal;
+				}
+				modelPanelView.UseWaitCursor = false;
+				this.ResumeLayout();
+
+				Refresh();
+				return;
+			}
+			
+			
+			MeshGroup mg = GetMeshGroupFromName(mgName, mgDat[0]);
+			if (mg == null) return;
+
+			switch (e.ColumnIndex)
+			{
+				case 0:
+					mg.DisplayInfo.Display = (bool)c.Value;
+					break;
+				case 2:
+					mg.DisplayInfo.Shading = (ShadingMode)Enum.Parse(typeof(ShadingMode), c.Value as string);
+					break;
+				case 3:
+					mg.DisplayInfo.Color = GetColor((string)c.Value);
+					break;
+				case 4:
+					mg.DisplayInfo.Texture = (bool)c.Value;
+					break;
+			}
+
+			if (!modelPanelView.UseWaitCursor) Refresh();
+		}
+		
+		private MeshGroup GetMeshGroupFromName(string name, int level)
+		{
+			foreach(MeshGroup mg in MeshGroups)
+				if (mg.DisplayInfo.Level == level && mg.Name == name) return mg;
+			return null;
+		}
+
+		private void modelPanelView_CurrentCellDirtyStateChanged(object sender, EventArgs e)
+		{
+			modelPanelView.CommitEdit(DataGridViewDataErrorContexts.Commit);
+		}
+
+		private void modelPanelView_SortCompare(object sender, DataGridViewSortCompareEventArgs e)
+		{
+			int[] s1 = (int[]) modelPanelView[1, e.RowIndex1].Tag;
+			int[] s2 = (int[]) modelPanelView[1, e.RowIndex2].Tag;
+			if (s1[0] < s2[0]) e.SortResult = -1;
+			else if (s1[0] > s2[0]) e.SortResult = 1;
+			else
+			{
+				if(s1[1] == 1) e.SortResult = -1;
+				else if(s2[1] == 1) e.SortResult = 1;
+				else
+				{
+					if (e.CellValue1 as string == "Root") e.SortResult = -1;
+					else if (e.CellValue2 as string == "Root") e.SortResult = 1;
+					else e.SortResult = ((string)e.CellValue1).CompareTo((string)e.CellValue2);
+				} 
+			}
+			
+			e.Handled = true;
+		}
+
+		private void showModelPanelToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			modelView.Panel2Collapsed = !modelView.Panel2Collapsed;
 		}
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections;
 using System.Linq;
 using System.Text;
 using Microsoft.DirectX;
@@ -134,7 +135,7 @@ namespace UTFEditor
 						for(int a = 0; a < tgh.TriangleCount; a++)
 						{
 							Triangle t = new Triangle();
-							t.TriangleNumber = (ushort) (Utilities.GetWord(data, ref pos) >> 4 << 4); pos--;
+							/*t.TriangleNumber = (ushort) (Utilities.GetWord(data, ref pos) >> 4 << 4); pos--;
 							t.TriangleOpp = (ushort)(Utilities.GetWord(data, ref pos) << 4);
 							t.Flag = (byte) (data[pos++] << 7);
 							t.Indices = new Index[3];
@@ -146,7 +147,30 @@ namespace UTFEditor
 								i.Flag = (byte) (data[pos++] << 7);
 								t.Indices[b] = i;
 							}
+							tgh.Triangles[a] = t;*/
+							byte[] tempData = new byte[20];
+							Array.Copy(data, pos, tempData, 0, 20);
+							BitArray br = new BitArray( tempData );
+							int bitpos = 0;
+							bitpos += 13;
+							t.TriangleNumber = (ushort)Advance(br, 12, ref bitpos);
+							t.TriangleOpp = (ushort)Advance(br, 12, ref bitpos);
+							bitpos += 7;
+							t.Flag = (byte)Advance(br, 1, ref bitpos);
+							t.Indices = new Index[3];
+							for (int b = 0; b < 3; b++)
+							{
+								Index i = new Index();
+								i.VertexId = (ushort)Advance(br, sizeof(ushort)*8, ref bitpos);
+								i.Offset = (short)Advance(br, 15, ref bitpos);
+								i.Flag = (byte)Advance(br, 1, ref bitpos);
+								t.Indices[b] = i;
+							}
 							tgh.Triangles[a] = t;
+							
+							PrintBits(br);
+							
+							pos += 20;
 						}
 					}
 					
@@ -163,6 +187,40 @@ namespace UTFEditor
 			}
 			
 			return null;
+		}
+		
+		private static UInt64 Advance(BitArray br, int length, ref int pos)
+		{
+			UInt64 output = 0;
+			for(int a = 0; a < length; a++)
+			{
+				output <<= 1;
+				output += (UInt64) (br[pos + a] ? 1 : 0);
+			}
+			PrintBits(br, pos, length);
+			pos += length;
+			return output;
+		}
+
+		private static void PrintBits(BitArray br)
+		{
+			foreach (bool a in br)
+			{
+				System.Diagnostics.Debug.Write((a ? 1 : 0));
+			}
+			System.Diagnostics.Debug.WriteLine(";");
+		}
+
+		private static void PrintBits(BitArray br, int pos, int length)
+		{
+			for (int a = 0; a < br.Length; a++)
+			{
+				if (a >= pos && a < pos + length)
+					System.Diagnostics.Debug.Write((br[a] ? 1 : 0));
+				else
+					System.Diagnostics.Debug.Write(" ");
+			}
+			System.Diagnostics.Debug.WriteLine(";");
 		}
 	}
 }
