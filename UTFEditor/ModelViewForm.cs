@@ -445,7 +445,7 @@ namespace UTFEditor
             // Find Cons(truct) nodes. They contain data that links each mesh to the
             // root mesh.
             Dictionary<string, string> mapFileToObj = new Dictionary<string, string>();
-            mapFileToObj["\\"] = "";
+            mapFileToObj["\\"] = "Model";
             foreach (TreeNode nodeObj in rootNode.Nodes.Find("Object Name", true))
             {
                 foreach (TreeNode nodeFileName in nodeObj.Parent.Nodes.Find("File Name", false))
@@ -498,12 +498,16 @@ namespace UTFEditor
                     bool displayDefault = false;
                     if (levelName.StartsWith("Level", StringComparison.OrdinalIgnoreCase))
                     {
-						fileName = node.Parent.Parent.Parent.Parent.Name;
+                        fileName = node.Parent.Parent.Parent.Parent.Name;
                         if (levelName.Substring(5) == "0")
-							displayDefault = true;
+                            displayDefault = true;
                     }
                     else
+                    {
                         fileName = levelName;
+                        levelName = "Level0";
+                        displayDefault = true;
+                    }
                     string objName;
                     if (mapFileToObj.TryGetValue(fileName, out objName))
                     {
@@ -1015,9 +1019,11 @@ namespace UTFEditor
 						device.RenderState.FillMode = FillMode.WireFrame;
 					}
 
-					device.RenderState.TextureFactor = mg.DisplayInfo.Color.ToArgb();
+					//device.RenderState.TextureFactor = mg.DisplayInfo.Color.ToArgb();
 
 					Texture tex = FindTextureByMaterialID(mesh.MaterialId);
+					device.RenderState.TextureFactor = tex.Dc;
+
 					if (tex != null && mg.DisplayInfo.Texture)
 					{
 						device.SetTexture(0, tex.texture);
@@ -1261,6 +1267,7 @@ namespace UTFEditor
             public uint matID;
             public string fileName;
             public Direct3D.Texture texture;
+            public int Dc;
         };
 
         /// <summary>
@@ -1289,6 +1296,7 @@ namespace UTFEditor
                         {
                             Texture tex = new Texture();
                             tex.matID = matID;
+                            tex.Dc = Color.White.ToArgb();
                             // Not all textures have files (glass in particular).
                             // This makes them show as black, rather than garbage.
                             try
@@ -1296,6 +1304,12 @@ namespace UTFEditor
                                 tex.fileName = Utilities.GetString(node.Nodes["Dt_name"]);
                                 tex.texture = MakeTexture(matRootNode, tex.fileName);
                                 textures_Count++;
+                                byte[] Dc = node.Nodes["Dc"].Tag as Byte[];
+                                int pos = 0;
+                                int r = (int)(Utilities.GetFloat(Dc, ref pos) * 255);
+                                int g = (int)(Utilities.GetFloat(Dc, ref pos) * 255);
+                                int b = (int)(Utilities.GetFloat(Dc, ref pos) * 255);
+                                tex.Dc = (0xFF << 24) + (r << 16) + (g << 8) + (b << 0);
                             }
                             catch { }
                             textures.Add(matID, tex);
