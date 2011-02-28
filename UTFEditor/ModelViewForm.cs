@@ -2252,9 +2252,12 @@ namespace UTFEditor
 
 		private void modelView_Panel1_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
 		{
-			e.IsInputKey = true;
-			KeyEventArgs k = new KeyEventArgs(e.KeyData);
-			modelView_KeyDown(sender, k);
+			if (e.KeyCode != Keys.Tab)
+			{
+				e.IsInputKey = true;
+				KeyEventArgs k = new KeyEventArgs(e.KeyData);
+				modelView_KeyDown(sender, k);
+			}
 		}
     }
 }
