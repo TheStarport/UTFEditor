@@ -7,13 +7,8 @@
 5            Right view\par
 6            Left view\par
 \par
-A            Increase brightness\par
-Z            Decrease brightness\par
-Shift+A      Full brightness\par
-Shift+Z      Zero brightness\par
-\par
 B            Toggle background between white & black\par
-W            Toggle model between solid & wireframe\par
+P            Toggle the panel\par
 \par
 *            Increase size of hardpoint display\par
 /            Decrease size of hardpoint display\par
