@@ -300,7 +300,7 @@ namespace UTFEditor
 
         private void ModelViewForm_Activated(object sender, EventArgs e)
         {
-            modelView.Focus();
+            modelView.Panel1.Focus();
         }
 
         /// <summary>
@@ -1776,6 +1776,11 @@ namespace UTFEditor
 						ResetView(Viewpoint.Defaults.Back);
                     }
                     break;
+
+				// Toggle the panel.
+				case Keys.P:
+					modelView.Panel2Collapsed = !modelView.Panel2Collapsed;
+					break;
             }
 		}
 
@@ -2226,6 +2231,7 @@ namespace UTFEditor
 			if (device == null || presentParams == null) return;
 
 			if (swap != null) swap.Dispose();
+			if (depthStencil != null) depthStencil.Dispose();
 
 			presentParams.BackBufferWidth = modelView.Panel1.Width;
 			presentParams.BackBufferHeight = modelView.Panel1.Height;
@@ -2242,6 +2248,13 @@ namespace UTFEditor
 		private void ModelViewForm_Load(object sender, EventArgs e)
 		{
 			InitializeGraphics();
+		}
+
+		private void modelView_Panel1_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
+		{
+			e.IsInputKey = true;
+			KeyEventArgs k = new KeyEventArgs(e.KeyData);
+			modelView_KeyDown(sender, k);
 		}
     }
 }
