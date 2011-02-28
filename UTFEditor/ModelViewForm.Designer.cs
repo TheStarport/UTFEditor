@@ -34,6 +34,11 @@
 			this.toolStripContainer1 = new System.Windows.Forms.ToolStripContainer();
 			this.modelView = new System.Windows.Forms.SplitContainer();
 			this.modelPanelView = new System.Windows.Forms.DataGridView();
+			this.colMPVisible = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+			this.colMPElement = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.colMPShading = new System.Windows.Forms.DataGridViewComboBoxColumn();
+			this.colMPColor = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.colMPTexture = new System.Windows.Forms.DataGridViewComboBoxColumn();
 			this.menu = new System.Windows.Forms.MenuStrip();
 			this.viewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.bottomToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -83,11 +88,6 @@
 			this.shortcutsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.showModelPanelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.colorDiag = new System.Windows.Forms.ColorDialog();
-			this.colMPVisible = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-			this.colMPElement = new System.Windows.Forms.DataGridViewTextBoxColumn();
-			this.colMPShading = new System.Windows.Forms.DataGridViewComboBoxColumn();
-			this.colMPColor = new System.Windows.Forms.DataGridViewTextBoxColumn();
-			this.colMPTexture = new System.Windows.Forms.DataGridViewComboBoxColumn();
 			((System.ComponentModel.ISupportInitialize)(this.trackBarScale)).BeginInit();
 			this.toolStripContainer1.ContentPanel.SuspendLayout();
 			this.toolStripContainer1.SuspendLayout();
@@ -205,6 +205,56 @@
 			this.modelPanelView.SortCompare += new System.Windows.Forms.DataGridViewSortCompareEventHandler(this.modelPanelView_SortCompare);
 			this.modelPanelView.DoubleClick += new System.EventHandler(this.modelPanelView_DoubleClick);
 			this.modelPanelView.CurrentCellDirtyStateChanged += new System.EventHandler(this.modelPanelView_CurrentCellDirtyStateChanged);
+			// 
+			// colMPVisible
+			// 
+			this.colMPVisible.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+			this.colMPVisible.HeaderText = "Visible";
+			this.colMPVisible.Name = "colMPVisible";
+			this.colMPVisible.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+			this.colMPVisible.Width = 43;
+			// 
+			// colMPElement
+			// 
+			this.colMPElement.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+			this.colMPElement.HeaderText = "Element";
+			this.colMPElement.MinimumWidth = 50;
+			this.colMPElement.Name = "colMPElement";
+			this.colMPElement.ReadOnly = true;
+			this.colMPElement.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+			this.colMPElement.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+			this.colMPElement.Width = 51;
+			// 
+			// colMPShading
+			// 
+			this.colMPShading.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+			this.colMPShading.HeaderText = "Shading";
+			this.colMPShading.Items.AddRange(new object[] {
+            "Flat",
+            "Wireframe"});
+			this.colMPShading.Name = "colMPShading";
+			this.colMPShading.Width = 52;
+			// 
+			// colMPColor
+			// 
+			this.colMPColor.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+			this.colMPColor.HeaderText = "Color (ARGB)";
+			this.colMPColor.Name = "colMPColor";
+			this.colMPColor.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+			this.colMPColor.Width = 76;
+			// 
+			// colMPTexture
+			// 
+			this.colMPTexture.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+			this.colMPTexture.HeaderText = "Texture";
+			this.colMPTexture.Items.AddRange(new object[] {
+            "TextureColor",
+            "Texture",
+            "Color",
+            "None"});
+			this.colMPTexture.Name = "colMPTexture";
+			this.colMPTexture.Resizable = System.Windows.Forms.DataGridViewTriState.True;
+			this.colMPTexture.Width = 49;
 			// 
 			// menu
 			// 
@@ -598,13 +648,6 @@
 			this.centerOnHardpointToolStripMenuItem.Text = "Center on Hardpoint";
 			this.centerOnHardpointToolStripMenuItem.Click += new System.EventHandler(this.centerOnHardpointToolStripMenuItem_Click);
 			// 
-			// showModelPanelToolStripMenuItem
-			// 
-			this.showModelPanelToolStripMenuItem.Name = "showModelPanelToolStripMenuItem";
-			this.showModelPanelToolStripMenuItem.Size = new System.Drawing.Size(105, 20);
-			this.showModelPanelToolStripMenuItem.Text = "Show Model Panel";
-			this.showModelPanelToolStripMenuItem.Click += new System.EventHandler(this.showModelPanelToolStripMenuItem_Click);
-			// 
 			// resetAllToolStripMenuItem
 			// 
 			this.resetAllToolStripMenuItem.Name = "resetAllToolStripMenuItem";
@@ -632,59 +675,9 @@
 			// 
 			this.showModelPanelToolStripMenuItem.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
 			this.showModelPanelToolStripMenuItem.Name = "showModelPanelToolStripMenuItem";
-			this.showModelPanelToolStripMenuItem.Size = new System.Drawing.Size(125, 20);
+			this.showModelPanelToolStripMenuItem.Size = new System.Drawing.Size(111, 20);
 			this.showModelPanelToolStripMenuItem.Text = "Toggle Model Panel";
 			this.showModelPanelToolStripMenuItem.Click += new System.EventHandler(this.showModelPanelToolStripMenuItem_Click);
-			// 
-			// colMPVisible
-			// 
-			this.colMPVisible.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-			this.colMPVisible.HeaderText = "Visible";
-			this.colMPVisible.Name = "colMPVisible";
-			this.colMPVisible.Resizable = System.Windows.Forms.DataGridViewTriState.True;
-			this.colMPVisible.Width = 43;
-			// 
-			// colMPElement
-			// 
-			this.colMPElement.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-			this.colMPElement.HeaderText = "Element";
-			this.colMPElement.MinimumWidth = 50;
-			this.colMPElement.Name = "colMPElement";
-			this.colMPElement.ReadOnly = true;
-			this.colMPElement.Resizable = System.Windows.Forms.DataGridViewTriState.True;
-			this.colMPElement.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-			this.colMPElement.Width = 51;
-			// 
-			// colMPShading
-			// 
-			this.colMPShading.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-			this.colMPShading.HeaderText = "Shading";
-			this.colMPShading.Items.AddRange(new object[] {
-            "Flat",
-            "Wireframe"});
-			this.colMPShading.Name = "colMPShading";
-			this.colMPShading.Width = 52;
-			// 
-			// colMPColor
-			// 
-			this.colMPColor.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-			this.colMPColor.HeaderText = "Color (ARGB)";
-			this.colMPColor.Name = "colMPColor";
-			this.colMPColor.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-			this.colMPColor.Width = 76;
-			// 
-			// colMPTexture
-			// 
-			this.colMPTexture.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-			this.colMPTexture.HeaderText = "Texture";
-			this.colMPTexture.Items.AddRange(new object[] {
-            "TextureColor",
-            "Texture",
-            "Color",
-            "None"});
-			this.colMPTexture.Name = "colMPTexture";
-			this.colMPTexture.Resizable = System.Windows.Forms.DataGridViewTriState.True;
-			this.colMPTexture.Width = 49;
 			// 
 			// ModelViewForm
 			// 

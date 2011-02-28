@@ -1013,11 +1013,12 @@ namespace UTFEditor
 					}
 					
 					device.RenderState.AlphaBlendEnable = true;
-					device.RenderState.SourceBlend = Blend.BlendFactor;
-					device.RenderState.BlendFactor = mg.DisplayInfo.Color;
+					device.RenderState.SourceBlend = Blend.SourceAlpha;
+					device.RenderState.DestinationBlend = Blend.InvSourceAlpha;
+					device.RenderState.BlendOperation = BlendOperation.Add;
 
 					Texture tex = FindTextureByMaterialID(mesh.MaterialId);
-					device.RenderState.TextureFactor = (mg.DisplayInfo.Texture == TextureMode.Texture || mg.DisplayInfo.Texture == TextureMode.None) ? 0xFFFFFF : tex.Dc;
+					device.RenderState.TextureFactor = (mg.DisplayInfo.Texture == TextureMode.Texture || mg.DisplayInfo.Texture == TextureMode.None) ? mg.DisplayInfo.Color.ToArgb() : tex.Dc;
 
 					if (tex != null && (mg.DisplayInfo.Texture == TextureMode.Texture || mg.DisplayInfo.Texture == TextureMode.TextureColor))
 					{
@@ -1270,7 +1271,6 @@ namespace UTFEditor
         /// A dictionary of textures used by this model.
         /// </summary>
         Dictionary<uint, Texture> textures = new Dictionary<uint, Texture>();
-        int textures_Count;
 
         /// <summary>
         /// Look for material information in this utf file.
@@ -1299,16 +1299,37 @@ namespace UTFEditor
                             {
                                 tex.fileName = Utilities.GetString(node.Nodes["Dt_name"]);
                                 tex.texture = MakeTexture(matRootNode, tex.fileName);
-                                textures_Count++;
+							}
+							catch { }
+							bool Dc_present = false;
+							try 
+							{
                                 byte[] Dc = node.Nodes["Dc"].Tag as Byte[];
                                 int pos = 0;
                                 int r = (int)(Utilities.GetFloat(Dc, ref pos) * 255);
                                 int g = (int)(Utilities.GetFloat(Dc, ref pos) * 255);
                                 int b = (int)(Utilities.GetFloat(Dc, ref pos) * 255);
                                 tex.Dc = (0xFF << 24) + (r << 16) + (g << 8) + (b << 0);
+								Dc_present = true;
                             }
                             catch { }
-                            textures.Add(matID, tex);
+							try
+							{
+								byte[] Oc = node.Nodes["Oc"].Tag as Byte[];
+								int pos = 0;
+								int alpha = (int)(Utilities.GetFloat(Oc, ref pos) * 255);
+								tex.Dc &= 0xFFFFFF;
+								tex.Dc |= alpha << 24;
+								Dc_present = true;
+							}
+							catch { }
+							if (tex.fileName == null && Dc_present)
+							{
+								Bitmap bmp = new Bitmap(1, 1);
+								bmp.SetPixel(0, 0, Color.FromArgb(tex.Dc));
+								tex.texture = Direct3D.Texture.FromBitmap(device, bmp, Usage.Dynamic, Pool.Default);
+							}
+							textures.Add(matID, tex);
                         }
                     }
                     catch { }
