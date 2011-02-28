@@ -78,6 +78,7 @@ namespace UTFEditor
             public string Name;
             public MeshGroupDisplayInfo DisplayInfo;
             public VMeshRef RefData;
+            public VWireData WireData;
             public Matrix Transform;
             public MeshDataBuffer MeshDataBuffer;
             public Mesh[] M;
@@ -90,7 +91,8 @@ namespace UTFEditor
 			public int Level;
 			public ShadingMode Shading;
 			public Color Color;
-			public bool Texture;
+			public TextureMode Texture;
+			public bool Wire;
 		}
 
 		public enum ShadingMode
@@ -98,6 +100,14 @@ namespace UTFEditor
 			Flat,
 			Wireframe,
 			Smooth
+		}
+		
+		public enum TextureMode
+		{
+			TextureColor,
+			Texture,
+			Color,
+			None
 		}
 
         /// <summary>
@@ -510,6 +520,14 @@ namespace UTFEditor
 							mg.M[mn - mg.RefData.StartMesh] = m;
 						}
 						
+						TreeNode WireData = node.Parent.Parent.Nodes["VMeshWire"];
+						if(WireData == null) WireData = node.Parent.Parent.Parent.Parent.Nodes["VMeshWire"];
+						if (WireData != null)
+						{
+							WireData = WireData.Nodes["VWireData"];
+							mg.WireData = new VWireData(WireData.Tag as byte[]);
+						}
+						
                         MeshGroups.Add(mg);
                     }
                 }
@@ -631,7 +649,7 @@ namespace UTFEditor
 					mgdi.Display = (bool)((DataGridViewCheckBoxCell)modelPanelView[0, a]).Value;
 					mgdi.Shading = (ShadingMode) Enum.Parse(typeof(ShadingMode), ((DataGridViewComboBoxCell)modelPanelView[2, a]).Value as string);
 					mgdi.Color = GetColor((string)((DataGridViewTextBoxCell)modelPanelView[3, a]).Value);
-					mgdi.Texture = (bool)((DataGridViewCheckBoxCell)modelPanelView[4, a]).Value;
+					mgdi.Texture = (TextureMode)Enum.Parse(typeof(TextureMode), ((DataGridViewComboBoxCell)modelPanelView[4, a]).Value as string);
 					Int32.TryParse(level.Substring(5), out mgdi.Level);
 					return mgdi;
 				}
@@ -640,7 +658,7 @@ namespace UTFEditor
 			MeshGroupDisplayInfo mgdiDef = new MeshGroupDisplayInfo();
 			mgdiDef.Display = def;
 			mgdiDef.Shading = ShadingMode.Flat;
-			mgdiDef.Texture = true;
+			mgdiDef.Texture = TextureMode.TextureColor;
 			mgdiDef.Color = Color.FromArgb(255, Color.White);
 			Int32.TryParse(level.Substring(5), out mgdiDef.Level);
 			
@@ -651,7 +669,7 @@ namespace UTFEditor
 			modelPanelView[1, rowNum].Value = name;
 			modelPanelView[2, rowNum].Value = ShadingMode.Flat.ToString();
 			modelPanelView[3, rowNum].Value = "#FFFFFFFF";
-			modelPanelView[4, rowNum].Value = true;
+			modelPanelView[4, rowNum].Value = TextureMode.TextureColor.ToString();
 			modelPanelView[1, rowNum].Tag = new int[] { mgdiDef.Level, 0 };
 			
 			return mgdiDef;
@@ -688,7 +706,7 @@ namespace UTFEditor
 			modelPanelView[1, row].Value = "Level" + level;
 			modelPanelView[2, row].Value = ShadingMode.Flat.ToString();
 			modelPanelView[3, row].Value = "#FFFFFFFF";
-			modelPanelView[4, row].Value = true;
+			modelPanelView[4, row].Value = TextureMode.TextureColor.ToString();
 			modelPanelView[1, row].Tag = new int[] { level, 1 };
 
 			modelPanelView.Rows[row].DefaultCellStyle.BackColor = SystemColors.ControlDarkDark;
@@ -999,12 +1017,12 @@ namespace UTFEditor
 					device.RenderState.BlendFactor = mg.DisplayInfo.Color;
 
 					Texture tex = FindTextureByMaterialID(mesh.MaterialId);
-					device.RenderState.TextureFactor = tex.Dc;
+					device.RenderState.TextureFactor = (mg.DisplayInfo.Texture == TextureMode.Texture || mg.DisplayInfo.Texture == TextureMode.None) ? 0xFFFFFF : tex.Dc;
 
-					if (tex != null && mg.DisplayInfo.Texture)
+					if (tex != null && (mg.DisplayInfo.Texture == TextureMode.Texture || mg.DisplayInfo.Texture == TextureMode.TextureColor))
 					{
 						device.SetTexture(0, tex.texture);
-
+						
 						device.TextureState[0].ColorOperation = TextureOperation.Modulate;
 						device.TextureState[0].ColorArgument1 = TextureArgument.TextureColor;
 						device.TextureState[0].ColorArgument2 = TextureArgument.TFactor;
@@ -2161,7 +2179,7 @@ namespace UTFEditor
 				modelPanelView.UseWaitCursor = false;
 				this.ResumeLayout();
 
-				Refresh();
+				Invalidate();
 				return;
 			}
 			
@@ -2181,11 +2199,11 @@ namespace UTFEditor
 					mg.DisplayInfo.Color = GetColor((string)c.Value);
 					break;
 				case 4:
-					mg.DisplayInfo.Texture = (bool)c.Value;
+					mg.DisplayInfo.Texture = (TextureMode)Enum.Parse(typeof(TextureMode), c.Value as string);
 					break;
 			}
 
-			if (!modelPanelView.UseWaitCursor) Refresh();
+			if (!modelPanelView.UseWaitCursor) Invalidate();
 		}
 		
 		private MeshGroup GetMeshGroupFromName(string name, int level)
@@ -2248,6 +2266,20 @@ namespace UTFEditor
 		private void ModelViewForm_Load(object sender, EventArgs e)
 		{
 			InitializeGraphics();
+		}
+
+		private void modelPanelView_DoubleClick(object sender, EventArgs e)
+		{
+			if(modelPanelView.SelectedCells[0].ColumnIndex == 3)
+			{
+				colorDiag.Color = GetColor(modelPanelView.SelectedCells[0].Value as string);
+				if(colorDiag.ShowDialog() == DialogResult.OK)
+				{
+					modelPanelView.SelectedCells[0].Value = String.Format("#{0:x2}{1:x2}{2:x2}{3:x2}", colorDiag.Color.A, colorDiag.Color.R, colorDiag.Color.G, colorDiag.Color.B);
+					((DataGridViewTextBoxCell)modelPanelView.SelectedCells[0]).ReadOnly = true;
+					((DataGridViewTextBoxCell)modelPanelView.SelectedCells[0]).ReadOnly = false;
+				}
+			}
 		}
 
 		private void modelView_Panel1_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)

@@ -6,7 +6,7 @@ using System.Text;
 // Structures by Mario Brito from FLModelToolby Anton (Xtreme Team Studios).
 namespace UTFEditor
 {
-    class VWireData
+    public class VWireData
     {
         /// Wire Data Header
         public UInt32 HeaderSize;
