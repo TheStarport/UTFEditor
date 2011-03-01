@@ -177,7 +177,6 @@
 			this.modelView.Size = new System.Drawing.Size(1008, 663);
 			this.modelView.SplitterDistance = 689;
 			this.modelView.TabIndex = 0;
-			this.modelView.KeyDown += new System.Windows.Forms.KeyEventHandler(this.modelView_KeyDown);
 			// 
 			// modelPanelView
 			// 

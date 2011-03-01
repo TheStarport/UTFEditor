@@ -1019,9 +1019,7 @@ namespace UTFEditor
 					if(mg.DisplayInfo.Texture == TextureMode.Texture || mg.DisplayInfo.Texture == TextureMode.None)
 						device.RenderState.TextureFactor = mg.DisplayInfo.Color.ToArgb();
 					else
-					{
-						device.RenderState.TextureFactor = BlendTwoColors(mg.DisplayInfo.Color.ToArgb(), tex.Dc);
-					}
+						device.RenderState.TextureFactor = ColorOperator.Modulate(mg.DisplayInfo.Color, Color.FromArgb(tex.Dc)).ToArgb();
 
 					if (tex != null && (mg.DisplayInfo.Texture == TextureMode.Texture || mg.DisplayInfo.Texture == TextureMode.TextureColor))
 					{
@@ -1058,13 +1056,6 @@ namespace UTFEditor
             swap.Present();
         }
         
-        public int BlendTwoColors(int c1, int c2)
-		{
-			int c_RB = (((c1 & 0x00FF00FF) + (c2 & 0x00FF00FF)) >> 1) & 0x00FF00FF;
-			int c_AG = (int) (((int) ((((uint) c1 & 0xFF00FF00) >> 1) + (((uint) c2 & 0xFF00FF00) >> 1))) & 0xFF00FF00);
-			return c_RB | c_AG;
-		}
-
         /// <summary>
         /// Override the form painting event to run the directx render function.
         /// </summary>
@@ -1339,7 +1330,7 @@ namespace UTFEditor
 							if (tex.fileName == null && Dc_present)
 							{
 								Bitmap bmp = new Bitmap(1, 1);
-								bmp.SetPixel(0, 0, Color.FromArgb(tex.Dc));
+								bmp.SetPixel(0, 0, Color.White);
 								tex.texture = Direct3D.Texture.FromBitmap(device, bmp, Usage.Dynamic, Pool.Default);
 							}
 							textures.Add(matID, tex);
@@ -1723,10 +1714,17 @@ namespace UTFEditor
             }
         }
 
-        private void modelView_KeyDown(object sender, KeyEventArgs e)
+        private void modelView_Panel1_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
         {
             switch (e.KeyCode)
             {
+				case Keys.Tab:
+					return;
+
+				case Keys.Escape:
+					Close();
+					return;
+
                 case Keys.F1:
                     ShowHelp();
                     break;
@@ -1835,6 +1833,7 @@ namespace UTFEditor
 					modelView.Panel2Collapsed = !modelView.Panel2Collapsed;
 					break;
             }
+			e.IsInputKey = true;
 		}
 
         private void spinnerLevel_ValueChanged(object sender, EventArgs e)
@@ -2310,20 +2309,10 @@ namespace UTFEditor
 				colorDiag.Color = GetColor(modelPanelView.SelectedCells[0].Value as string);
 				if(colorDiag.ShowDialog() == DialogResult.OK)
 				{
-					modelPanelView.SelectedCells[0].Value = String.Format("#{0:x2}{1:x2}{2:x2}{3:x2}", colorDiag.Color.A, colorDiag.Color.R, colorDiag.Color.G, colorDiag.Color.B);
+					modelPanelView.SelectedCells[0].Value = String.Format("#{0:X2}{1:X2}{2:X2}{3:X2}", colorDiag.Color.A, colorDiag.Color.R, colorDiag.Color.G, colorDiag.Color.B);
 					((DataGridViewTextBoxCell)modelPanelView.SelectedCells[0]).ReadOnly = true;
 					((DataGridViewTextBoxCell)modelPanelView.SelectedCells[0]).ReadOnly = false;
 				}
-			}
-		}
-
-		private void modelView_Panel1_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
-		{
-			if (e.KeyCode != Keys.Tab)
-			{
-				e.IsInputKey = true;
-				KeyEventArgs k = new KeyEventArgs(e.KeyData);
-				modelView_KeyDown(sender, k);
 			}
 		}
     }
