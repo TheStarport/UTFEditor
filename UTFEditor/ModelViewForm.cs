@@ -286,15 +286,19 @@ namespace UTFEditor
         };
         Hardpoint hp = new Hardpoint();
         
-        public struct HardpointInfo
+        public class HardpointDisplayInfo
         {
-			public Matrix Matrix, MGTransform;
+			public Matrix Matrix;
 			public TreeNode Node;
 			public string Name;
 			public float Min, Max;
 			public bool Revolute;
+			
+			public MeshGroup MeshGroup;
+			public Color Color;
+			public bool Display;
         }
-		List<HardpointInfo> otherHardpoints = new List<HardpointInfo>();
+		List<HardpointDisplayInfo> otherHardpoints = new List<HardpointDisplayInfo>();
 
         /// <summary>
         /// Map a filename to its mesh group.
@@ -653,14 +657,18 @@ namespace UTFEditor
 
 					Matrix m = GetHardpointMatrix(node);
 
-					HardpointInfo hi;
+					HardpointDisplayInfo hi = new HardpointDisplayInfo();
 					hi.Matrix = m;
 					hi.Name = node.Name;
 					hi.Node = node;
 					hi.Min = hi.Max = 0;
-					hi.MGTransform = MeshGroups[mapFileToMesh[hi.Node.Parent.Parent.Parent.Name]].Transform;
+					hi.MeshGroup = MeshGroups[mapFileToMesh[hi.Node.Parent.Parent.Parent.Name]];
 					hi.Revolute = false;
+					hi.Color = Color.White;
+					hi.Display = true;
 					otherHardpoints.Add(hi);
+
+					CreateHardpointRow(hi);
 				}
 			}
 			foreach (TreeNode nRev in rootNode.Nodes.Find("Revolute", true))
@@ -686,20 +694,37 @@ namespace UTFEditor
 					max = -max - (float)Math.PI / 2;
 					min = -min - (float)Math.PI / 2;
 
-					HardpointInfo hi;
+					HardpointDisplayInfo hi = new HardpointDisplayInfo();
 					hi.Matrix = m;
 					hi.Name = node.Name;
 					hi.Node = node;
 					hi.Min = min;
 					hi.Max = max;
-					hi.MGTransform = MeshGroups[mapFileToMesh[hi.Node.Parent.Parent.Parent.Name]].Transform;
+					hi.MeshGroup = MeshGroups[mapFileToMesh[hi.Node.Parent.Parent.Parent.Name]];
 					hi.Revolute = true;
+					hi.Color = Color.White;
+					hi.Display = true;
 					otherHardpoints.Add(hi);
+					
+					CreateHardpointRow(hi);
 				}
 			}
-            
-            viewPanelView.Sort(viewPanelView.Columns[1], ListSortDirection.Ascending);
+
+			viewPanelView.Sort(viewPanelView.Columns[1], ListSortDirection.Ascending);
+			hardpointPanelView.Sort(hardpointPanelView.Columns[1], ListSortDirection.Ascending);
         }
+        
+        void CreateHardpointRow(HardpointDisplayInfo hi)
+        {
+			int row = hardpointPanelView.Rows.Add();
+			CreateHardpointPanelMeshGroupRow(row, hi.MeshGroup);
+
+			hardpointPanelView[0, row].Value = true;
+			hardpointPanelView[1, row].Value = hi.Name;
+			hardpointPanelView[2, row].Value = hi.Revolute;
+			hardpointPanelView[3, row].Value = "#FFFFFFFF";
+			hardpointPanelView[1, row].Tag = new object[] { hi.MeshGroup, false };
+		}
         
         Matrix GetHardpointMatrix(TreeNode node)
         {
@@ -758,7 +783,7 @@ namespace UTFEditor
 			Int32.TryParse(level.Substring(5), out mgdiDef.Level);
 			
 			int rowNum = viewPanelView.Rows.Add();
-			CreateLevelRow(rowNum, mgdiDef.Level, def);
+			CreateModelPanelLevelRow(rowNum, mgdiDef.Level, def);
 
 			viewPanelView[0, rowNum].Value = mgdiDef.Display;
 			viewPanelView[1, rowNum].Value = name;
@@ -785,7 +810,7 @@ namespace UTFEditor
 			return Color.FromName(text.Replace(" ", ""));
         }
         
-        void CreateLevelRow(int row, int level, bool def)
+        void CreateModelPanelLevelRow(int row, int level, bool def)
         {
 			for(int a = row; a > 0; a--)
 			{
@@ -795,7 +820,6 @@ namespace UTFEditor
 			}
 			
 			row = viewPanelView.Rows.Add();
-			Color defCol = Color.FromArgb(255, Color.White);
 
 			viewPanelView[0, row].Value = def;
 			viewPanelView[1, row].Value = "Level" + level;
@@ -806,7 +830,28 @@ namespace UTFEditor
 
 			viewPanelView.Rows[row].DefaultCellStyle.BackColor = SystemColors.ControlDarkDark;
 			viewPanelView.Rows[row].DefaultCellStyle.ForeColor = SystemColors.ControlLightLight;
-        }
+		}
+
+		void CreateHardpointPanelMeshGroupRow(int row, MeshGroup mg)
+		{
+			for (int a = row; a > 0; a--)
+			{
+				object[] data = (object[])hardpointPanelView[1, a].Tag;
+				if (data == null) continue;
+				if ((MeshGroup)data[0] == mg && (bool)data[1]) return;
+			}
+
+			row = hardpointPanelView.Rows.Add();
+
+			hardpointPanelView[0, row].Value = true;
+			hardpointPanelView[1, row].Value = mg.Name;
+			hardpointPanelView[2, row].Value = false;
+			hardpointPanelView[3, row].Value = "#FFFFFFFF";
+			hardpointPanelView[1, row].Tag = new object[] { mg, true };
+
+			hardpointPanelView.Rows[row].DefaultCellStyle.BackColor = SystemColors.ControlDarkDark;
+			hardpointPanelView.Rows[row].DefaultCellStyle.ForeColor = SystemColors.ControlLightLight;
+		}
 
         /// <summary>
         /// Get the transform matrix for a single part. Recursively load and add 
@@ -1245,11 +1290,14 @@ namespace UTFEditor
         {
             if (e.Button == MouseButtons.None)
             {
-				HardpointInfo hi;
+				HardpointDisplayInfo hi;
 				if(GetHardpointFromScreen(e.X, e.Y, out hi))
-					lblHardpointHover.Text = "Hardpoint: " + hi.Name;
+				{
+					if(hardpointNameToolTip.GetToolTip(modelView) != hi.Name)
+						hardpointNameToolTip.Show(hi.Name, modelView, e.X, e.Y);
+				}
 				else
-					lblHardpointHover.Text = "Hardpoint: <none>";
+					hardpointNameToolTip.Hide(modelView);
                 return;
             }
 
@@ -1568,23 +1616,31 @@ namespace UTFEditor
 			device.SetTexture(0, null);
 			
 			device.RenderState.Lighting = false;
-			device.RenderState.AlphaBlendEnable = false;
+			device.RenderState.AlphaBlendEnable = true;
 			device.RenderState.FillMode = FillMode.Solid;
 			device.RenderState.CullMode = Cull.None;
 			device.VertexFormat = CustomVertex.PositionColored.Format;
-			device.TextureState[0].ColorOperation = TextureOperation.SelectArg1;
-			device.TextureState[0].AlphaOperation = TextureOperation.SelectArg1;
+			device.TextureState[0].ColorOperation = TextureOperation.Modulate;
+			device.TextureState[0].ColorArgument1 = TextureArgument.Diffuse;
+			device.TextureState[0].ColorArgument2 = TextureArgument.TFactor;
+			device.TextureState[0].AlphaOperation = TextureOperation.SelectArg2;
 			
-			foreach(HardpointInfo hi in otherHardpoints)
+			foreach(HardpointDisplayInfo hi in otherHardpoints)
 			{
+				device.RenderState.TextureFactor = hi.Color.ToArgb();
+				device.RenderState.BlendFactor = hi.Color;
 				try
 				{
 					bool isSelectedNode = (hi.Node == node);
+					if (!isSelectedNode && splitViewHardpoint.Panel2Collapsed) continue;
+					if (!hi.Display && !isSelectedNode) continue;
 					float scale = hp.scale * (isSelectedNode ? 4f : 1f);
-					device.Transform.World = Matrix.Scaling(scale, scale, scale) * hi.Matrix * hi.MGTransform * Matrix.Translation(orgX, orgY, orgZ);
+					device.Transform.World = Matrix.Scaling(scale, scale, scale) * hi.Matrix * hi.MeshGroup.Transform * Matrix.Translation(orgX, orgY, orgZ);
 
 					if (isSelectedNode)
 					{
+						device.RenderState.TextureFactor = ColorOperator.Add(hi.Color, Color.Gray).ToArgb();
+						device.RenderState.BlendFactor = ColorOperator.Add(hi.Color, Color.Gray);
 						if (hi.Revolute)
 						{
 							try
@@ -1930,16 +1986,18 @@ namespace UTFEditor
 				// Toggle the panel.
 				case Keys.P:
 					modelView.Panel2Collapsed = !modelView.Panel2Collapsed;
+					showViewPanelToolStripMenuItem.Checked = modelView.Panel2Collapsed;
+					break;
+					
+				// Toggle hardpoint edit mode
+				case Keys.Space:
+					splitViewHardpoint.Panel2Collapsed = !splitViewHardpoint.Panel2Collapsed;
+					hardpointEditToolStripMenuItem.Checked = splitViewHardpoint.Panel2Collapsed;
+					Invalidate();
 					break;
             }
 			e.IsInputKey = true;
 		}
-
-        private void spinnerLevel_ValueChanged(object sender, EventArgs e)
-        {
-            DataChanged(null, "", null);
-            Invalidate();
-        }
         
         public override void Refresh()
         {
@@ -2375,6 +2433,7 @@ namespace UTFEditor
 		private void showViewPanelToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			modelView.Panel2Collapsed = !modelView.Panel2Collapsed;
+			showViewPanelToolStripMenuItem.Checked = modelView.Panel2Collapsed;
 		}
 
 		private void modelView_Panel1_Resize(object sender, EventArgs e)
@@ -2417,13 +2476,14 @@ namespace UTFEditor
 
 		private void modelView_Panel1_MouseDoubleClick(object sender, MouseEventArgs e)
 		{
-			HardpointInfo hi;
+			HardpointDisplayInfo hi;
 			if(GetHardpointFromScreen(e.X, e.Y, out hi))
 				utf.SelectedNode = hi.Node;
 		}
 		
-		private bool GetHardpointFromScreen(int x, int y, out HardpointInfo foundHardpoint)
+		private bool GetHardpointFromScreen(int x, int y, out HardpointDisplayInfo foundHardpoint)
 		{
+			TreeNode selectedHp = GetHardpointNode();
 			Vector3 nearInit = new Vector3(x, y, 0);
 			Vector3 farInit = new Vector3(x, y, 1);
 			
@@ -2437,7 +2497,7 @@ namespace UTFEditor
 			near += direction * 0.47f;
 			direction.Normalize();
 			
-			foundHardpoint = new HardpointInfo();
+			foundHardpoint = new HardpointDisplayInfo();
 			float minFactor = Single.MaxValue;
 			foundHardpoint.Node = utf.SelectedNode;
 			
@@ -2449,13 +2509,20 @@ namespace UTFEditor
 			
 			float hScale = hp.scale / scale;
 			
-			foreach(HardpointInfo hi in otherHardpoints)
+			foreach(HardpointDisplayInfo hi in otherHardpoints)
 			{
+				bool selected = hi.Node == selectedHp;
+				if (splitViewHardpoint.Panel2Collapsed && !selected) continue;
+				if(!selected && !hi.Display) continue;
 				Vector3 hpLoc = new Vector3(hi.Matrix.M41, hi.Matrix.M42, hi.Matrix.M43);
-				hpLoc.TransformCoordinate(hi.MGTransform);
+				hpLoc.TransformCoordinate(hi.MeshGroup.Transform);
 
 				float distanceHardpoint = Vector3.LengthSq(hpLoc - near);
-				if(hitMesh && distanceHardpoint > Vector3.LengthSq(hit - near)) continue;
+				if(hitMesh)
+				{
+					float distanceMesh = Vector3.LengthSq(hit - near);
+					if (distanceHardpoint > distanceMesh*1.002f) continue;
+				}
 				float dot = Vector3.Dot(hpLoc - near, direction);
 				float offsetHardpoint = Math.Abs(distanceHardpoint - dot*dot);
 				
@@ -2465,7 +2532,7 @@ namespace UTFEditor
 				
 				float precisionFactor = distanceHardpoint * offsetHardpoint * hScale;
 
-				if (precisionFactor < minFactor && offsetHardpoint < hScale * 6)
+				if (precisionFactor < minFactor && offsetHardpoint < hScale * 6 * (selected ? 16 : 1))
 				{
 					minFactor = precisionFactor;
 					foundHardpoint = hi;
@@ -2479,6 +2546,105 @@ namespace UTFEditor
 			}
 			
 			return true;
+		}
+
+		private void hardpointPanelView_SortCompare(object sender, DataGridViewSortCompareEventArgs e)
+		{
+			object[] s1 = (object[])hardpointPanelView[1, e.RowIndex1].Tag;
+			object[] s2 = (object[])hardpointPanelView[1, e.RowIndex2].Tag;
+			
+			int ssCompare = ((MeshGroup)s1[0]).Name.CompareTo(((MeshGroup)s2[0]).Name);
+			
+			if (ssCompare != 0) e.SortResult = ssCompare;
+			else
+			{
+				if ((bool)s1[1] == true) e.SortResult = -1;
+				else if ((bool)s2[1] == true) e.SortResult = 1;
+				else
+					e.SortResult = ((string)e.CellValue1).CompareTo((string)e.CellValue2);
+			}
+
+			e.Handled = true;
+		}
+
+		private void hardpointPanelView_CurrentCellDirtyStateChanged(object sender, EventArgs e)
+		{
+			hardpointPanelView.CommitEdit(DataGridViewDataErrorContexts.Commit);
+		}
+
+		private void hardpointPanelView_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+		{
+			if (e.RowIndex < 0 || e.ColumnIndex < 0 || e.RowIndex > hardpointPanelView.Rows.Count || e.ColumnIndex > hardpointPanelView.Columns.Count) return;
+
+			DataGridViewCell c = hardpointPanelView[e.ColumnIndex, e.RowIndex];
+
+			string hpName = hardpointPanelView[1, e.RowIndex].Value as string;
+			object[] hpDat = (object[])hardpointPanelView[1, e.RowIndex].Tag;
+			if (hpDat == null || hpName == null) return;
+
+			if ((bool)hpDat[1])
+			{
+				object newVal = hardpointPanelView[e.ColumnIndex, e.RowIndex].Value;
+				this.SuspendLayout();
+				hardpointPanelView.UseWaitCursor = true;
+				for (int a = e.RowIndex + 1; a < hardpointPanelView.Rows.Count; a++)
+				{
+					object[] hpDat2 = (object[])hardpointPanelView[1, a].Tag;
+					if (hpDat2 != null && (bool)hpDat2[1]) break;
+					hardpointPanelView[e.ColumnIndex, a].Value = newVal;
+				}
+				hardpointPanelView.UseWaitCursor = false;
+				this.ResumeLayout();
+
+				Invalidate();
+				return;
+			}
+
+
+			HardpointDisplayInfo hi = GetHardpointFromName(hpName);
+			if (hi == null) return;
+
+			switch (e.ColumnIndex)
+			{
+				case 0:
+					hi.Display = (bool)c.Value;
+					break;
+				case 3:
+					hi.Color = GetColor((string)c.Value);
+					break;
+			}
+
+			if (!hardpointPanelView.UseWaitCursor) Invalidate();
+		}
+		
+		private HardpointDisplayInfo GetHardpointFromName(string name)
+		{
+			foreach(HardpointDisplayInfo hi in otherHardpoints)
+			{
+				if(hi.Name == name) return hi;
+			}
+			return null;
+		}
+
+		private void hardpointPanelView_DoubleClick(object sender, EventArgs e)
+		{
+			if (hardpointPanelView.SelectedCells[0].ColumnIndex == 3)
+			{
+				colorDiag.Color = GetColor(hardpointPanelView.SelectedCells[0].Value as string);
+				if (colorDiag.ShowDialog() == DialogResult.OK)
+				{
+					hardpointPanelView.SelectedCells[0].Value = String.Format("#{0:X2}{1:X2}{2:X2}{3:X2}", colorDiag.Color.A, colorDiag.Color.R, colorDiag.Color.G, colorDiag.Color.B);
+					((DataGridViewTextBoxCell)hardpointPanelView.SelectedCells[0]).ReadOnly = true;
+					((DataGridViewTextBoxCell)hardpointPanelView.SelectedCells[0]).ReadOnly = false;
+				}
+			}
+		}
+
+		private void hardpointEditToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			splitViewHardpoint.Panel2Collapsed = !splitViewHardpoint.Panel2Collapsed;
+			Invalidate();
+			hardpointEditToolStripMenuItem.Checked = splitViewHardpoint.Panel2Collapsed;
 		}
     }
 }
