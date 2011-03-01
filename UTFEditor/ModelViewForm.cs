@@ -887,8 +887,8 @@ namespace UTFEditor
         /// </summary>
         private void SetupLights()
 		{
-			/*device.RenderState.Lighting = true;
-			device.Lights[0].Type = LightType.Directional;
+			device.RenderState.Lighting = true;
+			/*device.Lights[0].Type = LightType.Directional;
 			device.Lights[0].Diffuse = Color.Blue;
 			//device.Lights[0].DiffuseColor = new ColorValue(scale, scale, scale);
 			device.Lights[0].Direction = new Vector3(1.0f, 1.0f, 1.0f);
@@ -993,8 +993,6 @@ namespace UTFEditor
 				if (!mg.DisplayInfo.Display) continue;
 				
 				device.Transform.World = mg.Transform * Matrix.Translation(orgX, orgY, orgZ);
-				//device.RenderState.AmbientColor = mg.DisplayInfo.Color.ToArgb();//(utf.SelectedNode.Text == mg.Name) ? 0x3f3f00 : 0;
-				//device.RenderState.AmbientColor += brightness;
 				
 				int endMesh = mg.RefData.StartMesh + mg.RefData.NumMeshes;
 				for (int mn = mg.RefData.StartMesh; mn < endMesh; mn++)
@@ -1032,8 +1030,9 @@ namespace UTFEditor
 						device.TextureState[0].ColorOperation = TextureOperation.Modulate;
 						device.TextureState[0].ColorArgument1 = TextureArgument.TextureColor;
 						device.TextureState[0].ColorArgument2 = TextureArgument.TFactor;
-						device.TextureState[0].AlphaOperation = TextureOperation.SelectArg1;
+						device.TextureState[0].AlphaOperation = TextureOperation.Modulate;
 						device.TextureState[0].AlphaArgument1 = TextureArgument.TextureColor;
+						device.TextureState[0].AlphaArgument2 = TextureArgument.TFactor;
 
 						device.SamplerState[0].MipFilter = TextureFilter.Linear;
 						device.SamplerState[0].MinFilter = TextureFilter.Linear;
@@ -1043,8 +1042,10 @@ namespace UTFEditor
 					{
 						device.SetTexture(0, null);
 
-						device.TextureState[0].ColorOperation = TextureOperation.SelectArg1;
-						device.TextureState[0].ColorArgument1 = TextureArgument.TFactor;
+						device.TextureState[0].ColorOperation = TextureOperation.SelectArg2;
+						device.TextureState[0].ColorArgument2 = TextureArgument.TFactor;
+						device.TextureState[0].AlphaOperation = TextureOperation.SelectArg2;
+						device.TextureState[0].AlphaArgument2 = TextureArgument.TFactor;
 					}
 
 					mg.M[mn - mg.RefData.StartMesh].DrawSubset(0);
@@ -1492,11 +1493,14 @@ namespace UTFEditor
 
                 device.SetTexture(0, null);
 				device.Transform.World = Matrix.Scaling(hp.scale, hp.scale, hp.scale) * m * MeshGroups[mapFileToMesh[node.Parent.Parent.Parent.Name]].Transform * Matrix.Translation(orgX, orgY, orgZ);
-                                
-                device.RenderState.Lighting = false;
+
+				device.RenderState.Lighting = false;
+				device.RenderState.AlphaBlendEnable = false;
                 device.RenderState.FillMode = FillMode.Solid;
                 device.RenderState.CullMode = Cull.None;
-                device.VertexFormat = CustomVertex.PositionColored.Format;
+				device.VertexFormat = CustomVertex.PositionColored.Format;
+				device.TextureState[0].ColorOperation = TextureOperation.SelectArg1;
+				device.TextureState[0].AlphaOperation = TextureOperation.SelectArg1;
 
                 if (Utilities.StrIEq(node.Parent.Name, "Revolute"))
                 {
@@ -1537,8 +1541,6 @@ namespace UTFEditor
                 device.SetStreamSource(0, hp.display, 0);
                 device.Indices = hp.indices;
 				device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, Hardpoint.displayvertices.Length, 0, Hardpoint.displayindexes.Length / 3);
-
-                device.RenderState.Lighting = true;
             }
             catch { }
         }
