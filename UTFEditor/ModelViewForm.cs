@@ -16,7 +16,7 @@ namespace UTFEditor
 {
     public partial class ModelViewForm : Form, UTFFormObserver
     {
-        /// <summary>
+		/// <summary>
         /// The directx device.
         /// </summary>
         Device device = null;
@@ -285,6 +285,16 @@ namespace UTFEditor
             };
         };
         Hardpoint hp = new Hardpoint();
+        
+        public struct HardpointInfo
+        {
+			public Matrix Matrix, MGTransform;
+			public TreeNode Node;
+			public string Name;
+			public float Min, Max;
+			public bool Revolute;
+        }
+		List<HardpointInfo> otherHardpoints = new List<HardpointInfo>();
 
         /// <summary>
         /// Map a filename to its mesh group.
@@ -632,24 +642,109 @@ namespace UTFEditor
             }
             catch(Exception)
             { }
+
+			// Load hardpoints
+			foreach (TreeNode nFixed in rootNode.Nodes.Find("Fixed", true))
+			{
+				foreach (TreeNode nLoc in nFixed.Nodes)
+				{
+					TreeNode node = GetHardpointNode(nLoc);
+					if (node == null) continue;
+
+					Matrix m = GetHardpointMatrix(node);
+
+					HardpointInfo hi;
+					hi.Matrix = m;
+					hi.Name = node.Name;
+					hi.Node = node;
+					hi.Min = hi.Max = 0;
+					hi.MGTransform = MeshGroups[mapFileToMesh[hi.Node.Parent.Parent.Parent.Name]].Transform;
+					hi.Revolute = false;
+					otherHardpoints.Add(hi);
+				}
+			}
+			foreach (TreeNode nRev in rootNode.Nodes.Find("Revolute", true))
+			{
+				foreach (TreeNode nLoc in nRev.Nodes)
+				{
+					TreeNode node = GetHardpointNode(nLoc);
+					if (node == null) continue;
+
+					Matrix m = GetHardpointMatrix(node);
+
+					TreeNode n = node.Nodes["Max"];
+					float max = BitConverter.ToSingle(n.Tag as byte[], 0);
+					n = node.Nodes["Min"];
+					float min = BitConverter.ToSingle(n.Tag as byte[], 0);
+					// If max is 360° or min is -360°, set them to ±180°.
+					if (max >= (float)Math.PI * 2 - 0.0001f || min <= 0.0001f - (float)Math.PI * 2)
+					{
+						max = (float)Math.PI;
+						min = -max;
+					}
+					// Axis doesn't seem to be used, so just rotate them to fit.
+					max = -max - (float)Math.PI / 2;
+					min = -min - (float)Math.PI / 2;
+
+					HardpointInfo hi;
+					hi.Matrix = m;
+					hi.Name = node.Name;
+					hi.Node = node;
+					hi.Min = min;
+					hi.Max = max;
+					hi.MGTransform = MeshGroups[mapFileToMesh[hi.Node.Parent.Parent.Parent.Name]].Transform;
+					hi.Revolute = true;
+					otherHardpoints.Add(hi);
+				}
+			}
             
-            modelPanelView.Sort(modelPanelView.Columns[1], ListSortDirection.Ascending);
+            viewPanelView.Sort(viewPanelView.Columns[1], ListSortDirection.Ascending);
+        }
+        
+        Matrix GetHardpointMatrix(TreeNode node)
+        {
+			Matrix m = Matrix.Identity;
+			try
+			{
+				TreeNode n = node.Nodes["Position"];
+				byte[] data = n.Tag as byte[];
+				int pos = 0;
+				m.M41 = Utilities.GetFloat(data, ref pos);
+				m.M42 = Utilities.GetFloat(data, ref pos);
+				m.M43 = Utilities.GetFloat(data, ref pos);
+				m.M44 = 1;
+				n = node.Nodes["Orientation"];
+				data = n.Tag as byte[];
+				pos = 0;
+				m.M11 = Utilities.GetFloat(data, ref pos);
+				m.M21 = Utilities.GetFloat(data, ref pos);
+				m.M31 = Utilities.GetFloat(data, ref pos);
+				m.M12 = Utilities.GetFloat(data, ref pos);
+				m.M22 = Utilities.GetFloat(data, ref pos);
+				m.M32 = Utilities.GetFloat(data, ref pos);
+				m.M13 = Utilities.GetFloat(data, ref pos);
+				m.M23 = Utilities.GetFloat(data, ref pos);
+				m.M33 = Utilities.GetFloat(data, ref pos);
+				m.M14 = m.M24 = m.M34 = 0;
+			}
+			catch (Exception) {}
+			return m;
         }
 
 		MeshGroupDisplayInfo GetMeshGroupDisplayInfo(bool def, string name, string level)
         {
-			for(int a = 0; a < modelPanelView.Rows.Count; a++)
+			for(int a = 0; a < viewPanelView.Rows.Count; a++)
 			{
-				DataGridViewTextBoxCell c = (DataGridViewTextBoxCell)modelPanelView[1, a];
+				DataGridViewTextBoxCell c = (DataGridViewTextBoxCell)viewPanelView[1, a];
 				string cellName = c.Value as string;
 				int[] cellTag = (int[]) c.Tag;
 				if ("Level" + cellTag[0] == level && cellName == name)
 				{
 					MeshGroupDisplayInfo mgdi = new MeshGroupDisplayInfo();
-					mgdi.Display = (bool)((DataGridViewCheckBoxCell)modelPanelView[0, a]).Value;
-					mgdi.Shading = (ShadingMode) Enum.Parse(typeof(ShadingMode), ((DataGridViewComboBoxCell)modelPanelView[2, a]).Value as string);
-					mgdi.Color = GetColor((string)((DataGridViewTextBoxCell)modelPanelView[3, a]).Value);
-					mgdi.Texture = (TextureMode)Enum.Parse(typeof(TextureMode), ((DataGridViewComboBoxCell)modelPanelView[4, a]).Value as string);
+					mgdi.Display = (bool)((DataGridViewCheckBoxCell)viewPanelView[0, a]).Value;
+					mgdi.Shading = (ShadingMode) Enum.Parse(typeof(ShadingMode), ((DataGridViewComboBoxCell)viewPanelView[2, a]).Value as string);
+					mgdi.Color = GetColor((string)((DataGridViewTextBoxCell)viewPanelView[3, a]).Value);
+					mgdi.Texture = (TextureMode)Enum.Parse(typeof(TextureMode), ((DataGridViewComboBoxCell)viewPanelView[4, a]).Value as string);
 					Int32.TryParse(level.Substring(5), out mgdi.Level);
 					return mgdi;
 				}
@@ -662,15 +757,15 @@ namespace UTFEditor
 			mgdiDef.Color = Color.FromArgb(255, Color.White);
 			Int32.TryParse(level.Substring(5), out mgdiDef.Level);
 			
-			int rowNum = modelPanelView.Rows.Add();
+			int rowNum = viewPanelView.Rows.Add();
 			CreateLevelRow(rowNum, mgdiDef.Level, def);
 
-			modelPanelView[0, rowNum].Value = mgdiDef.Display;
-			modelPanelView[1, rowNum].Value = name;
-			modelPanelView[2, rowNum].Value = ShadingMode.Flat.ToString();
-			modelPanelView[3, rowNum].Value = "#FFFFFFFF";
-			modelPanelView[4, rowNum].Value = TextureMode.TextureColor.ToString();
-			modelPanelView[1, rowNum].Tag = new int[] { mgdiDef.Level, 0 };
+			viewPanelView[0, rowNum].Value = mgdiDef.Display;
+			viewPanelView[1, rowNum].Value = name;
+			viewPanelView[2, rowNum].Value = ShadingMode.Flat.ToString();
+			viewPanelView[3, rowNum].Value = "#FFFFFFFF";
+			viewPanelView[4, rowNum].Value = TextureMode.TextureColor.ToString();
+			viewPanelView[1, rowNum].Tag = new int[] { mgdiDef.Level, 0 };
 			
 			return mgdiDef;
         }
@@ -694,23 +789,23 @@ namespace UTFEditor
         {
 			for(int a = row; a > 0; a--)
 			{
-				int[] data = (int[]) modelPanelView[1, a].Tag;
+				int[] data = (int[]) viewPanelView[1, a].Tag;
 				if(data == null) continue;
 				if(data[0] == level && data[1] == 1) return;
 			}
 			
-			row = modelPanelView.Rows.Add();
+			row = viewPanelView.Rows.Add();
 			Color defCol = Color.FromArgb(255, Color.White);
 
-			modelPanelView[0, row].Value = def;
-			modelPanelView[1, row].Value = "Level" + level;
-			modelPanelView[2, row].Value = ShadingMode.Flat.ToString();
-			modelPanelView[3, row].Value = "#FFFFFFFF";
-			modelPanelView[4, row].Value = TextureMode.TextureColor.ToString();
-			modelPanelView[1, row].Tag = new int[] { level, 1 };
+			viewPanelView[0, row].Value = def;
+			viewPanelView[1, row].Value = "Level" + level;
+			viewPanelView[2, row].Value = ShadingMode.Flat.ToString();
+			viewPanelView[3, row].Value = "#FFFFFFFF";
+			viewPanelView[4, row].Value = TextureMode.TextureColor.ToString();
+			viewPanelView[1, row].Tag = new int[] { level, 1 };
 
-			modelPanelView.Rows[row].DefaultCellStyle.BackColor = SystemColors.ControlDarkDark;
-			modelPanelView.Rows[row].DefaultCellStyle.ForeColor = SystemColors.ControlLightLight;
+			viewPanelView.Rows[row].DefaultCellStyle.BackColor = SystemColors.ControlDarkDark;
+			viewPanelView.Rows[row].DefaultCellStyle.ForeColor = SystemColors.ControlLightLight;
         }
 
         /// <summary>
@@ -976,7 +1071,7 @@ namespace UTFEditor
         private void Render()
         {
             if (device == null || swap == null || swap.Disposed || depthStencil == null)
-                return;
+				return;
             
             Surface s = swap.GetBackBuffer(0, BackBufferType.Mono);
 			device.SetRenderTarget(0, s);
@@ -1016,7 +1111,7 @@ namespace UTFEditor
 					device.RenderState.BlendOperation = BlendOperation.Add;
 
 					Texture tex = FindTextureByMaterialID(mesh.MaterialId);
-					if(mg.DisplayInfo.Texture == TextureMode.Texture || mg.DisplayInfo.Texture == TextureMode.None)
+					if(mg.DisplayInfo.Texture == TextureMode.Texture || mg.DisplayInfo.Texture == TextureMode.None || tex == null)
 						device.RenderState.TextureFactor = mg.DisplayInfo.Color.ToArgb();
 					else
 						device.RenderState.TextureFactor = ColorOperator.Modulate(mg.DisplayInfo.Color, Color.FromArgb(tex.Dc)).ToArgb();
@@ -1149,7 +1244,14 @@ namespace UTFEditor
         private void modelView_MouseMove(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.None)
+            {
+				HardpointInfo hi;
+				if(GetHardpointFromScreen(e.X, e.Y, out hi))
+					lblHardpointHover.Text = "Hardpoint: " + hi.Name;
+				else
+					lblHardpointHover.Text = "Hardpoint: <none>";
                 return;
+            }
 
             int deltaX = e.Location.X - lastPosition.X;
             int deltaY = e.Location.Y - lastPosition.Y;
@@ -1380,7 +1482,7 @@ namespace UTFEditor
 
         private void ResetAll()
 		{
-			modelPanelView.Rows.Clear();
+			viewPanelView.Rows.Clear();
 			
             rotX = rotY = rotZ = 0;
             posX = posY = 0;
@@ -1426,10 +1528,14 @@ namespace UTFEditor
             }
             catch { }
         }
-        
-        private TreeNode GetHardpointNode()
+
+		private TreeNode GetHardpointNode()
+		{
+			return GetHardpointNode(utf.SelectedNode);
+		}
+		
+		private TreeNode GetHardpointNode(TreeNode node)
         {
-			TreeNode node = utf.SelectedNode;
 			if(node == null) return null;
 			try {
 				if (node.Parent.Text == "Hardpoints")
@@ -1453,92 +1559,139 @@ namespace UTFEditor
         {
 			TreeNode node = GetHardpointNode();
 			if(node == null)
-			{
 				centerOnHardpointToolStripMenuItem.Enabled = false;
-				return;
-			}
-			centerOnHardpointToolStripMenuItem.Enabled = true;
-            try
-            {
-                TreeNode n = node.Nodes["Position"];
-                byte[] data = n.Tag as byte[];
-                int pos = 0;
-                Matrix m;
-                m.M41 = Utilities.GetFloat(data, ref pos);
-                m.M42 = Utilities.GetFloat(data, ref pos);
-                m.M43 = Utilities.GetFloat(data, ref pos);
-                m.M44 = 1;
-                n = node.Nodes["Orientation"];
-                data = n.Tag as byte[];
-                pos = 0;
-                m.M11 = Utilities.GetFloat(data, ref pos);
-                m.M21 = Utilities.GetFloat(data, ref pos);
-                m.M31 = Utilities.GetFloat(data, ref pos);
-                m.M12 = Utilities.GetFloat(data, ref pos);
-                m.M22 = Utilities.GetFloat(data, ref pos);
-                m.M32 = Utilities.GetFloat(data, ref pos);
-                m.M13 = Utilities.GetFloat(data, ref pos);
-                m.M23 = Utilities.GetFloat(data, ref pos);
-                m.M33 = Utilities.GetFloat(data, ref pos);
-                m.M14 = m.M24 = m.M34 = 0;
+			else
+				centerOnHardpointToolStripMenuItem.Enabled = true;
+			
+			if(otherHardpoints.Count == 0) return;
+			
+			device.SetTexture(0, null);
+			
+			device.RenderState.Lighting = false;
+			device.RenderState.AlphaBlendEnable = false;
+			device.RenderState.FillMode = FillMode.Solid;
+			device.RenderState.CullMode = Cull.None;
+			device.VertexFormat = CustomVertex.PositionColored.Format;
+			device.TextureState[0].ColorOperation = TextureOperation.SelectArg1;
+			device.TextureState[0].AlphaOperation = TextureOperation.SelectArg1;
+			
+			foreach(HardpointInfo hi in otherHardpoints)
+			{
+				try
+				{
+					bool isSelectedNode = (hi.Node == node);
+					float scale = hp.scale * (isSelectedNode ? 4f : 1f);
+					device.Transform.World = Matrix.Scaling(scale, scale, scale) * hi.Matrix * hi.MGTransform * Matrix.Translation(orgX, orgY, orgZ);
 
-                device.SetTexture(0, null);
-				device.Transform.World = Matrix.Scaling(hp.scale, hp.scale, hp.scale) * m * MeshGroups[mapFileToMesh[node.Parent.Parent.Parent.Name]].Transform * Matrix.Translation(orgX, orgY, orgZ);
-
-				device.RenderState.Lighting = false;
-				device.RenderState.AlphaBlendEnable = false;
-                device.RenderState.FillMode = FillMode.Solid;
-                device.RenderState.CullMode = Cull.None;
-				device.VertexFormat = CustomVertex.PositionColored.Format;
-				device.TextureState[0].ColorOperation = TextureOperation.SelectArg1;
-				device.TextureState[0].AlphaOperation = TextureOperation.SelectArg1;
-
-                if (Utilities.StrIEq(node.Parent.Name, "Revolute"))
-                {
-                    try
-                    {
-                        n = node.Nodes["Max"];
-                        float max = BitConverter.ToSingle(n.Tag as byte[], 0);
-                        n = node.Nodes["Min"];
-                        float min = BitConverter.ToSingle(n.Tag as byte[], 0);
-                        if (hp.max != max || hp.min != min)
-                        {
-                            hp.max = max;
-                            hp.min = min;
-                            // If max is 360° or min is -360°, set them to ±180°.
-                            if (max >= (float)Math.PI * 2 - 0.0001f ||
-                                min <= 0.0001f - (float)Math.PI * 2)
-                            {
-                                max = (float)Math.PI;
-                                min = -max;
-                            }
-                            // Axis doesn't seem to be used, so just rotate them to fit.
-                            max = -max - (float)Math.PI / 2;
-                            min = -min - (float)Math.PI / 2;
-                            CustomVertex.PositionColored[] rotVert = new CustomVertex.PositionColored[26];
-                            // Position the rotation just below the top, so the blue takes precedence.
-                            rotVert[0] = new CustomVertex.PositionColored(0, 0, 0, 0xffff00);
-                            pos = 1;
-                            float delta = (max - min) / 24;
-                            for (float angle = max; pos < 26; angle -= delta)
-                                rotVert[pos++] = new CustomVertex.PositionColored(2 * (float)Math.Cos(angle), 0, 2 * (float)Math.Sin(angle), 0xffff00);
-                            hp.revolute.SetData(rotVert, 0, LockFlags.None);
-                        }
-                        device.SetStreamSource(0, hp.revolute, 0);
-                        device.DrawPrimitives(PrimitiveType.TriangleFan, 0, 24);
-                    }
-                    catch { }
-                }
-                device.SetStreamSource(0, hp.display, 0);
-                device.Indices = hp.indices;
-				device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, Hardpoint.displayvertices.Length, 0, Hardpoint.displayindexes.Length / 3);
+					if (isSelectedNode)
+					{
+						if (hi.Revolute)
+						{
+							try
+							{
+								int pos = 0;
+								if (hp.max != hi.Max || hp.min != hi.Min)
+								{
+									hp.max = hi.Max;
+									hp.min = hi.Min;
+									
+									CustomVertex.PositionColored[] rotVert = new CustomVertex.PositionColored[26];
+									// Position the rotation just below the top, so the blue takes precedence.
+									rotVert[0] = new CustomVertex.PositionColored(0, 0, 0, 0xffff00);
+									pos = 1;
+									float delta = (hp.max - hp.min) / 24;
+									for (float angle = hp.max; pos < 26; angle -= delta)
+										rotVert[pos++] = new CustomVertex.PositionColored(2 * (float)Math.Cos(angle), 0, 2 * (float)Math.Sin(angle), 0xffff00);
+									hp.revolute.SetData(rotVert, 0, LockFlags.None);
+								}
+								device.SetStreamSource(0, hp.revolute, 0);
+								device.DrawPrimitives(PrimitiveType.TriangleFan, 0, 24);
+							}
+							catch { }
+						}
+					}
+					device.SetStreamSource(0, hp.display, 0);
+					device.Indices = hp.indices;
+					if (isSelectedNode)
+						device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, Hardpoint.displayvertices.Length, 0, Hardpoint.displayindexes.Length / 3);
+					else
+						device.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, Hardpoint.displayvertices.Length, 0, 12);
+				}
+				catch { }
             }
-            catch { }
         }
 
         private void modelView_MouseClick(object sender, MouseEventArgs e)
         {
             modelView.Focus();
+        }
+        
+        private bool GetHitFromScreen(int x, int y, out Vector3 hitLocation, out Vector3 faceNormal, out string nameFinal)
+        {
+			Vector3 nearFinal = new Vector3(x, y, 0);
+			Vector3 farFinal = new Vector3(x, y, 1);
+
+			Vector3 nearInit = new Vector3(x, y, 0);
+			Vector3 farInit = new Vector3(x, y, 1);
+			nameFinal = null;
+
+			float minDist = Single.MaxValue;
+			faceNormal = Vector3.Empty;
+			
+			hitLocation = Vector3.Empty;
+
+			foreach (MeshGroup mg in MeshGroups)
+			{
+				if(!mg.DisplayInfo.Display) continue;
+				
+				Vector3 near = new Vector3(nearInit.X, nearInit.Y, nearInit.Z);
+				Vector3 far = new Vector3(farInit.X, farInit.Y, farInit.Z);
+				near.Unproject(device.Viewport, device.Transform.Projection, device.Transform.View, mg.Transform * Matrix.Translation(orgX, orgY, orgZ));
+				far.Unproject(device.Viewport, device.Transform.Projection, device.Transform.View, mg.Transform * Matrix.Translation(orgX, orgY, orgZ));
+
+				int mn = 0;
+				foreach (Mesh m in mg.M)
+				{
+					IntersectInformation hit;
+					if (m.Intersect(near, far - near, out hit) && hit.Dist < minDist)
+					{
+						minDist = hit.Dist;
+						farFinal = far;
+						nearFinal = near;
+						nameFinal = mg.Name;
+
+						ushort[] intersectedIndices = new ushort[3];
+
+						ushort[] indices = (ushort[])m.LockIndexBuffer(typeof(ushort), LockFlags.ReadOnly, m.NumberFaces * 3);
+						Array.Copy(indices, hit.FaceIndex * 3, intersectedIndices, 0, 3);
+						m.UnlockIndexBuffer();
+
+						CustomVertex.PositionNormalTextured[] tempIntersectedVertices = new CustomVertex.PositionNormalTextured[3];
+
+						CustomVertex.PositionNormalTextured[] meshVertices =
+							(CustomVertex.PositionNormalTextured[])m.LockVertexBuffer(typeof(CustomVertex.PositionNormalTextured), LockFlags.ReadOnly, m.NumberVertices);
+						tempIntersectedVertices[0] = meshVertices[intersectedIndices[0]];
+						tempIntersectedVertices[1] = meshVertices[intersectedIndices[1]];
+						tempIntersectedVertices[2] = meshVertices[intersectedIndices[2]];
+						m.UnlockVertexBuffer();
+
+						Vector3 v1 = tempIntersectedVertices[1].Position - tempIntersectedVertices[0].Position;
+						Vector3 v2 = tempIntersectedVertices[2].Position - tempIntersectedVertices[0].Position;
+						faceNormal = Vector3.Cross(v1, v2);
+						faceNormal.Normalize();
+						Vector3 avgNormals = (tempIntersectedVertices[0].Normal + tempIntersectedVertices[1].Normal + tempIntersectedVertices[2].Normal);
+						avgNormals.Normalize();
+						if (Vector3.Dot(faceNormal, avgNormals) < 0) faceNormal *= -1.0f;
+					}
+					mn++;
+				}
+			}
+
+			if (minDist == Single.MaxValue) return false;
+			
+			hitLocation = minDist * (farFinal - nearFinal) + nearFinal;
+
+			return true;
         }
         
         private void PlaceHardpoint(int x, int y)
@@ -1548,66 +1701,12 @@ namespace UTFEditor
 			TreeNode node = GetHardpointNode();
 			if (node == null) return;
 
-			Vector3 nearFinal = new Vector3(x, y, 0);
-			Vector3 farFinal = new Vector3(x, y, 1);
-
-			Vector3 nearInit = new Vector3(x, y, 0);
-			Vector3 farInit = new Vector3(x, y, 1);
-
-            string nameInit = FindGroupName(node);
-            string nameFinal = null;
+			string nameInit = FindGroupName(node);
 			
-			float minDist = Single.MaxValue;
-			Vector3 faceNormal = Vector3.Empty;
-			
-			foreach (MeshGroup mg in MeshGroups)
-			{
-				Vector3 near = new Vector3(nearInit.X, nearInit.Y, nearInit.Z);
-				Vector3 far = new Vector3(farInit.X, farInit.Y, farInit.Z);
-				near.Unproject(device.Viewport, device.Transform.Projection, device.Transform.View, mg.Transform * Matrix.Translation(orgX, orgY, orgZ));
-				far.Unproject(device.Viewport, device.Transform.Projection, device.Transform.View, mg.Transform * Matrix.Translation(orgX, orgY, orgZ));
-                
-                int mn = 0;
-                foreach (Mesh m in mg.M)
-                {
-					IntersectInformation hit;
-					if (m.Intersect(near, far - near, out hit) && hit.Dist < minDist)
-					{
-						minDist = hit.Dist;
-						farFinal = far;
-						nearFinal = near;
-                        nameFinal = mg.Name;
-						
-						ushort[] intersectedIndices = new ushort[3]; 
-						
-						ushort[] indices = (ushort[])m.LockIndexBuffer( typeof(ushort), LockFlags.ReadOnly, m.NumberFaces * 3);
-						Array.Copy(indices, hit.FaceIndex * 3, intersectedIndices, 0, 3); 
-						m.UnlockIndexBuffer();
-						
-						CustomVertex.PositionNormalTextured[] tempIntersectedVertices = new CustomVertex.PositionNormalTextured[3];
-						
-						CustomVertex.PositionNormalTextured[] meshVertices =
-							(CustomVertex.PositionNormalTextured[])m.LockVertexBuffer(typeof(CustomVertex.PositionNormalTextured), LockFlags.ReadOnly, m.NumberVertices); 
-						tempIntersectedVertices[0] = meshVertices[ intersectedIndices[0] ]; 
-						tempIntersectedVertices[1] = meshVertices[ intersectedIndices[1] ]; 
-						tempIntersectedVertices[2] = meshVertices[ intersectedIndices[2] ]; 
-						m.UnlockVertexBuffer();
-
-						Vector3 v1 = tempIntersectedVertices[1].Position - tempIntersectedVertices[0].Position;
-						Vector3 v2 = tempIntersectedVertices[2].Position - tempIntersectedVertices[0].Position;
-						faceNormal = Vector3.Cross(v1, v2);
-						faceNormal.Normalize();
-						Vector3 avgNormals = (tempIntersectedVertices[0].Normal + tempIntersectedVertices[1].Normal + tempIntersectedVertices[2].Normal);
-						avgNormals.Normalize();
-						if(Vector3.Dot(faceNormal, avgNormals) < 0) faceNormal *= -1.0f;
-					}
-					mn++;
-				}
-			}
-			
-			if(minDist == Single.MaxValue) return;
-						
-			Vector3 loc = minDist * (farFinal - nearFinal) + nearFinal;
+			Vector3 faceNormal;
+			string nameFinal;
+			Vector3 loc;
+			if (!GetHitFromScreen(x, y, out loc, out faceNormal, out nameFinal)) return;
 
             if (nameInit != null && nameFinal != null && nameFinal != nameInit)
             {
@@ -2189,28 +2288,28 @@ namespace UTFEditor
 			ResetAll();
 		}
 
-		private void modelPanelView_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+		private void viewPanelView_CellValueChanged(object sender, DataGridViewCellEventArgs e)
 		{
-			if (e.RowIndex < 0 || e.ColumnIndex < 0 || e.RowIndex > modelPanelView.Rows.Count || e.ColumnIndex > modelPanelView.Columns.Count) return;
+			if (e.RowIndex < 0 || e.ColumnIndex < 0 || e.RowIndex > viewPanelView.Rows.Count || e.ColumnIndex > viewPanelView.Columns.Count) return;
 
-			DataGridViewCell c = modelPanelView[e.ColumnIndex, e.RowIndex];
+			DataGridViewCell c = viewPanelView[e.ColumnIndex, e.RowIndex];
 			
-			string mgName = modelPanelView[1, e.RowIndex].Value as string;
-			int[] mgDat = (int[])modelPanelView[1, e.RowIndex].Tag;
+			string mgName = viewPanelView[1, e.RowIndex].Value as string;
+			int[] mgDat = (int[])viewPanelView[1, e.RowIndex].Tag;
 			if (mgDat == null || mgName == null) return;
 			
 			if(mgDat[1] == 1)
 			{
-				object newVal = modelPanelView[e.ColumnIndex, e.RowIndex].Value;
+				object newVal = viewPanelView[e.ColumnIndex, e.RowIndex].Value;
 				this.SuspendLayout();
-				modelPanelView.UseWaitCursor = true;
-				for(int a = e.RowIndex + 1; a < modelPanelView.Rows.Count; a++)
+				viewPanelView.UseWaitCursor = true;
+				for(int a = e.RowIndex + 1; a < viewPanelView.Rows.Count; a++)
 				{
-					int[] mgDat2 = (int[])modelPanelView[1, a].Tag;
+					int[] mgDat2 = (int[])viewPanelView[1, a].Tag;
 					if(mgDat2 != null && mgDat2[1] == 1) break;
-					modelPanelView[e.ColumnIndex, a].Value = newVal;
+					viewPanelView[e.ColumnIndex, a].Value = newVal;
 				}
-				modelPanelView.UseWaitCursor = false;
+				viewPanelView.UseWaitCursor = false;
 				this.ResumeLayout();
 
 				Invalidate();
@@ -2237,7 +2336,7 @@ namespace UTFEditor
 					break;
 			}
 
-			if (!modelPanelView.UseWaitCursor) Invalidate();
+			if (!viewPanelView.UseWaitCursor) Invalidate();
 		}
 		
 		private MeshGroup GetMeshGroupFromName(string name, int level)
@@ -2247,15 +2346,15 @@ namespace UTFEditor
 			return null;
 		}
 
-		private void modelPanelView_CurrentCellDirtyStateChanged(object sender, EventArgs e)
+		private void viewPanelView_CurrentCellDirtyStateChanged(object sender, EventArgs e)
 		{
-			modelPanelView.CommitEdit(DataGridViewDataErrorContexts.Commit);
+			viewPanelView.CommitEdit(DataGridViewDataErrorContexts.Commit);
 		}
 
-		private void modelPanelView_SortCompare(object sender, DataGridViewSortCompareEventArgs e)
+		private void viewPanelView_SortCompare(object sender, DataGridViewSortCompareEventArgs e)
 		{
-			int[] s1 = (int[]) modelPanelView[1, e.RowIndex1].Tag;
-			int[] s2 = (int[]) modelPanelView[1, e.RowIndex2].Tag;
+			int[] s1 = (int[]) viewPanelView[1, e.RowIndex1].Tag;
+			int[] s2 = (int[]) viewPanelView[1, e.RowIndex2].Tag;
 			if (s1[0] < s2[0]) e.SortResult = -1;
 			else if (s1[0] > s2[0]) e.SortResult = 1;
 			else
@@ -2273,7 +2372,7 @@ namespace UTFEditor
 			e.Handled = true;
 		}
 
-		private void showModelPanelToolStripMenuItem_Click(object sender, EventArgs e)
+		private void showViewPanelToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			modelView.Panel2Collapsed = !modelView.Panel2Collapsed;
 		}
@@ -2302,18 +2401,84 @@ namespace UTFEditor
 			InitializeGraphics();
 		}
 
-		private void modelPanelView_DoubleClick(object sender, EventArgs e)
+		private void viewPanelView_DoubleClick(object sender, EventArgs e)
 		{
-			if(modelPanelView.SelectedCells[0].ColumnIndex == 3)
+			if(viewPanelView.SelectedCells[0].ColumnIndex == 3)
 			{
-				colorDiag.Color = GetColor(modelPanelView.SelectedCells[0].Value as string);
+				colorDiag.Color = GetColor(viewPanelView.SelectedCells[0].Value as string);
 				if(colorDiag.ShowDialog() == DialogResult.OK)
 				{
-					modelPanelView.SelectedCells[0].Value = String.Format("#{0:X2}{1:X2}{2:X2}{3:X2}", colorDiag.Color.A, colorDiag.Color.R, colorDiag.Color.G, colorDiag.Color.B);
-					((DataGridViewTextBoxCell)modelPanelView.SelectedCells[0]).ReadOnly = true;
-					((DataGridViewTextBoxCell)modelPanelView.SelectedCells[0]).ReadOnly = false;
+					viewPanelView.SelectedCells[0].Value = String.Format("#{0:X2}{1:X2}{2:X2}{3:X2}", colorDiag.Color.A, colorDiag.Color.R, colorDiag.Color.G, colorDiag.Color.B);
+					((DataGridViewTextBoxCell)viewPanelView.SelectedCells[0]).ReadOnly = true;
+					((DataGridViewTextBoxCell)viewPanelView.SelectedCells[0]).ReadOnly = false;
 				}
 			}
+		}
+
+		private void modelView_Panel1_MouseDoubleClick(object sender, MouseEventArgs e)
+		{
+			HardpointInfo hi;
+			if(GetHardpointFromScreen(e.X, e.Y, out hi))
+				utf.SelectedNode = hi.Node;
+		}
+		
+		private bool GetHardpointFromScreen(int x, int y, out HardpointInfo foundHardpoint)
+		{
+			Vector3 nearInit = new Vector3(x, y, 0);
+			Vector3 farInit = new Vector3(x, y, 1);
+			
+			Vector3 near = new Vector3(nearInit.X, nearInit.Y, nearInit.Z);
+			Vector3 far = new Vector3(farInit.X, farInit.Y, farInit.Z);
+			near.Unproject(device.Viewport, device.Transform.Projection, device.Transform.View, Matrix.Translation(orgX, orgY, orgZ));
+			far.Unproject(device.Viewport, device.Transform.Projection, device.Transform.View, Matrix.Translation(orgX, orgY, orgZ));
+			
+			Vector3 direction = far - near;
+			far -= direction * 0.47f;
+			near += direction * 0.47f;
+			direction.Normalize();
+			
+			foundHardpoint = new HardpointInfo();
+			float minFactor = Single.MaxValue;
+			foundHardpoint.Node = utf.SelectedNode;
+			
+			Vector3 hit;
+			Vector3 normal;
+			string name;
+			bool hitMesh = false;
+			if(GetHitFromScreen(x, y, out hit, out normal, out name)) hitMesh = true;
+			
+			float hScale = hp.scale / scale;
+			
+			foreach(HardpointInfo hi in otherHardpoints)
+			{
+				Vector3 hpLoc = new Vector3(hi.Matrix.M41, hi.Matrix.M42, hi.Matrix.M43);
+				hpLoc.TransformCoordinate(hi.MGTransform);
+
+				float distanceHardpoint = Vector3.LengthSq(hpLoc - near);
+				if(hitMesh && distanceHardpoint > Vector3.LengthSq(hit - near)) continue;
+				float dot = Vector3.Dot(hpLoc - near, direction);
+				float offsetHardpoint = Math.Abs(distanceHardpoint - dot*dot);
+				
+				//System.Diagnostics.Debug.WriteLine(hi.Name + ": distance = " + distanceHardpoint + ", offset = " + offsetHardpoint + ", dot = " + dot);
+				
+				//System.Diagnostics.Debug.WriteLine(hi.Name + ": projDirection = " + projDirection + ", distCameraHp = " + distCameraHp + ", cosine = " + cosine + ", theta = " + theta + ", offsetHardpoint = " + offsetHardpoint + ", distanceHardpoint = " + distanceHardpoint);
+				
+				float precisionFactor = distanceHardpoint * offsetHardpoint * hScale;
+
+				if (precisionFactor < minFactor && offsetHardpoint < hScale * 6)
+				{
+					minFactor = precisionFactor;
+					foundHardpoint = hi;
+					//System.Diagnostics.Debug.WriteLine("New min: " + distanceHardpoint + " by " + hi.Name);
+				}
+			}
+
+			if (minFactor == Single.MaxValue)
+			{
+				return false;
+			}
+			
+			return true;
 		}
     }
 }

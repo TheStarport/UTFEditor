@@ -33,7 +33,7 @@
 			this.textBoxScale = new System.Windows.Forms.TextBox();
 			this.toolStripContainer1 = new System.Windows.Forms.ToolStripContainer();
 			this.modelView = new System.Windows.Forms.SplitContainer();
-			this.modelPanelView = new System.Windows.Forms.DataGridView();
+			this.viewPanelView = new System.Windows.Forms.DataGridView();
 			this.colMPVisible = new System.Windows.Forms.DataGridViewCheckBoxColumn();
 			this.colMPElement = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.colMPShading = new System.Windows.Forms.DataGridViewComboBoxColumn();
@@ -86,14 +86,15 @@
 			this.resetAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.shortcutsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.showModelPanelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.showViewPanelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.colorDiag = new System.Windows.Forms.ColorDialog();
+			this.lblHardpointHover = new System.Windows.Forms.Label();
 			((System.ComponentModel.ISupportInitialize)(this.trackBarScale)).BeginInit();
 			this.toolStripContainer1.ContentPanel.SuspendLayout();
 			this.toolStripContainer1.SuspendLayout();
 			this.modelView.Panel2.SuspendLayout();
 			this.modelView.SuspendLayout();
-			((System.ComponentModel.ISupportInitialize)(this.modelPanelView)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.viewPanelView)).BeginInit();
 			this.menu.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -138,6 +139,7 @@
 			// toolStripContainer1.ContentPanel
 			// 
 			this.toolStripContainer1.ContentPanel.BackColor = System.Drawing.SystemColors.Control;
+			this.toolStripContainer1.ContentPanel.Controls.Add(this.lblHardpointHover);
 			this.toolStripContainer1.ContentPanel.Controls.Add(this.textBoxScale);
 			this.toolStripContainer1.ContentPanel.Controls.Add(this.label1);
 			this.toolStripContainer1.ContentPanel.Controls.Add(this.trackBarScale);
@@ -165,6 +167,7 @@
 			this.modelView.Panel1.Paint += new System.Windows.Forms.PaintEventHandler(this.modelView_Paint);
 			this.modelView.Panel1.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.modelView_Panel1_PreviewKeyDown);
 			this.modelView.Panel1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.modelView_MouseMove);
+			this.modelView.Panel1.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.modelView_Panel1_MouseDoubleClick);
 			this.modelView.Panel1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.modelView_MouseClick);
 			this.modelView.Panel1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.modelView_MouseDown);
 			this.modelView.Panel1.Resize += new System.EventHandler(this.modelView_Panel1_Resize);
@@ -172,38 +175,38 @@
 			// 
 			// modelView.Panel2
 			// 
-			this.modelView.Panel2.Controls.Add(this.modelPanelView);
+			this.modelView.Panel2.Controls.Add(this.viewPanelView);
 			this.modelView.Panel2MinSize = 0;
 			this.modelView.Size = new System.Drawing.Size(1008, 663);
 			this.modelView.SplitterDistance = 689;
 			this.modelView.TabIndex = 0;
 			// 
-			// modelPanelView
+			// viewPanelView
 			// 
-			this.modelPanelView.AllowUserToAddRows = false;
-			this.modelPanelView.AllowUserToDeleteRows = false;
-			this.modelPanelView.AllowUserToResizeRows = false;
-			this.modelPanelView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-			this.modelPanelView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+			this.viewPanelView.AllowUserToAddRows = false;
+			this.viewPanelView.AllowUserToDeleteRows = false;
+			this.viewPanelView.AllowUserToResizeRows = false;
+			this.viewPanelView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+			this.viewPanelView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.colMPVisible,
             this.colMPElement,
             this.colMPShading,
             this.colMPColor,
             this.colMPTexture});
-			this.modelPanelView.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.modelPanelView.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnEnter;
-			this.modelPanelView.Location = new System.Drawing.Point(0, 0);
-			this.modelPanelView.Margin = new System.Windows.Forms.Padding(0);
-			this.modelPanelView.MultiSelect = false;
-			this.modelPanelView.Name = "modelPanelView";
-			this.modelPanelView.RowHeadersVisible = false;
-			this.modelPanelView.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.CellSelect;
-			this.modelPanelView.Size = new System.Drawing.Size(315, 663);
-			this.modelPanelView.TabIndex = 3;
-			this.modelPanelView.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.modelPanelView_CellValueChanged);
-			this.modelPanelView.SortCompare += new System.Windows.Forms.DataGridViewSortCompareEventHandler(this.modelPanelView_SortCompare);
-			this.modelPanelView.DoubleClick += new System.EventHandler(this.modelPanelView_DoubleClick);
-			this.modelPanelView.CurrentCellDirtyStateChanged += new System.EventHandler(this.modelPanelView_CurrentCellDirtyStateChanged);
+			this.viewPanelView.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.viewPanelView.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnEnter;
+			this.viewPanelView.Location = new System.Drawing.Point(0, 0);
+			this.viewPanelView.Margin = new System.Windows.Forms.Padding(0);
+			this.viewPanelView.MultiSelect = false;
+			this.viewPanelView.Name = "viewPanelView";
+			this.viewPanelView.RowHeadersVisible = false;
+			this.viewPanelView.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.CellSelect;
+			this.viewPanelView.Size = new System.Drawing.Size(315, 663);
+			this.viewPanelView.TabIndex = 3;
+			this.viewPanelView.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.viewPanelView_CellValueChanged);
+			this.viewPanelView.SortCompare += new System.Windows.Forms.DataGridViewSortCompareEventHandler(this.viewPanelView_SortCompare);
+			this.viewPanelView.DoubleClick += new System.EventHandler(this.viewPanelView_DoubleClick);
+			this.viewPanelView.CurrentCellDirtyStateChanged += new System.EventHandler(this.viewPanelView_CurrentCellDirtyStateChanged);
 			// 
 			// colMPVisible
 			// 
@@ -263,7 +266,7 @@
             this.navigationToolStripMenuItem,
             this.resetAllToolStripMenuItem,
             this.helpToolStripMenuItem,
-            this.showModelPanelToolStripMenuItem});
+            this.showViewPanelToolStripMenuItem});
 			this.menu.Location = new System.Drawing.Point(0, 0);
 			this.menu.Name = "menu";
 			this.menu.Size = new System.Drawing.Size(1008, 24);
@@ -280,14 +283,14 @@
             this.rightToolStripMenuItem,
             this.leftToolStripMenuItem});
 			this.viewToolStripMenuItem.Name = "viewToolStripMenuItem";
-			this.viewToolStripMenuItem.Size = new System.Drawing.Size(41, 20);
+			this.viewToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
 			this.viewToolStripMenuItem.Text = "View";
 			// 
 			// bottomToolStripMenuItem
 			// 
 			this.bottomToolStripMenuItem.Name = "bottomToolStripMenuItem";
 			this.bottomToolStripMenuItem.ShortcutKeyDisplayString = "1";
-			this.bottomToolStripMenuItem.Size = new System.Drawing.Size(132, 22);
+			this.bottomToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
 			this.bottomToolStripMenuItem.Text = "Bottom";
 			this.bottomToolStripMenuItem.Click += new System.EventHandler(this.bottomToolStripMenuItem_Click);
 			// 
@@ -295,7 +298,7 @@
 			// 
 			this.topToolStripMenuItem.Name = "topToolStripMenuItem";
 			this.topToolStripMenuItem.ShortcutKeyDisplayString = "2";
-			this.topToolStripMenuItem.Size = new System.Drawing.Size(132, 22);
+			this.topToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
 			this.topToolStripMenuItem.Text = "Top";
 			this.topToolStripMenuItem.Click += new System.EventHandler(this.topToolStripMenuItem_Click);
 			// 
@@ -303,7 +306,7 @@
 			// 
 			this.backToolStripMenuItem.Name = "backToolStripMenuItem";
 			this.backToolStripMenuItem.ShortcutKeyDisplayString = "3";
-			this.backToolStripMenuItem.Size = new System.Drawing.Size(132, 22);
+			this.backToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
 			this.backToolStripMenuItem.Text = "Back";
 			this.backToolStripMenuItem.Click += new System.EventHandler(this.backToolStripMenuItem_Click);
 			// 
@@ -311,7 +314,7 @@
 			// 
 			this.frontToolStripMenuItem.Name = "frontToolStripMenuItem";
 			this.frontToolStripMenuItem.ShortcutKeyDisplayString = "4";
-			this.frontToolStripMenuItem.Size = new System.Drawing.Size(132, 22);
+			this.frontToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
 			this.frontToolStripMenuItem.Text = "Front";
 			this.frontToolStripMenuItem.Click += new System.EventHandler(this.frontToolStripMenuItem_Click);
 			// 
@@ -319,7 +322,7 @@
 			// 
 			this.rightToolStripMenuItem.Name = "rightToolStripMenuItem";
 			this.rightToolStripMenuItem.ShortcutKeyDisplayString = "5";
-			this.rightToolStripMenuItem.Size = new System.Drawing.Size(132, 22);
+			this.rightToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
 			this.rightToolStripMenuItem.Text = "Right";
 			this.rightToolStripMenuItem.Click += new System.EventHandler(this.rightToolStripMenuItem_Click);
 			// 
@@ -327,7 +330,7 @@
 			// 
 			this.leftToolStripMenuItem.Name = "leftToolStripMenuItem";
 			this.leftToolStripMenuItem.ShortcutKeyDisplayString = "6";
-			this.leftToolStripMenuItem.Size = new System.Drawing.Size(132, 22);
+			this.leftToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
 			this.leftToolStripMenuItem.Text = "Left";
 			this.leftToolStripMenuItem.Click += new System.EventHandler(this.leftToolStripMenuItem_Click);
 			// 
@@ -338,7 +341,7 @@
             this.hardpointSizeToolStripMenuItem,
             this.zoomToolStripMenuItem});
 			this.visibilityToolStripMenuItem.Name = "visibilityToolStripMenuItem";
-			this.visibilityToolStripMenuItem.Size = new System.Drawing.Size(56, 20);
+			this.visibilityToolStripMenuItem.Size = new System.Drawing.Size(63, 20);
 			this.visibilityToolStripMenuItem.Text = "Visibility";
 			// 
 			// backgroundToolStripMenuItem
@@ -347,7 +350,7 @@
             this.blackToolStripMenuItem,
             this.whiteToolStripMenuItem});
 			this.backgroundToolStripMenuItem.Name = "backgroundToolStripMenuItem";
-			this.backgroundToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
+			this.backgroundToolStripMenuItem.Size = new System.Drawing.Size(151, 22);
 			this.backgroundToolStripMenuItem.Text = "Background";
 			// 
 			// blackToolStripMenuItem
@@ -356,7 +359,7 @@
 			this.blackToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
 			this.blackToolStripMenuItem.Name = "blackToolStripMenuItem";
 			this.blackToolStripMenuItem.ShortcutKeyDisplayString = "B";
-			this.blackToolStripMenuItem.Size = new System.Drawing.Size(126, 22);
+			this.blackToolStripMenuItem.Size = new System.Drawing.Size(119, 22);
 			this.blackToolStripMenuItem.Text = "Black";
 			this.blackToolStripMenuItem.Click += new System.EventHandler(this.blackToolStripMenuItem_Click);
 			// 
@@ -364,7 +367,7 @@
 			// 
 			this.whiteToolStripMenuItem.Name = "whiteToolStripMenuItem";
 			this.whiteToolStripMenuItem.ShortcutKeyDisplayString = "B";
-			this.whiteToolStripMenuItem.Size = new System.Drawing.Size(126, 22);
+			this.whiteToolStripMenuItem.Size = new System.Drawing.Size(119, 22);
 			this.whiteToolStripMenuItem.Text = "White";
 			this.whiteToolStripMenuItem.Click += new System.EventHandler(this.whiteToolStripMenuItem_Click);
 			// 
@@ -375,7 +378,7 @@
             this.increaseToolStripMenuItem1,
             this.toolStripHardpointSizeSet});
 			this.hardpointSizeToolStripMenuItem.Name = "hardpointSizeToolStripMenuItem";
-			this.hardpointSizeToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
+			this.hardpointSizeToolStripMenuItem.Size = new System.Drawing.Size(151, 22);
 			this.hardpointSizeToolStripMenuItem.Text = "Hardpoint Size";
 			// 
 			// decreaseToolStripMenuItem1
@@ -397,7 +400,7 @@
 			// toolStripHardpointSizeSet
 			// 
 			this.toolStripHardpointSizeSet.Name = "toolStripHardpointSizeSet";
-			this.toolStripHardpointSizeSet.Size = new System.Drawing.Size(100, 21);
+			this.toolStripHardpointSizeSet.Size = new System.Drawing.Size(100, 23);
 			this.toolStripHardpointSizeSet.TextBoxTextAlign = System.Windows.Forms.HorizontalAlignment.Right;
 			this.toolStripHardpointSizeSet.TextChanged += new System.EventHandler(this.toolStripHardpointSizeSet_TextChanged);
 			// 
@@ -407,14 +410,14 @@
             this.inToolStripMenuItem,
             this.outToolStripMenuItem});
 			this.zoomToolStripMenuItem.Name = "zoomToolStripMenuItem";
-			this.zoomToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
+			this.zoomToolStripMenuItem.Size = new System.Drawing.Size(151, 22);
 			this.zoomToolStripMenuItem.Text = "Zoom";
 			// 
 			// inToolStripMenuItem
 			// 
 			this.inToolStripMenuItem.Name = "inToolStripMenuItem";
 			this.inToolStripMenuItem.ShortcutKeyDisplayString = "+";
-			this.inToolStripMenuItem.Size = new System.Drawing.Size(114, 22);
+			this.inToolStripMenuItem.Size = new System.Drawing.Size(106, 22);
 			this.inToolStripMenuItem.Text = "In";
 			this.inToolStripMenuItem.Click += new System.EventHandler(this.inToolStripMenuItem_Click);
 			// 
@@ -422,7 +425,7 @@
 			// 
 			this.outToolStripMenuItem.Name = "outToolStripMenuItem";
 			this.outToolStripMenuItem.ShortcutKeyDisplayString = "-";
-			this.outToolStripMenuItem.Size = new System.Drawing.Size(114, 22);
+			this.outToolStripMenuItem.Size = new System.Drawing.Size(106, 22);
 			this.outToolStripMenuItem.Text = "Out";
 			this.outToolStripMenuItem.Click += new System.EventHandler(this.outToolStripMenuItem_Click);
 			// 
@@ -434,7 +437,7 @@
             this.resetToolStripMenuItem,
             this.centerOnHardpointToolStripMenuItem});
 			this.navigationToolStripMenuItem.Name = "navigationToolStripMenuItem";
-			this.navigationToolStripMenuItem.Size = new System.Drawing.Size(70, 20);
+			this.navigationToolStripMenuItem.Size = new System.Drawing.Size(77, 20);
 			this.navigationToolStripMenuItem.Text = "Navigation";
 			// 
 			// moveToolStripMenuItem
@@ -449,14 +452,14 @@
             this.downToolStripMenuItem,
             this.downfineToolStripMenuItem});
 			this.moveToolStripMenuItem.Name = "moveToolStripMenuItem";
-			this.moveToolStripMenuItem.Size = new System.Drawing.Size(247, 22);
+			this.moveToolStripMenuItem.Size = new System.Drawing.Size(255, 22);
 			this.moveToolStripMenuItem.Text = "Move";
 			// 
 			// leftToolStripMenuItem1
 			// 
 			this.leftToolStripMenuItem1.Name = "leftToolStripMenuItem1";
 			this.leftToolStripMenuItem1.ShortcutKeyDisplayString = "Arrow Left";
-			this.leftToolStripMenuItem1.Size = new System.Drawing.Size(237, 22);
+			this.leftToolStripMenuItem1.Size = new System.Drawing.Size(241, 22);
 			this.leftToolStripMenuItem1.Text = "Left";
 			this.leftToolStripMenuItem1.Click += new System.EventHandler(this.leftToolStripMenuItem1_Click);
 			// 
@@ -464,7 +467,7 @@
 			// 
 			this.leftfineToolStripMenuItem.Name = "leftfineToolStripMenuItem";
 			this.leftfineToolStripMenuItem.ShortcutKeyDisplayString = "Shift+Arrow Left";
-			this.leftfineToolStripMenuItem.Size = new System.Drawing.Size(237, 22);
+			this.leftfineToolStripMenuItem.Size = new System.Drawing.Size(241, 22);
 			this.leftfineToolStripMenuItem.Text = "Left (fine)";
 			this.leftfineToolStripMenuItem.Click += new System.EventHandler(this.leftfineToolStripMenuItem_Click);
 			// 
@@ -472,7 +475,7 @@
 			// 
 			this.rightToolStripMenuItem1.Name = "rightToolStripMenuItem1";
 			this.rightToolStripMenuItem1.ShortcutKeyDisplayString = "Arrow Right";
-			this.rightToolStripMenuItem1.Size = new System.Drawing.Size(237, 22);
+			this.rightToolStripMenuItem1.Size = new System.Drawing.Size(241, 22);
 			this.rightToolStripMenuItem1.Text = "Right";
 			this.rightToolStripMenuItem1.Click += new System.EventHandler(this.rightToolStripMenuItem1_Click);
 			// 
@@ -480,7 +483,7 @@
 			// 
 			this.rightfineToolStripMenuItem.Name = "rightfineToolStripMenuItem";
 			this.rightfineToolStripMenuItem.ShortcutKeyDisplayString = "Shift+Arrow Right";
-			this.rightfineToolStripMenuItem.Size = new System.Drawing.Size(237, 22);
+			this.rightfineToolStripMenuItem.Size = new System.Drawing.Size(241, 22);
 			this.rightfineToolStripMenuItem.Text = "Right (fine)";
 			this.rightfineToolStripMenuItem.Click += new System.EventHandler(this.rightfineToolStripMenuItem_Click);
 			// 
@@ -488,7 +491,7 @@
 			// 
 			this.upToolStripMenuItem.Name = "upToolStripMenuItem";
 			this.upToolStripMenuItem.ShortcutKeyDisplayString = "Arrow Up";
-			this.upToolStripMenuItem.Size = new System.Drawing.Size(237, 22);
+			this.upToolStripMenuItem.Size = new System.Drawing.Size(241, 22);
 			this.upToolStripMenuItem.Text = "Up";
 			this.upToolStripMenuItem.Click += new System.EventHandler(this.upToolStripMenuItem_Click);
 			// 
@@ -496,7 +499,7 @@
 			// 
 			this.upfineToolStripMenuItem.Name = "upfineToolStripMenuItem";
 			this.upfineToolStripMenuItem.ShortcutKeyDisplayString = "Shift+Arrow Up";
-			this.upfineToolStripMenuItem.Size = new System.Drawing.Size(237, 22);
+			this.upfineToolStripMenuItem.Size = new System.Drawing.Size(241, 22);
 			this.upfineToolStripMenuItem.Text = "Up (fine)";
 			this.upfineToolStripMenuItem.Click += new System.EventHandler(this.upfineToolStripMenuItem_Click);
 			// 
@@ -504,7 +507,7 @@
 			// 
 			this.downToolStripMenuItem.Name = "downToolStripMenuItem";
 			this.downToolStripMenuItem.ShortcutKeyDisplayString = "Arrow Down";
-			this.downToolStripMenuItem.Size = new System.Drawing.Size(237, 22);
+			this.downToolStripMenuItem.Size = new System.Drawing.Size(241, 22);
 			this.downToolStripMenuItem.Text = "Down";
 			this.downToolStripMenuItem.Click += new System.EventHandler(this.downToolStripMenuItem_Click);
 			// 
@@ -512,7 +515,7 @@
 			// 
 			this.downfineToolStripMenuItem.Name = "downfineToolStripMenuItem";
 			this.downfineToolStripMenuItem.ShortcutKeyDisplayString = "Shift+Arrow Down";
-			this.downfineToolStripMenuItem.Size = new System.Drawing.Size(237, 22);
+			this.downfineToolStripMenuItem.Size = new System.Drawing.Size(241, 22);
 			this.downfineToolStripMenuItem.Text = "Down (fine)";
 			this.downfineToolStripMenuItem.Click += new System.EventHandler(this.downfineToolStripMenuItem_Click);
 			// 
@@ -532,14 +535,14 @@
             this.clockwiseZaxisToolStripMenuItem,
             this.clockwiseZaxisToolStripMenuItem1});
 			this.rotateToolStripMenuItem.Name = "rotateToolStripMenuItem";
-			this.rotateToolStripMenuItem.Size = new System.Drawing.Size(247, 22);
+			this.rotateToolStripMenuItem.Size = new System.Drawing.Size(255, 22);
 			this.rotateToolStripMenuItem.Text = "Rotate";
 			// 
 			// anticlockwiseYaxisToolStripMenuItem
 			// 
 			this.anticlockwiseYaxisToolStripMenuItem.Name = "anticlockwiseYaxisToolStripMenuItem";
 			this.anticlockwiseYaxisToolStripMenuItem.ShortcutKeyDisplayString = "Pg Up";
-			this.anticlockwiseYaxisToolStripMenuItem.Size = new System.Drawing.Size(287, 22);
+			this.anticlockwiseYaxisToolStripMenuItem.Size = new System.Drawing.Size(296, 22);
 			this.anticlockwiseYaxisToolStripMenuItem.Text = "15° anti-clockwise Y-axis";
 			this.anticlockwiseYaxisToolStripMenuItem.Click += new System.EventHandler(this.anticlockwiseYaxisToolStripMenuItem_Click);
 			// 
@@ -547,7 +550,7 @@
 			// 
 			this.anticlockwiseYaxisToolStripMenuItem1.Name = "anticlockwiseYaxisToolStripMenuItem1";
 			this.anticlockwiseYaxisToolStripMenuItem1.ShortcutKeyDisplayString = "Shift+Pg Up";
-			this.anticlockwiseYaxisToolStripMenuItem1.Size = new System.Drawing.Size(287, 22);
+			this.anticlockwiseYaxisToolStripMenuItem1.Size = new System.Drawing.Size(296, 22);
 			this.anticlockwiseYaxisToolStripMenuItem1.Text = "1° anti-clockwise Y-axis";
 			this.anticlockwiseYaxisToolStripMenuItem1.Click += new System.EventHandler(this.anticlockwiseYaxisToolStripMenuItem1_Click);
 			// 
@@ -555,7 +558,7 @@
 			// 
 			this.clockwiseYaxisToolStripMenuItem.Name = "clockwiseYaxisToolStripMenuItem";
 			this.clockwiseYaxisToolStripMenuItem.ShortcutKeyDisplayString = "Pg Dwn";
-			this.clockwiseYaxisToolStripMenuItem.Size = new System.Drawing.Size(287, 22);
+			this.clockwiseYaxisToolStripMenuItem.Size = new System.Drawing.Size(296, 22);
 			this.clockwiseYaxisToolStripMenuItem.Text = "15° clockwise Y-axis";
 			this.clockwiseYaxisToolStripMenuItem.Click += new System.EventHandler(this.clockwiseYaxisToolStripMenuItem_Click);
 			// 
@@ -563,7 +566,7 @@
 			// 
 			this.clockwiseYaxisToolStripMenuItem1.Name = "clockwiseYaxisToolStripMenuItem1";
 			this.clockwiseYaxisToolStripMenuItem1.ShortcutKeyDisplayString = "Shift+Pg Dwn";
-			this.clockwiseYaxisToolStripMenuItem1.Size = new System.Drawing.Size(287, 22);
+			this.clockwiseYaxisToolStripMenuItem1.Size = new System.Drawing.Size(296, 22);
 			this.clockwiseYaxisToolStripMenuItem1.Text = "1° clockwise Y-axis";
 			this.clockwiseYaxisToolStripMenuItem1.Click += new System.EventHandler(this.clockwiseYaxisToolStripMenuItem1_Click);
 			// 
@@ -571,7 +574,7 @@
 			// 
 			this.anticlockwiseXaxisToolStripMenuItem.Name = "anticlockwiseXaxisToolStripMenuItem";
 			this.anticlockwiseXaxisToolStripMenuItem.ShortcutKeyDisplayString = "Ctrl+Pg Up";
-			this.anticlockwiseXaxisToolStripMenuItem.Size = new System.Drawing.Size(287, 22);
+			this.anticlockwiseXaxisToolStripMenuItem.Size = new System.Drawing.Size(296, 22);
 			this.anticlockwiseXaxisToolStripMenuItem.Text = "15° anti-clockwise X-axis";
 			this.anticlockwiseXaxisToolStripMenuItem.Click += new System.EventHandler(this.anticlockwiseXaxisToolStripMenuItem_Click);
 			// 
@@ -579,7 +582,7 @@
 			// 
 			this.anticlockwiseXaxisToolStripMenuItem1.Name = "anticlockwiseXaxisToolStripMenuItem1";
 			this.anticlockwiseXaxisToolStripMenuItem1.ShortcutKeyDisplayString = "Shift+Ctrl+Pg Up";
-			this.anticlockwiseXaxisToolStripMenuItem1.Size = new System.Drawing.Size(287, 22);
+			this.anticlockwiseXaxisToolStripMenuItem1.Size = new System.Drawing.Size(296, 22);
 			this.anticlockwiseXaxisToolStripMenuItem1.Text = "1° anti-clockwise X-axis";
 			this.anticlockwiseXaxisToolStripMenuItem1.Click += new System.EventHandler(this.anticlockwiseXaxisToolStripMenuItem1_Click);
 			// 
@@ -587,7 +590,7 @@
 			// 
 			this.clockwiseXaxisToolStripMenuItem.Name = "clockwiseXaxisToolStripMenuItem";
 			this.clockwiseXaxisToolStripMenuItem.ShortcutKeyDisplayString = "Ctrl+Pg Dwn";
-			this.clockwiseXaxisToolStripMenuItem.Size = new System.Drawing.Size(287, 22);
+			this.clockwiseXaxisToolStripMenuItem.Size = new System.Drawing.Size(296, 22);
 			this.clockwiseXaxisToolStripMenuItem.Text = "15° clockwise X-axis";
 			this.clockwiseXaxisToolStripMenuItem.Click += new System.EventHandler(this.clockwiseXaxisToolStripMenuItem_Click);
 			// 
@@ -595,7 +598,7 @@
 			// 
 			this.clockwiseXaxisToolStripMenuItem1.Name = "clockwiseXaxisToolStripMenuItem1";
 			this.clockwiseXaxisToolStripMenuItem1.ShortcutKeyDisplayString = "Shift+Ctrl+Pg Dwn";
-			this.clockwiseXaxisToolStripMenuItem1.Size = new System.Drawing.Size(287, 22);
+			this.clockwiseXaxisToolStripMenuItem1.Size = new System.Drawing.Size(296, 22);
 			this.clockwiseXaxisToolStripMenuItem1.Text = "1° clockwise X-axis";
 			this.clockwiseXaxisToolStripMenuItem1.Click += new System.EventHandler(this.clockwiseXaxisToolStripMenuItem1_Click);
 			// 
@@ -603,7 +606,7 @@
 			// 
 			this.anticlockwiseZaxisToolStripMenuItem.Name = "anticlockwiseZaxisToolStripMenuItem";
 			this.anticlockwiseZaxisToolStripMenuItem.ShortcutKeyDisplayString = "Alt+Pg Up";
-			this.anticlockwiseZaxisToolStripMenuItem.Size = new System.Drawing.Size(287, 22);
+			this.anticlockwiseZaxisToolStripMenuItem.Size = new System.Drawing.Size(296, 22);
 			this.anticlockwiseZaxisToolStripMenuItem.Text = "15° anti-clockwise Z-axis";
 			this.anticlockwiseZaxisToolStripMenuItem.Click += new System.EventHandler(this.anticlockwiseZaxisToolStripMenuItem_Click);
 			// 
@@ -611,7 +614,7 @@
 			// 
 			this.anticlockwiseZaxisToolStripMenuItem1.Name = "anticlockwiseZaxisToolStripMenuItem1";
 			this.anticlockwiseZaxisToolStripMenuItem1.ShortcutKeyDisplayString = "Shift+Alt+Pg Up";
-			this.anticlockwiseZaxisToolStripMenuItem1.Size = new System.Drawing.Size(287, 22);
+			this.anticlockwiseZaxisToolStripMenuItem1.Size = new System.Drawing.Size(296, 22);
 			this.anticlockwiseZaxisToolStripMenuItem1.Text = "1° anti-clockwise Z-axis";
 			this.anticlockwiseZaxisToolStripMenuItem1.Click += new System.EventHandler(this.anticlockwiseZaxisToolStripMenuItem1_Click);
 			// 
@@ -619,7 +622,7 @@
 			// 
 			this.clockwiseZaxisToolStripMenuItem.Name = "clockwiseZaxisToolStripMenuItem";
 			this.clockwiseZaxisToolStripMenuItem.ShortcutKeyDisplayString = "Alt+Pg Dwn";
-			this.clockwiseZaxisToolStripMenuItem.Size = new System.Drawing.Size(287, 22);
+			this.clockwiseZaxisToolStripMenuItem.Size = new System.Drawing.Size(296, 22);
 			this.clockwiseZaxisToolStripMenuItem.Text = "15° clockwise Z-axis";
 			this.clockwiseZaxisToolStripMenuItem.Click += new System.EventHandler(this.clockwiseZaxisToolStripMenuItem_Click);
 			// 
@@ -627,7 +630,7 @@
 			// 
 			this.clockwiseZaxisToolStripMenuItem1.Name = "clockwiseZaxisToolStripMenuItem1";
 			this.clockwiseZaxisToolStripMenuItem1.ShortcutKeyDisplayString = "Shift+Alt+Pg Dwn";
-			this.clockwiseZaxisToolStripMenuItem1.Size = new System.Drawing.Size(287, 22);
+			this.clockwiseZaxisToolStripMenuItem1.Size = new System.Drawing.Size(296, 22);
 			this.clockwiseZaxisToolStripMenuItem1.Text = "1° clockwise Z-axis";
 			this.clockwiseZaxisToolStripMenuItem1.Click += new System.EventHandler(this.clockwiseZaxisToolStripMenuItem1_Click);
 			// 
@@ -635,7 +638,7 @@
 			// 
 			this.resetToolStripMenuItem.Name = "resetToolStripMenuItem";
 			this.resetToolStripMenuItem.ShortcutKeyDisplayString = "Home";
-			this.resetToolStripMenuItem.Size = new System.Drawing.Size(247, 22);
+			this.resetToolStripMenuItem.Size = new System.Drawing.Size(255, 22);
 			this.resetToolStripMenuItem.Text = "Reset";
 			this.resetToolStripMenuItem.Click += new System.EventHandler(this.resetToolStripMenuItem_Click);
 			// 
@@ -643,14 +646,14 @@
 			// 
 			this.centerOnHardpointToolStripMenuItem.Name = "centerOnHardpointToolStripMenuItem";
 			this.centerOnHardpointToolStripMenuItem.ShortcutKeyDisplayString = "Shift+Home";
-			this.centerOnHardpointToolStripMenuItem.Size = new System.Drawing.Size(247, 22);
+			this.centerOnHardpointToolStripMenuItem.Size = new System.Drawing.Size(255, 22);
 			this.centerOnHardpointToolStripMenuItem.Text = "Center on Hardpoint";
 			this.centerOnHardpointToolStripMenuItem.Click += new System.EventHandler(this.centerOnHardpointToolStripMenuItem_Click);
 			// 
 			// resetAllToolStripMenuItem
 			// 
 			this.resetAllToolStripMenuItem.Name = "resetAllToolStripMenuItem";
-			this.resetAllToolStripMenuItem.Size = new System.Drawing.Size(61, 20);
+			this.resetAllToolStripMenuItem.Size = new System.Drawing.Size(64, 20);
 			this.resetAllToolStripMenuItem.Text = "Reset All";
 			this.resetAllToolStripMenuItem.Click += new System.EventHandler(this.resetAllToolStripMenuItem_Click);
 			// 
@@ -659,24 +662,35 @@
 			this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.shortcutsToolStripMenuItem});
 			this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
-			this.helpToolStripMenuItem.Size = new System.Drawing.Size(40, 20);
+			this.helpToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
 			this.helpToolStripMenuItem.Text = "Help";
 			// 
 			// shortcutsToolStripMenuItem
 			// 
 			this.shortcutsToolStripMenuItem.Name = "shortcutsToolStripMenuItem";
 			this.shortcutsToolStripMenuItem.ShortcutKeyDisplayString = "F1";
-			this.shortcutsToolStripMenuItem.Size = new System.Drawing.Size(162, 22);
+			this.shortcutsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
 			this.shortcutsToolStripMenuItem.Text = "Shortcuts...";
 			this.shortcutsToolStripMenuItem.Click += new System.EventHandler(this.shortcutsToolStripMenuItem_Click);
 			// 
-			// showModelPanelToolStripMenuItem
+			// showViewPanelToolStripMenuItem
 			// 
-			this.showModelPanelToolStripMenuItem.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
-			this.showModelPanelToolStripMenuItem.Name = "showModelPanelToolStripMenuItem";
-			this.showModelPanelToolStripMenuItem.Size = new System.Drawing.Size(111, 20);
-			this.showModelPanelToolStripMenuItem.Text = "Toggle Model Panel";
-			this.showModelPanelToolStripMenuItem.Click += new System.EventHandler(this.showModelPanelToolStripMenuItem_Click);
+			this.showViewPanelToolStripMenuItem.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+			this.showViewPanelToolStripMenuItem.Name = "showViewPanelToolStripMenuItem";
+			this.showViewPanelToolStripMenuItem.Size = new System.Drawing.Size(116, 20);
+			this.showViewPanelToolStripMenuItem.Text = "Toggle View Panel";
+			this.showViewPanelToolStripMenuItem.Click += new System.EventHandler(this.showViewPanelToolStripMenuItem_Click);
+			// 
+			// lblHardpointHover
+			// 
+			this.lblHardpointHover.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
+						| System.Windows.Forms.AnchorStyles.Right)));
+			this.lblHardpointHover.Location = new System.Drawing.Point(618, 10);
+			this.lblHardpointHover.Name = "lblHardpointHover";
+			this.lblHardpointHover.Size = new System.Drawing.Size(383, 23);
+			this.lblHardpointHover.TabIndex = 4;
+			this.lblHardpointHover.Text = "Hardpoint: <none>";
+			this.lblHardpointHover.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
 			// 
 			// ModelViewForm
 			// 
@@ -699,7 +713,7 @@
 			this.toolStripContainer1.PerformLayout();
 			this.modelView.Panel2.ResumeLayout(false);
 			this.modelView.ResumeLayout(false);
-			((System.ComponentModel.ISupportInitialize)(this.modelPanelView)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.viewPanelView)).EndInit();
 			this.menu.ResumeLayout(false);
 			this.menu.PerformLayout();
 			this.ResumeLayout(false);
@@ -714,7 +728,7 @@
 		private System.Windows.Forms.TextBox textBoxScale;
 		private System.Windows.Forms.ToolStripContainer toolStripContainer1;
 		private System.Windows.Forms.SplitContainer modelView;
-		private System.Windows.Forms.DataGridView modelPanelView;
+		private System.Windows.Forms.DataGridView viewPanelView;
 		private System.Windows.Forms.MenuStrip menu;
 		private System.Windows.Forms.ToolStripMenuItem viewToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem bottomToolStripMenuItem;
@@ -762,12 +776,13 @@
 		private System.Windows.Forms.ToolStripMenuItem resetAllToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem helpToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem shortcutsToolStripMenuItem;
-		private System.Windows.Forms.ToolStripMenuItem showModelPanelToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem showViewPanelToolStripMenuItem;
 		private System.Windows.Forms.ColorDialog colorDiag;
 		private System.Windows.Forms.DataGridViewCheckBoxColumn colMPVisible;
 		private System.Windows.Forms.DataGridViewTextBoxColumn colMPElement;
 		private System.Windows.Forms.DataGridViewComboBoxColumn colMPShading;
 		private System.Windows.Forms.DataGridViewTextBoxColumn colMPColor;
 		private System.Windows.Forms.DataGridViewComboBoxColumn colMPTexture;
+		private System.Windows.Forms.Label lblHardpointHover;
     }
 }
