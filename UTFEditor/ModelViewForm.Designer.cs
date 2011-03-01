@@ -28,17 +28,20 @@
         /// </summary>
         private void InitializeComponent()
         {
+			this.components = new System.ComponentModel.Container();
 			this.trackBarScale = new System.Windows.Forms.TrackBar();
 			this.label1 = new System.Windows.Forms.Label();
 			this.textBoxScale = new System.Windows.Forms.TextBox();
 			this.toolStripContainer1 = new System.Windows.Forms.ToolStripContainer();
 			this.modelView = new System.Windows.Forms.SplitContainer();
+			this.splitViewHardpoint = new System.Windows.Forms.SplitContainer();
 			this.viewPanelView = new System.Windows.Forms.DataGridView();
 			this.colMPVisible = new System.Windows.Forms.DataGridViewCheckBoxColumn();
 			this.colMPElement = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.colMPShading = new System.Windows.Forms.DataGridViewComboBoxColumn();
 			this.colMPColor = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.colMPTexture = new System.Windows.Forms.DataGridViewComboBoxColumn();
+			this.hardpointPanelView = new System.Windows.Forms.DataGridView();
 			this.menu = new System.Windows.Forms.MenuStrip();
 			this.viewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.bottomToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -88,13 +91,22 @@
 			this.shortcutsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.showViewPanelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.colorDiag = new System.Windows.Forms.ColorDialog();
-			this.lblHardpointHover = new System.Windows.Forms.Label();
+			this.hardpointNameToolTip = new System.Windows.Forms.ToolTip(this.components);
+			this.colHPVisible = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+			this.colHPName = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.colHPRevolute = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+			this.colHPColor = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.hardpointEditToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			((System.ComponentModel.ISupportInitialize)(this.trackBarScale)).BeginInit();
 			this.toolStripContainer1.ContentPanel.SuspendLayout();
 			this.toolStripContainer1.SuspendLayout();
 			this.modelView.Panel2.SuspendLayout();
 			this.modelView.SuspendLayout();
+			this.splitViewHardpoint.Panel1.SuspendLayout();
+			this.splitViewHardpoint.Panel2.SuspendLayout();
+			this.splitViewHardpoint.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.viewPanelView)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.hardpointPanelView)).BeginInit();
 			this.menu.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -139,7 +151,6 @@
 			// toolStripContainer1.ContentPanel
 			// 
 			this.toolStripContainer1.ContentPanel.BackColor = System.Drawing.SystemColors.Control;
-			this.toolStripContainer1.ContentPanel.Controls.Add(this.lblHardpointHover);
 			this.toolStripContainer1.ContentPanel.Controls.Add(this.textBoxScale);
 			this.toolStripContainer1.ContentPanel.Controls.Add(this.label1);
 			this.toolStripContainer1.ContentPanel.Controls.Add(this.trackBarScale);
@@ -175,11 +186,30 @@
 			// 
 			// modelView.Panel2
 			// 
-			this.modelView.Panel2.Controls.Add(this.viewPanelView);
+			this.modelView.Panel2.Controls.Add(this.splitViewHardpoint);
 			this.modelView.Panel2MinSize = 0;
 			this.modelView.Size = new System.Drawing.Size(1008, 663);
 			this.modelView.SplitterDistance = 689;
 			this.modelView.TabIndex = 0;
+			// 
+			// splitViewHardpoint
+			// 
+			this.splitViewHardpoint.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.splitViewHardpoint.Location = new System.Drawing.Point(0, 0);
+			this.splitViewHardpoint.Name = "splitViewHardpoint";
+			this.splitViewHardpoint.Orientation = System.Windows.Forms.Orientation.Horizontal;
+			// 
+			// splitViewHardpoint.Panel1
+			// 
+			this.splitViewHardpoint.Panel1.Controls.Add(this.viewPanelView);
+			// 
+			// splitViewHardpoint.Panel2
+			// 
+			this.splitViewHardpoint.Panel2.Controls.Add(this.hardpointPanelView);
+			this.splitViewHardpoint.Panel2Collapsed = true;
+			this.splitViewHardpoint.Size = new System.Drawing.Size(315, 663);
+			this.splitViewHardpoint.SplitterDistance = 320;
+			this.splitViewHardpoint.TabIndex = 5;
 			// 
 			// viewPanelView
 			// 
@@ -258,6 +288,32 @@
 			this.colMPTexture.Resizable = System.Windows.Forms.DataGridViewTriState.True;
 			this.colMPTexture.Width = 49;
 			// 
+			// hardpointPanelView
+			// 
+			this.hardpointPanelView.AllowUserToAddRows = false;
+			this.hardpointPanelView.AllowUserToDeleteRows = false;
+			this.hardpointPanelView.AllowUserToResizeRows = false;
+			this.hardpointPanelView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+			this.hardpointPanelView.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.colHPVisible,
+            this.colHPName,
+            this.colHPRevolute,
+            this.colHPColor});
+			this.hardpointPanelView.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.hardpointPanelView.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnEnter;
+			this.hardpointPanelView.Location = new System.Drawing.Point(0, 0);
+			this.hardpointPanelView.Margin = new System.Windows.Forms.Padding(0);
+			this.hardpointPanelView.MultiSelect = false;
+			this.hardpointPanelView.Name = "hardpointPanelView";
+			this.hardpointPanelView.RowHeadersVisible = false;
+			this.hardpointPanelView.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.CellSelect;
+			this.hardpointPanelView.Size = new System.Drawing.Size(315, 339);
+			this.hardpointPanelView.TabIndex = 0;
+			this.hardpointPanelView.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.hardpointPanelView_CellValueChanged);
+			this.hardpointPanelView.SortCompare += new System.Windows.Forms.DataGridViewSortCompareEventHandler(this.hardpointPanelView_SortCompare);
+			this.hardpointPanelView.DoubleClick += new System.EventHandler(this.hardpointPanelView_DoubleClick);
+			this.hardpointPanelView.CurrentCellDirtyStateChanged += new System.EventHandler(this.hardpointPanelView_CurrentCellDirtyStateChanged);
+			// 
 			// menu
 			// 
 			this.menu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -266,6 +322,7 @@
             this.navigationToolStripMenuItem,
             this.resetAllToolStripMenuItem,
             this.helpToolStripMenuItem,
+            this.hardpointEditToolStripMenuItem,
             this.showViewPanelToolStripMenuItem});
 			this.menu.Location = new System.Drawing.Point(0, 0);
 			this.menu.Name = "menu";
@@ -676,21 +733,55 @@
 			// showViewPanelToolStripMenuItem
 			// 
 			this.showViewPanelToolStripMenuItem.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+			this.showViewPanelToolStripMenuItem.Checked = true;
+			this.showViewPanelToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
 			this.showViewPanelToolStripMenuItem.Name = "showViewPanelToolStripMenuItem";
 			this.showViewPanelToolStripMenuItem.Size = new System.Drawing.Size(116, 20);
 			this.showViewPanelToolStripMenuItem.Text = "Toggle View Panel";
 			this.showViewPanelToolStripMenuItem.Click += new System.EventHandler(this.showViewPanelToolStripMenuItem_Click);
 			// 
-			// lblHardpointHover
+			// hardpointNameToolTip
 			// 
-			this.lblHardpointHover.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
-						| System.Windows.Forms.AnchorStyles.Right)));
-			this.lblHardpointHover.Location = new System.Drawing.Point(618, 10);
-			this.lblHardpointHover.Name = "lblHardpointHover";
-			this.lblHardpointHover.Size = new System.Drawing.Size(383, 23);
-			this.lblHardpointHover.TabIndex = 4;
-			this.lblHardpointHover.Text = "Hardpoint: <none>";
-			this.lblHardpointHover.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+			this.hardpointNameToolTip.UseAnimation = false;
+			this.hardpointNameToolTip.UseFading = false;
+			// 
+			// colHPVisible
+			// 
+			this.colHPVisible.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+			this.colHPVisible.HeaderText = "Visible";
+			this.colHPVisible.Name = "colHPVisible";
+			this.colHPVisible.Width = 43;
+			// 
+			// colHPName
+			// 
+			this.colHPName.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+			this.colHPName.HeaderText = "Hardpoint";
+			this.colHPName.Name = "colHPName";
+			this.colHPName.ReadOnly = true;
+			this.colHPName.Width = 78;
+			// 
+			// colHPRevolute
+			// 
+			this.colHPRevolute.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+			this.colHPRevolute.HeaderText = "Revolute";
+			this.colHPRevolute.Name = "colHPRevolute";
+			this.colHPRevolute.ReadOnly = true;
+			this.colHPRevolute.Width = 56;
+			// 
+			// colHPColor
+			// 
+			this.colHPColor.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+			this.colHPColor.HeaderText = "Color";
+			this.colHPColor.Name = "colHPColor";
+			this.colHPColor.Width = 56;
+			// 
+			// hardpointEditToolStripMenuItem
+			// 
+			this.hardpointEditToolStripMenuItem.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+			this.hardpointEditToolStripMenuItem.Name = "hardpointEditToolStripMenuItem";
+			this.hardpointEditToolStripMenuItem.Size = new System.Drawing.Size(170, 20);
+			this.hardpointEditToolStripMenuItem.Text = "Toggle Hardpoint Edit Mode";
+			this.hardpointEditToolStripMenuItem.Click += new System.EventHandler(this.hardpointEditToolStripMenuItem_Click);
 			// 
 			// ModelViewForm
 			// 
@@ -713,7 +804,11 @@
 			this.toolStripContainer1.PerformLayout();
 			this.modelView.Panel2.ResumeLayout(false);
 			this.modelView.ResumeLayout(false);
+			this.splitViewHardpoint.Panel1.ResumeLayout(false);
+			this.splitViewHardpoint.Panel2.ResumeLayout(false);
+			this.splitViewHardpoint.ResumeLayout(false);
 			((System.ComponentModel.ISupportInitialize)(this.viewPanelView)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.hardpointPanelView)).EndInit();
 			this.menu.ResumeLayout(false);
 			this.menu.PerformLayout();
 			this.ResumeLayout(false);
@@ -783,6 +878,13 @@
 		private System.Windows.Forms.DataGridViewComboBoxColumn colMPShading;
 		private System.Windows.Forms.DataGridViewTextBoxColumn colMPColor;
 		private System.Windows.Forms.DataGridViewComboBoxColumn colMPTexture;
-		private System.Windows.Forms.Label lblHardpointHover;
+		private System.Windows.Forms.SplitContainer splitViewHardpoint;
+		private System.Windows.Forms.DataGridView hardpointPanelView;
+		private System.Windows.Forms.ToolTip hardpointNameToolTip;
+		private System.Windows.Forms.DataGridViewCheckBoxColumn colHPVisible;
+		private System.Windows.Forms.DataGridViewTextBoxColumn colHPName;
+		private System.Windows.Forms.DataGridViewCheckBoxColumn colHPRevolute;
+		private System.Windows.Forms.DataGridViewTextBoxColumn colHPColor;
+		private System.Windows.Forms.ToolStripMenuItem hardpointEditToolStripMenuItem;
     }
 }
