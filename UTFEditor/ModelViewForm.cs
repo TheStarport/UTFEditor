@@ -1018,7 +1018,12 @@ namespace UTFEditor
 					device.RenderState.BlendOperation = BlendOperation.Add;
 
 					Texture tex = FindTextureByMaterialID(mesh.MaterialId);
-					device.RenderState.TextureFactor = (mg.DisplayInfo.Texture == TextureMode.Texture || mg.DisplayInfo.Texture == TextureMode.None) ? mg.DisplayInfo.Color.ToArgb() : tex.Dc;
+					if(mg.DisplayInfo.Texture == TextureMode.Texture || mg.DisplayInfo.Texture == TextureMode.None)
+						device.RenderState.TextureFactor = mg.DisplayInfo.Color.ToArgb();
+					else
+					{
+						device.RenderState.TextureFactor = BlendTwoColors(mg.DisplayInfo.Color.ToArgb(), tex.Dc);
+					}
 
 					if (tex != null && (mg.DisplayInfo.Texture == TextureMode.Texture || mg.DisplayInfo.Texture == TextureMode.TextureColor))
 					{
@@ -1051,6 +1056,13 @@ namespace UTFEditor
             device.EndScene();
             swap.Present();
         }
+        
+        public int BlendTwoColors(int c1, int c2)
+		{
+			int c_RB = (((c1 & 0x00FF00FF) + (c2 & 0x00FF00FF)) >> 1) & 0x00FF00FF;
+			int c_AG = (int) (((int) ((((uint) c1 & 0xFF00FF00) >> 1) + (((uint) c2 & 0xFF00FF00) >> 1))) & 0xFF00FF00);
+			return c_RB | c_AG;
+		}
 
         /// <summary>
         /// Override the form painting event to run the directx render function.
