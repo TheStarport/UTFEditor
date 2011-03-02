@@ -152,6 +152,11 @@ namespace UTFEditor
         /// </summary>
         UTFForm parent;
 
+		/// <summary>
+		/// Map Cmpnd file names to object names.
+		/// </summary>
+		Dictionary<string, string> mapFileToObj = new Dictionary<string, string>();
+
         /// <summary>
         /// The directory path to search for sur/mat files.
         /// </summary>
@@ -469,7 +474,7 @@ namespace UTFEditor
 
             // Find Cons(truct) nodes. They contain data that links each mesh to the
             // root mesh.
-            Dictionary<string, string> mapFileToObj = new Dictionary<string, string>();
+			mapFileToObj.Clear();
             mapFileToObj["\\"] = "Model";
             foreach (TreeNode nodeObj in rootNode.Nodes.Find("Object Name", true))
             {
@@ -1586,7 +1591,7 @@ namespace UTFEditor
         {
 			if(node == null) return null;
 			try {
-				if (node.Parent.Text == "Hardpoints")
+				if (node.Parent.Text == "Hardpoints" && node.Parent.Parent == null)
 					node = rootNode.Nodes.Find(node.Name, true)[0];
 				else if (!Utilities.StrIEq(node.Parent.Name, "Fixed", "Revolute"))
 				{
@@ -1606,10 +1611,7 @@ namespace UTFEditor
         private void ShowHardpoint()
         {
 			TreeNode node = GetHardpointNode();
-			if(node == null)
-				centerOnHardpointToolStripMenuItem.Enabled = false;
-			else
-				centerOnHardpointToolStripMenuItem.Enabled = true;
+			centerOnHardpointToolStripMenuItem.Enabled = (node != null);
 			
 			if(otherHardpoints.Count == 0) return;
 			
@@ -1793,76 +1795,76 @@ namespace UTFEditor
 				hpNew.RotMatZY = transMat.M32;
 				hpNew.RotMatZZ = transMat.M33;
 			}
-			
+
 			hpNew.Write();
 			OnHardpointMoved();
+			HardpointDisplayInfo hi = GetHardpointFromName(node.Name);
+			hi.Matrix = GetHardpointMatrix(node);
+			hi.MeshGroup = MeshGroups[mapFileToMesh[hi.Node.Parent.Parent.Parent.Name]];
 			Refresh();
 		}
 
         private string FindGroupName(TreeNode node)
         {
             string fileName = node.Parent.Parent.Parent.Name;
-            TreeNode cmpnd = node.Parent.Parent.Parent.Parent.Nodes["Cmpnd"];
-            foreach (TreeNode n in cmpnd.Nodes)
-            {
-                if (n.Nodes["File name"] != null)
-                {
-                    string tg = System.Text.ASCIIEncoding.ASCII.GetString(n.Nodes["File name"].Tag as byte[]);
-                    tg = tg.Trim(new char[] { '\0' });
-                    if (tg == fileName)
-                    {
-                        string name = System.Text.ASCIIEncoding.ASCII.GetString(n.Nodes["Object name"].Tag as byte[]);
-                        name = name.Trim(new char[] { '\0' });
-                        return name;
-                    }
-                }
-            }
+			string objName;
+			if (mapFileToObj.TryGetValue(fileName, out objName))
+				return objName;
             return null;
         }
 
         private void RelinkHardpoint(TreeNode node, string name)
         {
-            bool revolute = node.Parent.Text == "Revolute";
-            TreeNode cmpnd = node.Parent.Parent.Parent.Parent.Nodes["Cmpnd"];
-            string fileName = null;
+            TreeNode cmpnd = rootNode.Nodes["Cmpnd"];
+			if (cmpnd == null)
+				return;
+            
+			string fileName = null;
             foreach (TreeNode n in cmpnd.Nodes)
             {
-                if (n.Nodes["Object name"] != null)
+				TreeNode objNode = n.Nodes["Object name"];
+				if (objNode != null && Utilities.GetString(objNode) == name)
                 {
-                    string tg = System.Text.ASCIIEncoding.ASCII.GetString(n.Nodes["Object name"].Tag as byte[]);
-                    tg = tg.Trim(new char[] { '\0' });
-                    if (tg == name)
-                    {
-                        fileName = System.Text.ASCIIEncoding.ASCII.GetString(n.Nodes["File name"].Tag as byte[]);
-                        fileName = fileName.Trim(new char[] { '\0' });
-                        break;
-                    }
+                    fileName = Utilities.GetString(n.Nodes["File name"]);
+                    break;
                 }
             }
             if (fileName == null) return;
 
-            foreach (TreeNode n in cmpnd.Parent.Nodes)
+			string type = node.Parent.Text;
+			foreach (TreeNode n in rootNode.Nodes)
             {
                 if (n.Text == fileName)
                 {
                     n.TreeView.BeginUpdate();
 
-                    if (n.Nodes["Hardpoints"] == null)
+					TreeNode Hardpoints = n.Nodes["Hardpoints"];
+                    if (Hardpoints == null)
                     {
-                        TreeNode Hardpoints = new TreeNode("Hardpoints");
+                        Hardpoints = new TreeNode("Hardpoints");
                         Hardpoints.Name = Hardpoints.Text;
                         Hardpoints.Tag = new byte[0];
                         n.Nodes.Add(Hardpoints);
                     }
-                    if (n.Nodes["Hardpoints"].Nodes[revolute ? "Revolute" : "Fixed"] == null)
+					TreeNode FixRev = Hardpoints.Nodes[type];
+                    if (FixRev == null)
                     {
-                        TreeNode FixRev = new TreeNode(revolute ? "Revolute" : "Fixed");
+                        FixRev = new TreeNode(type);
                         FixRev.Name = FixRev.Text;
                         FixRev.Tag = new byte[0];
-                        n.Nodes["Hardpoints"].Nodes.Add(FixRev);
+                        Hardpoints.Nodes.Add(FixRev);
                     }
-                    node.Remove();
-                    n.Nodes["Hardpoints"].Nodes[revolute ? "Revolute" : "Fixed"].Nodes.Add(node);
+					if (node.Parent.Nodes.Count == 1)
+					{
+						if (node.Parent.Parent.Nodes.Count == 1)
+							node.Parent.Parent.Remove();
+						else
+							node.Parent.Remove();
+					}
+					else
+						node.Remove();
+                    FixRev.Nodes.Add(node);
+					n.TreeView.SelectedNode = node;
                     n.TreeView.EndUpdate();
                     return;
                 }
