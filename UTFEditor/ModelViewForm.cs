@@ -669,7 +669,7 @@ namespace UTFEditor
 					hi.Min = hi.Max = 0;
 					hi.MeshGroup = MeshGroups[mapFileToMesh[hi.Node.Parent.Parent.Parent.Name]];
 					hi.Revolute = false;
-					hi.Color = Color.White;
+					hi.Color = UTFEditor.FindHpColor(node.Name);
 					hi.Display = true;
 					otherHardpoints.Add(hi);
 
@@ -707,7 +707,7 @@ namespace UTFEditor
 					hi.Max = max;
 					hi.MeshGroup = MeshGroups[mapFileToMesh[hi.Node.Parent.Parent.Parent.Name]];
 					hi.Revolute = true;
-					hi.Color = Color.White;
+					hi.Color = UTFEditor.FindHpColor(node.Name);
 					hi.Display = true;
 					otherHardpoints.Add(hi);
 					
@@ -727,7 +727,7 @@ namespace UTFEditor
 			hardpointPanelView[0, row].Value = true;
 			hardpointPanelView[1, row].Value = hi.Name;
 			hardpointPanelView[2, row].Value = hi.Revolute;
-			hardpointPanelView[3, row].Value = "#FFFFFFFF";
+			hardpointPanelView[3, row].Value = String.Format("#{0:X8}", hi.Color.ToArgb());
 			hardpointPanelView[1, row].Tag = new object[] { hi.MeshGroup, false };
 		}
         

@@ -35,6 +35,7 @@ namespace UTFEditor
             InitializeComponent();
             SetSelectedNode(null);
             LoadRecentFiles();
+			LoadHpColors();
 
             foreach (string arg in args)
             {
@@ -300,6 +301,54 @@ namespace UTFEditor
             }
         }
 
+		public struct HpColor
+		{
+			public string prefix;
+			public Color color;
+
+			public HpColor(string p, int c)
+			{
+				prefix = p;
+				color = Color.FromArgb((0xFF << 24) + c);
+			}
+		};
+
+		public static HpColor[] HpColors =
+		{ 
+			new HpColor("HpWeapon",       0xFF0000),
+			new HpColor("HpTurret",       0x00FF00),
+			new HpColor("HpTorpedo",      0x0000FF),
+			new HpColor("HpCM",           0x00FFFF),
+			new HpColor("HpMine",         0xFF00FF),
+			new HpColor("HpShield",       0xFFFF00),
+			new HpColor("HpThruster",     0xFF8000),
+			new HpColor("HpTractor",      0xC0FFFF),
+			new HpColor("HpHeadlight",    0xFFFFFF),
+			new HpColor("HpDockLight",    0xFFC0C0),
+			new HpColor("HpRunningLight", 0xC0FFC0),
+			new HpColor("HpContrail",     0xC0C0C0),
+		};
+
+		private void LoadHpColors()
+		{
+			System.Configuration.SettingsPropertyValueCollection hpcolors = Properties.Settings.Default.PropertyValues;
+			for (int i = 0; i < HpColors.Length; i++)
+			{
+				System.Configuration.SettingsPropertyValue val = hpcolors[HpColors[i].prefix + "Color"];
+				if (val != null)
+					HpColors[i].color = (Color)val.PropertyValue;
+			}
+		}
+
+		public static Color FindHpColor(string HpName)
+		{
+			foreach (HpColor hpc in HpColors)
+			{
+				if (HpName.StartsWith(hpc.prefix, StringComparison.OrdinalIgnoreCase))
+					return hpc.color;
+			}
+			return Color.White;
+		}
 
         private void UTFEditor_MdiChildActivate(object sender, EventArgs e)
         {
