@@ -1435,6 +1435,7 @@ namespace UTFEditor
             }
             catch (Exception ex)
             {
+				modelView = null;
                 MessageBox.Show(this, "Error '" + ex.Message + "'", "Error");
             }
         }

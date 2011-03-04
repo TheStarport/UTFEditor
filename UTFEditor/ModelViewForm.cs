@@ -493,17 +493,22 @@ namespace UTFEditor
             {
                 try
                 {
-                    string levelName = node.Parent.Parent.Name;
+					// Test for LevelN\VMeshData\VMeshRef.
+					TreeNode fileNode = node.Parent.Parent;
+                    string levelName = fileNode.Name;
                     string fileName;
                     bool displayDefault = false;
                     if (levelName.StartsWith("Level", StringComparison.OrdinalIgnoreCase))
                     {
-                        fileName = node.Parent.Parent.Parent.Parent.Name;
+						// Okay, back up to filename\MultiLevel\LevelN
+						fileNode = fileNode.Parent.Parent;
+                        fileName = fileNode.Name;
                         if (levelName.Substring(5) == "0")
                             displayDefault = true;
                     }
                     else
                     {
+						// No, it's directly under the file.
                         fileName = levelName;
                         levelName = "Level0";
                         displayDefault = true;
@@ -539,12 +544,12 @@ namespace UTFEditor
 							mg.M[mn - mg.RefData.StartMesh] = m;
 						}
 						
-						TreeNode WireData = node.Parent.Parent.Nodes["VMeshWire"];
-						if(WireData == null) WireData = node.Parent.Parent.Parent.Parent.Nodes["VMeshWire"];
+						TreeNode WireData = fileNode.Nodes["VMeshWire"];
 						if (WireData != null)
 						{
 							WireData = WireData.Nodes["VWireData"];
-							mg.WireData = new VWireData(WireData.Tag as byte[]);
+							if (WireData != null)
+								mg.WireData = new VWireData(WireData.Tag as byte[]);
 						}
 						
                         MeshGroups.Add(mg);
@@ -1654,7 +1659,6 @@ namespace UTFEditor
 									hp.min = hi.Min;
 									
 									CustomVertex.PositionColored[] rotVert = new CustomVertex.PositionColored[26];
-									// Position the rotation just below the top, so the blue takes precedence.
 									rotVert[0] = new CustomVertex.PositionColored(0, 0, 0, 0xffff00);
 									pos = 1;
 									float delta = (hp.max - hp.min) / 24;
@@ -2503,11 +2507,13 @@ namespace UTFEditor
 			float minFactor = Single.MaxValue;
 			foundHardpoint.Node = utf.SelectedNode;
 			
+			// Calculating GetHitFromScreen is really slow and doesn't seem to be needed.
+			/*
 			Vector3 hit;
 			Vector3 normal;
 			string name;
-			bool hitMesh = false;
-			if(GetHitFromScreen(x, y, out hit, out normal, out name)) hitMesh = true;
+			bool hitMesh = GetHitFromScreen(x, y, out hit, out normal, out name);
+			*/
 			
 			float hScale = hp.scale / scale;
 			
@@ -2520,11 +2526,11 @@ namespace UTFEditor
 				hpLoc.TransformCoordinate(hi.MeshGroup.Transform);
 
 				float distanceHardpoint = Vector3.LengthSq(hpLoc - near);
-				if(hitMesh)
+				/*if(hitMesh)
 				{
 					float distanceMesh = Vector3.LengthSq(hit - near);
 					if (distanceHardpoint > distanceMesh*1.002f) continue;
-				}
+				}*/
 				float dot = Vector3.Dot(hpLoc - near, direction);
 				float offsetHardpoint = Math.Abs(distanceHardpoint - dot*dot);
 				
