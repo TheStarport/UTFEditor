@@ -1741,9 +1741,6 @@ namespace UTFEditor
 						Vector3 v2 = tempIntersectedVertices[2].Position - tempIntersectedVertices[0].Position;
 						faceNormal = Vector3.Cross(v1, v2);
 						faceNormal.Normalize();
-						Vector3 avgNormals = (tempIntersectedVertices[0].Normal + tempIntersectedVertices[1].Normal + tempIntersectedVertices[2].Normal);
-						avgNormals.Normalize();
-						if (Vector3.Dot(faceNormal, avgNormals) < 0) faceNormal *= -1.0f;
 					}
 					mn++;
 				}
@@ -1783,10 +1780,10 @@ namespace UTFEditor
 			if (Control.ModifierKeys == (Keys.Shift | Keys.Control) || Control.ModifierKeys == (Keys.Control | Keys.Alt))
 			{
 				Matrix transMat = transMat = Matrix.LookAtRH(new Vector3(0, 0, 0), faceNormal, new Vector3(0, 1, 0));
-                if((Control.ModifierKeys & Keys.Alt) != Keys.None)
-					transMat *= Matrix.RotationX((float)Math.PI / 2);
 				if (transMat.Determinant == 0)
-					transMat = Matrix.RotationX(180);
+					transMat = transMat = Matrix.LookAtRH(new Vector3(0, 0, 0), faceNormal, new Vector3(0, 0, 1));
+				if ((Control.ModifierKeys & Keys.Alt) != Keys.None)
+					transMat *= Matrix.RotationX((float)Math.PI / 2);
 				hpNew.RotMatXX = transMat.M11;
 				hpNew.RotMatXY = transMat.M12;
 				hpNew.RotMatXZ = transMat.M13;
@@ -1805,7 +1802,7 @@ namespace UTFEditor
 			HardpointDisplayInfo hi = GetHardpointFromName(node.Name);
 			hi.Matrix = GetHardpointMatrix(node);
 			hi.MeshGroup = MeshGroups[mapFileToMesh[hi.Node.Parent.Parent.Parent.Name]];
-			Refresh();
+			Invalidate();
 		}
 
         private string FindGroupName(TreeNode node)
@@ -2645,6 +2642,12 @@ namespace UTFEditor
 					((DataGridViewTextBoxCell)hardpointPanelView.SelectedCells[0]).ReadOnly = true;
 					((DataGridViewTextBoxCell)hardpointPanelView.SelectedCells[0]).ReadOnly = false;
 				}
+			}
+			else
+			{
+				HardpointDisplayInfo hi = GetHardpointFromName(hardpointPanelView[1, hardpointPanelView.SelectedCells[0].RowIndex].Value as string);
+				if(hi != null)
+					utf.SelectedNode = hi.Node;
 			}
 		}
 
