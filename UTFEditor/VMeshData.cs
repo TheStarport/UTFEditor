@@ -130,6 +130,7 @@ namespace UTFEditor
                 case 0x212:
                 case 0x252:
                 case 0x412:
+                case 0x512:
                     break;
                 default:
                     throw new Exception(String.Format("FVF 0x{0:X} not supported.", FlexibleVertexFormat));
@@ -206,6 +207,19 @@ namespace UTFEditor
                         item.BinormalY = Utilities.GetFloat(data, ref pos);
                         item.BinormalZ = Utilities.GetFloat(data, ref pos);
                     }
+                    if ((FlexibleVertexFormat & D3DFVF_TEX5) == D3DFVF_TEX5)
+                    {
+                        item.S = Utilities.GetFloat(data, ref pos);
+                        item.T = Utilities.GetFloat(data, ref pos);
+                        item.U = Utilities.GetFloat(data, ref pos);
+                        item.V = Utilities.GetFloat(data, ref pos);
+                        item.TangentX = Utilities.GetFloat(data, ref pos);
+                        item.TangentY = Utilities.GetFloat(data, ref pos);
+                        item.TangentZ = Utilities.GetFloat(data, ref pos);
+                        item.BinormalX = Utilities.GetFloat(data, ref pos);
+                        item.BinormalY = Utilities.GetFloat(data, ref pos);
+                        item.BinormalZ = Utilities.GetFloat(data, ref pos);
+                    }
                     Vertices.Add(item);
                 }
             }
@@ -214,5 +228,133 @@ namespace UTFEditor
                 MessageBox.Show("Header has more vertices than data", "Error");
             }
         }
+
+        /// <summary>
+        /// Output the raw data
+        /// </summary>
+        public byte[] GetRawData()
+        {
+            // calc byte array size
+            int iByteSize = 0;
+            iByteSize += 16; // header
+            iByteSize += NumMeshes * 12; // meshes header
+            iByteSize += NumRefVertices * 2; // triangles
+
+            iByteSize += NumVertices * 16; // vertices position
+
+            if ((FlexibleVertexFormat & D3DFVF_NORMAL) == D3DFVF_NORMAL)
+            {
+                iByteSize += NumVertices * 16; // vertices normal
+            }
+            if ((FlexibleVertexFormat & D3DFVF_DIFFUSE) == D3DFVF_DIFFUSE)
+            {
+                iByteSize += NumVertices * 4; // vertices diffuse
+            }
+            if ((FlexibleVertexFormat & D3DFVF_TEX1) == D3DFVF_TEX1)
+            {
+                iByteSize += NumVertices * 8; // vertices texcoords
+            }
+            if ((FlexibleVertexFormat & D3DFVF_TEX2) == D3DFVF_TEX2)
+            {
+                iByteSize += NumVertices * 16; // vertices texcoords
+            }
+            if ((FlexibleVertexFormat & D3DFVF_TEX4) == D3DFVF_TEX4)
+            {
+                iByteSize += NumVertices * 8; // vertices texcoords
+                iByteSize += NumVertices * 24; // vertices tangents binormals
+            }
+            if ((FlexibleVertexFormat & D3DFVF_TEX5) == D3DFVF_TEX5)
+            {
+                iByteSize += NumVertices * 16; // vertices texcoords
+                iByteSize += NumVertices * 24; // vertices tangents binormals
+            }
+
+
+            byte[] data = new byte[iByteSize];
+            int pos = 0;
+
+            // Write the data header.
+            Utilities.WriteDWord(data, MeshType, ref pos);
+            Utilities.WriteDWord(data, SurfaceType, ref pos);
+            Utilities.WriteWord(data, NumMeshes, ref pos);
+            Utilities.WriteWord(data, NumRefVertices, ref pos);
+            Utilities.WriteWord(data, FlexibleVertexFormat, ref pos);
+            Utilities.WriteWord(data, NumVertices, ref pos);
+
+            // write meshes
+            foreach(TMeshHeader mesh in Meshes)
+            {
+                Utilities.WriteDWord(data, mesh.MaterialId, ref pos);
+                Utilities.WriteWord(data, (UInt16)mesh.StartVertex, ref pos);
+                Utilities.WriteWord(data, (UInt16)mesh.EndVertex, ref pos);
+                Utilities.WriteWord(data, (UInt16)mesh.NumRefVertices, ref pos);
+                Utilities.WriteWord(data, (UInt16)mesh.Padding, ref pos);
+            }
+
+            // Write the triangle data
+            foreach(TTriangle triangle in Triangles)
+            {
+                Utilities.WriteWord(data, (UInt16)triangle.Vertex1, ref pos);
+                Utilities.WriteWord(data, (UInt16)triangle.Vertex2, ref pos);
+                Utilities.WriteWord(data, (UInt16)triangle.Vertex3, ref pos);
+            }
+
+            // Write the vertex data
+            foreach(TVertex vertice in Vertices)
+            {
+                Utilities.WriteFloat(data, vertice.X, ref pos);
+                Utilities.WriteFloat(data, vertice.Y, ref pos);
+                Utilities.WriteFloat(data, vertice.Z, ref pos);
+                if ((FlexibleVertexFormat & D3DFVF_NORMAL) == D3DFVF_NORMAL)
+                {
+                    Utilities.WriteFloat(data, vertice.NormalX, ref pos);
+                    Utilities.WriteFloat(data, vertice.NormalY, ref pos);
+                    Utilities.WriteFloat(data, vertice.NormalZ, ref pos);
+                }
+                if ((FlexibleVertexFormat & D3DFVF_DIFFUSE) == D3DFVF_DIFFUSE)
+                {
+                    Utilities.WriteDWord(data, vertice.Diffuse, ref pos);
+                }
+                if ((FlexibleVertexFormat & D3DFVF_TEX1) == D3DFVF_TEX1)
+                {
+                    Utilities.WriteFloat(data, vertice.S, ref pos);
+                    Utilities.WriteFloat(data, vertice.T, ref pos);
+                }
+                if ((FlexibleVertexFormat & D3DFVF_TEX2) == D3DFVF_TEX2)
+                {
+                    Utilities.WriteFloat(data, vertice.S, ref pos);
+                    Utilities.WriteFloat(data, vertice.T, ref pos);
+                    Utilities.WriteFloat(data, vertice.U, ref pos);
+                    Utilities.WriteFloat(data, vertice.V, ref pos);
+                }
+                if ((FlexibleVertexFormat & D3DFVF_TEX4) == D3DFVF_TEX4)
+                {
+                    Utilities.WriteFloat(data, vertice.S, ref pos);
+                    Utilities.WriteFloat(data, vertice.T, ref pos);
+                    Utilities.WriteFloat(data, vertice.TangentX, ref pos);
+                    Utilities.WriteFloat(data, vertice.TangentY, ref pos);
+                    Utilities.WriteFloat(data, vertice.TangentZ, ref pos);
+                    Utilities.WriteFloat(data, vertice.BinormalX, ref pos);
+                    Utilities.WriteFloat(data, vertice.BinormalY, ref pos);
+                    Utilities.WriteFloat(data, vertice.BinormalZ, ref pos);
+                }
+                if ((FlexibleVertexFormat & D3DFVF_TEX5) == D3DFVF_TEX5)
+                {
+                    Utilities.WriteFloat(data, vertice.S, ref pos);
+                    Utilities.WriteFloat(data, vertice.T, ref pos);
+                    Utilities.WriteFloat(data, vertice.U, ref pos);
+                    Utilities.WriteFloat(data, vertice.V, ref pos);
+                    Utilities.WriteFloat(data, vertice.TangentX, ref pos);
+                    Utilities.WriteFloat(data, vertice.TangentY, ref pos);
+                    Utilities.WriteFloat(data, vertice.TangentZ, ref pos);
+                    Utilities.WriteFloat(data, vertice.BinormalX, ref pos);
+                    Utilities.WriteFloat(data, vertice.BinormalY, ref pos);
+                    Utilities.WriteFloat(data, vertice.BinormalZ, ref pos);
+                }
+            }
+
+            return data;
+        }
+
     }
 }

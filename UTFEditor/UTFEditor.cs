@@ -1015,5 +1015,14 @@ namespace UTFEditor
                 }
             }
         }
+
+        private void buttonAddTangents_Click(object sender, EventArgs e)
+        {
+            if (this.ActiveMdiChild is UTFForm)
+            {
+                UTFForm childForm = this.ActiveMdiChild as UTFForm;
+                childForm.CalcTangents();
+            }
+        }
     }
 }

@@ -32,10 +32,24 @@ namespace UTFEditor
             return BitConverter.ToSingle(data, pos - 4);
         }
 
+        public static void WriteFloat(byte[] data, Single input, ref int pos)
+        {
+            Array.Copy(BitConverter.GetBytes(input), 0, data, pos, 4);
+            pos += 4;
+            return;
+        }
+
         public static Int16 GetShort(byte[] data, ref int pos)
         {
             pos += 2;
             return BitConverter.ToInt16(data, pos - 2);
+        }
+
+        public static void WriteShort(byte[] data, Int16 input, ref int pos)
+        {
+            Array.Copy(BitConverter.GetBytes(input), 0, data, pos, 2);
+            pos += 2;
+            return;
         }
 
         public static UInt16 GetWord(byte[] data, ref int pos)
@@ -44,16 +58,38 @@ namespace UTFEditor
             return BitConverter.ToUInt16(data, pos - 2);
         }
 
+        public static void WriteWord(byte[] data, UInt16 input, ref int pos)
+        {
+            
+            Array.Copy(BitConverter.GetBytes(input), 0, data, pos, 2);
+            pos += 2;
+            return;
+        }
+
         public static Int32 GetInt(byte[] data, ref int pos)
         {
             pos += 4;
             return BitConverter.ToInt32(data, pos - 4);
         }
 
+        public static void WriteInt(byte[] data, Int32 input, ref int pos)
+        {
+            Array.Copy(BitConverter.GetBytes(input), 0, data, pos, 4);
+            pos += 4;
+            return;
+        }
+
         public static UInt32 GetDWord(byte[] data, ref int pos)
         {
             pos += 4;
             return BitConverter.ToUInt32(data, pos - 4);
+        }
+
+        public static void WriteDWord(byte[] data, UInt32 input, ref int pos)
+        {
+            Array.Copy(BitConverter.GetBytes(input), 0, data, pos, 4);
+            pos += 4;
+            return;
         }
 
         /// <summary>
