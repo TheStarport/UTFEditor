@@ -652,14 +652,15 @@ namespace UTFEditor
 
                 st.AppendLine("---- MESHES ----");
                 st.AppendLine();
-                st.AppendLine("Mesh Number  MaterialID  Start Vertex  End Vertex  QtyRefVertex  Padding");
+                st.AppendLine("Mesh Number  MaterialID  Start Vertex  End Vertex  Start Triangle  NumRefVertex  Padding");
                 for (int count = 0; count < decoded.Meshes.Count; count++)
                 {
-                    st.AppendFormat("{0,11}  0x{1:X8}  {2,12}  {3,10}  {4,12}  0x{5:X2}\n",
+                    st.AppendFormat("{0,11}  0x{1:X8}  {2,12}  {3,10}  {4,14}  {5,12}  0x{6:X2}\n",
                         count,
                         decoded.Meshes[count].MaterialId,
                         decoded.Meshes[count].StartVertex,
                         decoded.Meshes[count].EndVertex,
+                        decoded.Meshes[count].TriangleStart/3,
                         decoded.Meshes[count].NumRefVertices,
                         decoded.Meshes[count].Padding);
                 }
@@ -1272,6 +1273,249 @@ namespace UTFEditor
                 MessageBox.Show(this, "Error '" + ex.Message + "'", "Error");
             }
         }
+
+        /// <summary>
+        /// stuff for tangent calculation
+        /// </summary>
+        
+        public class Vec3
+        {
+            public float x, y, z;
+
+            public Vec3(float xx, float yy, float zz)
+            {
+                x = xx;
+                y = yy;
+                z = zz;
+            }
+
+            public static Vec3 operator +(Vec3 a, Vec3 b)
+            {
+                a.x += b.x;
+                a.y += b.y;
+                a.z += b.z;
+
+                return a;
+            }
+
+            public static Vec3 operator -(Vec3 a, Vec3 b)
+            {
+                a.x -= b.x;
+                a.y -= b.y;
+                a.z -= b.z;
+
+                return a;
+            }
+
+            public static Vec3 operator *(Vec3 a, float b)
+            {
+                a.x *= b;
+                a.y *= b;
+                a.z *= b;
+
+                return a;
+            }
+
+            public static Vec3 operator /(Vec3 a, float b)
+            {
+                a.x /= b;
+                a.y /= b;
+                a.z /= b;
+
+                return a;
+            }
+        };
+
+        public class Vec2
+        {
+            public float x, y;
+
+            public Vec2(float xx, float yy)
+            {
+                x = xx;
+                y = yy;
+            }
+
+            public static Vec2 operator -(Vec2 a, Vec2 b)
+            {
+                a.x -= b.x;
+                a.y -= b.y;
+
+                return a;
+            }
+
+        };
+
+        private static void ComputeTangentBasis(
+            Vec3 P1, Vec3 P2, Vec3 P3,
+            Vec2 UV1, Vec2 UV2, Vec2 UV3,
+            ref Vec3 tangent, ref Vec3 binormal)
+        {
+            Vec3 Edge1 = P2 - P1;
+            Vec3 Edge2 = P3 - P1;
+            Vec2 Edge1uv = UV2 - UV1;
+            Vec2 Edge2uv = UV3 - UV1;
+
+            float cp = Edge1uv.y * Edge2uv.x - Edge1uv.x * Edge2uv.y;
+
+            if (cp != 0.0f)
+            {
+                float mul = 1.0f / cp;
+                tangent = (Edge1 * -Edge2uv.y + Edge2 * Edge1uv.y) * mul;
+                binormal = (Edge1 * -Edge2uv.x + Edge2 * Edge1uv.x) * mul;
+
+                normalize(ref tangent, ref tangent);
+                normalize(ref binormal, ref binormal);
+            }
+        }
+
+        private static void normalize(ref Vec3 dest, ref Vec3 src)
+        {
+            double len = Math.Sqrt(src.x * src.x + src.y * src.y + src.z * src.z);
+
+            if (len == 0)
+                return;
+
+            dest = src / (float)len;
+        }
+
+        /// <summary>
+        /// Calc tangents for model (to use normal mapping)
+        /// </summary>
+        public void CalcTangents()
+        {
+
+            try
+            {
+
+                // find vmeshrefs
+                foreach (TreeNode node in this.treeView1.Nodes.Find("VMeshRef", true))
+                {
+                    VMeshRef refdata = new VMeshRef(node.Tag as byte[]);
+
+                    // find vmeshdata
+                    foreach (TreeNode meshdata_node in this.treeView1.Nodes.Find("VMeshData", true))
+                    {
+                        if (Utilities.FLModelCRC(meshdata_node.Parent.Name) == refdata.VMeshLibId)
+                        {
+                            // found matching meshdata, lets do some work
+                            VMeshData meshdata = new VMeshData(meshdata_node.Tag as byte[]);
+
+                            // skip wrong FVF formats
+                            if (meshdata.FlexibleVertexFormat != 0x112 && meshdata.FlexibleVertexFormat != 0x212)
+                                continue;
+
+                            // iterate meshes
+                            for (int iMesh = refdata.StartMesh; iMesh < (refdata.StartMesh+refdata.NumMeshes); iMesh++)
+                            {
+                                // on every mesh, we calculate tangent data and average it
+                                // and then save it back to the VMeshData
+
+                                VMeshData.TMeshHeader mesh = meshdata.Meshes[iMesh];
+
+                                int iVerticeOffset = refdata.StartVert + mesh.StartVertex;
+                                int iTriIndexOffset = (refdata.StartIndex / 3);
+
+                                int iTriangles = (mesh.NumRefVertices / 3);
+
+                                Vec3[] tangentarray = new Vec3[iTriangles];
+                                Vec3[] binormalarray = new Vec3[iTriangles];
+                                
+                                // iterate triangles
+                                for (int iTriIndex = iTriIndexOffset; iTriIndex < (iTriIndexOffset + iTriangles); iTriIndex++)
+                                {
+                                    // first initialize array
+                                    int arrindex = iTriIndex - iTriIndexOffset;
+                                    tangentarray[arrindex] = new Vec3(1, 0, 0);
+                                    binormalarray[arrindex] = new Vec3(0, 1, 0);
+
+                                    // now get the triangle vertices and calc
+                                    VMeshData.TVertex vert1raw = meshdata.Vertices[iVerticeOffset + meshdata.Triangles[iTriIndex].Vertex1];
+                                    Vec3 vert1pos = new Vec3(vert1raw.X, vert1raw.Y, vert1raw.Z);
+                                    Vec2 vert1uv = new Vec2(vert1raw.S, vert1raw.T);
+                                    VMeshData.TVertex vert2raw = meshdata.Vertices[iVerticeOffset + meshdata.Triangles[iTriIndex].Vertex2];
+                                    Vec3 vert2pos = new Vec3(vert2raw.X, vert2raw.Y, vert2raw.Z);
+                                    Vec2 vert2uv = new Vec2(vert2raw.S, vert2raw.T);
+                                    VMeshData.TVertex vert3raw = meshdata.Vertices[iVerticeOffset + meshdata.Triangles[iTriIndex].Vertex3];
+                                    Vec3 vert3pos = new Vec3(vert3raw.X, vert3raw.Y, vert3raw.Z);
+                                    Vec2 vert3uv = new Vec2(vert3raw.S, vert3raw.T);
+
+                                    ComputeTangentBasis(vert1pos, vert2pos, vert3pos,
+                                                        vert1uv, vert2uv, vert3uv,
+                                                        ref tangentarray[arrindex], ref binormalarray[arrindex]);
+
+                                }
+
+                                // go through vertices and look up triangle
+                                int iEndVertex = iVerticeOffset + (mesh.EndVertex - mesh.StartVertex);
+                                for (int iVertIndex = iVerticeOffset; iVertIndex < iEndVertex; iVertIndex++)
+                                {
+                                    Vec3 tangent = new Vec3(0,0,1);
+                                    Vec3 binormal = new Vec3(0,1,0);
+
+                                    int iNumTris = 0;
+
+                                     // iterate triangles
+                                    for (int iTriIndex = iTriIndexOffset; iTriIndex < (iTriIndexOffset + iTriangles); iTriIndex++)
+                                    {
+                                        if (iVerticeOffset + meshdata.Triangles[iTriIndex].Vertex1 == iVertIndex
+                                            || iVerticeOffset + meshdata.Triangles[iTriIndex].Vertex2 == iVertIndex
+                                            || iVerticeOffset + meshdata.Triangles[iTriIndex].Vertex3 == iVertIndex)
+                                        {
+                                            // found matching triangle, get tangent/binormal from temporary array if available
+                                            int arrindex = iTriIndex - iTriIndexOffset;
+                                            tangent += tangentarray[arrindex];
+                                            binormal += binormalarray[arrindex];
+                                            iNumTris++;                        
+                                        }
+                                    }
+
+                                    // now average and normalize
+                                    tangent /= iNumTris;
+                                    binormal /= iNumTris;
+
+                                    normalize(ref tangent, ref tangent);
+                                    normalize(ref binormal, ref binormal);
+
+                                    // save
+                                    VMeshData.TVertex vertdata = meshdata.Vertices[iVertIndex];
+                                    vertdata.TangentX = tangent.x;
+                                    vertdata.TangentY = tangent.y;
+                                    vertdata.TangentZ = tangent.z;
+                                    vertdata.BinormalX = binormal.x;
+                                    vertdata.BinormalY = binormal.y;
+                                    vertdata.BinormalZ = binormal.z;
+                                    meshdata.Vertices[iVertIndex] = vertdata;
+                                }
+                            }
+
+                            if(meshdata.FlexibleVertexFormat == 0x112)
+                                meshdata.FlexibleVertexFormat = 0x412;
+                            if (meshdata.FlexibleVertexFormat == 0x212)
+                                meshdata.FlexibleVertexFormat = 0x512;
+
+                            string oldName = meshdata_node.Name;
+                            object oldData = meshdata_node.Tag;
+
+                            // save the VMeshData back to the UTF
+                            meshdata_node.Tag = meshdata.GetRawData();
+
+                            // communicate change
+                            this.NodeChanged(meshdata_node, oldName, oldData);
+                        }
+                    }
+                }
+
+                MessageBox.Show(this, "Tangent/binormal data successfully added!", "Success!");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(this, "Error '" + ex.Message + "'", "Error");
+            }
+
+        }
+
+        
 
         public void EditVMeshRef()
         {
