@@ -1401,9 +1401,22 @@ namespace UTFEditor
                             // found matching meshdata, lets do some work
                             VMeshData meshdata = new VMeshData(meshdata_node.Tag as byte[]);
 
-                            // skip wrong FVF formats
-                            if (meshdata.FlexibleVertexFormat != 0x112 && meshdata.FlexibleVertexFormat != 0x212)
-                                continue;
+                            // handle FVF formats
+
+                            switch (meshdata.FlexibleVertexFormat)
+                            {
+                                case 0x112:
+                                    meshdata.FlexibleVertexFormat = 0x412;
+                                    break;
+                                case 0x212:
+                                    meshdata.FlexibleVertexFormat = 0x512;
+                                    break;
+                                case 0x412:
+                                case 0x512:
+                                    break;
+                                default:
+                                    continue;
+                            }
 
                             // iterate meshes
                             for (int iMesh = refdata.StartMesh; iMesh < (refdata.StartMesh+refdata.NumMeshes); iMesh++)
@@ -1414,7 +1427,7 @@ namespace UTFEditor
                                 VMeshData.TMeshHeader mesh = meshdata.Meshes[iMesh];
 
                                 int iVerticeOffset = refdata.StartVert + mesh.StartVertex;
-                                int iTriIndexOffset = (refdata.StartIndex / 3);
+                                int iTriIndexOffset = (mesh.TriangleStart / 3); // refdata.StartIndex is unreliable???!!
 
                                 int iTriangles = (mesh.NumRefVertices / 3);
 
@@ -1428,6 +1441,7 @@ namespace UTFEditor
                                     int arrindex = iTriIndex - iTriIndexOffset;
                                     tangentarray[arrindex] = new Vec3(1, 0, 0);
                                     binormalarray[arrindex] = new Vec3(0, 1, 0);
+                                    
 
                                     // now get the triangle vertices and calc
                                     VMeshData.TVertex vert1raw = meshdata.Vertices[iVerticeOffset + meshdata.Triangles[iTriIndex].Vertex1];
@@ -1450,8 +1464,8 @@ namespace UTFEditor
                                 int iEndVertex = iVerticeOffset + (mesh.EndVertex - mesh.StartVertex);
                                 for (int iVertIndex = iVerticeOffset; iVertIndex < iEndVertex; iVertIndex++)
                                 {
-                                    Vec3 tangent = new Vec3(0,0,1);
-                                    Vec3 binormal = new Vec3(0,1,0);
+                                    Vec3 tangent = new Vec3(0,0,0);
+                                    Vec3 binormal = new Vec3(0,0,0);
 
                                     int iNumTris = 0;
 
@@ -1488,11 +1502,6 @@ namespace UTFEditor
                                     meshdata.Vertices[iVertIndex] = vertdata;
                                 }
                             }
-
-                            if(meshdata.FlexibleVertexFormat == 0x112)
-                                meshdata.FlexibleVertexFormat = 0x412;
-                            if (meshdata.FlexibleVertexFormat == 0x212)
-                                meshdata.FlexibleVertexFormat = 0x512;
 
                             string oldName = meshdata_node.Name;
                             object oldData = meshdata_node.Tag;

@@ -68,6 +68,7 @@
             this.toolTip = new System.Windows.Forms.ToolTip(this.components);
             this.toolStripContainer1 = new System.Windows.Forms.ToolStripContainer();
             this.groupBox6 = new System.Windows.Forms.GroupBox();
+            this.buttonAddTangents = new System.Windows.Forms.Button();
             this.buttonEditRevData = new System.Windows.Forms.Button();
             this.buttonShowModel = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
@@ -96,7 +97,6 @@
             this.toolStripMenuItem3 = new System.Windows.Forms.ToolStripMenuItem();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
-            this.buttonAddTangents = new System.Windows.Forms.Button();
             this.menuStrip.SuspendLayout();
             this.toolStrip.SuspendLayout();
             this.toolStripContainer1.ContentPanel.SuspendLayout();
@@ -450,6 +450,16 @@
             this.groupBox6.TabStop = false;
             this.groupBox6.Text = "Global editors";
             // 
+            // buttonAddTangents
+            // 
+            this.buttonAddTangents.Location = new System.Drawing.Point(36, 105);
+            this.buttonAddTangents.Name = "buttonAddTangents";
+            this.buttonAddTangents.Size = new System.Drawing.Size(234, 23);
+            this.buttonAddTangents.TabIndex = 6;
+            this.buttonAddTangents.Text = "Add/Recalculate &Tangent/Binormal Data";
+            this.buttonAddTangents.UseVisualStyleBackColor = true;
+            this.buttonAddTangents.Click += new System.EventHandler(this.buttonAddTangents_Click);
+            // 
             // buttonEditRevData
             // 
             this.buttonEditRevData.Location = new System.Drawing.Point(36, 47);
@@ -704,16 +714,6 @@
             // openFileDialog1
             // 
             this.openFileDialog1.FileName = "openFileDialog1";
-            // 
-            // buttonAddTangents
-            // 
-            this.buttonAddTangents.Location = new System.Drawing.Point(36, 105);
-            this.buttonAddTangents.Name = "buttonAddTangents";
-            this.buttonAddTangents.Size = new System.Drawing.Size(234, 23);
-            this.buttonAddTangents.TabIndex = 6;
-            this.buttonAddTangents.Text = "Add &Tangent/Binormal Data";
-            this.buttonAddTangents.UseVisualStyleBackColor = true;
-            this.buttonAddTangents.Click += new System.EventHandler(this.buttonAddTangents_Click);
             // 
             // UTFEditor
             // 
