@@ -417,6 +417,9 @@ namespace UTFEditor
 			}
 			MeshGroups.Clear();
             MeshDataBuffers.Clear();
+            otherHardpoints.Clear();
+            hardpointPanelView.Rows.Clear();
+            viewPanelView.Rows.Clear();
 
             TreeNode VMeshLibrary = rootNode.Nodes["VMeshLibrary"];
             if (VMeshLibrary == null)
@@ -1304,7 +1307,7 @@ namespace UTFEditor
 				if(GetHardpointFromScreen(e.X, e.Y, out hi))
 				{
 					if(hardpointNameToolTip.GetToolTip(modelView) != hi.Name)
-						hardpointNameToolTip.Show(hi.Name, modelView, e.X, e.Y);
+						hardpointNameToolTip.Show(hi.Name, modelView, e.X + 5, e.Y + 5);
 				}
 				else
 					hardpointNameToolTip.Hide(modelView);
@@ -1998,8 +2001,74 @@ namespace UTFEditor
 					hardpointEditToolStripMenuItem.Checked = splitViewHardpoint.Panel2Collapsed;
 					Invalidate();
 					break;
+
+				case Keys.NumPad4:
+					RotateHardpoint(Viewpoint.Rotate.Y, true, e.Shift);
+					break;
+
+				case Keys.NumPad6:
+					RotateHardpoint(Viewpoint.Rotate.Y, false, e.Shift);
+					break;
+
+				case Keys.NumPad8:
+					RotateHardpoint(Viewpoint.Rotate.X, false, e.Shift);
+					break;
+
+				case Keys.NumPad2:
+					RotateHardpoint(Viewpoint.Rotate.X, true, e.Shift);
+					break;
+
+				case Keys.NumPad7:
+					RotateHardpoint(Viewpoint.Rotate.Z, true, e.Shift);
+					break;
+
+				case Keys.NumPad9:
+					RotateHardpoint(Viewpoint.Rotate.Z, false, e.Shift);
+					break;
             }
 			e.IsInputKey = true;
+		}
+		
+		private void RotateHardpoint(Viewpoint.Rotate dir, bool clockwise, bool fine)
+		{
+			TreeNode node = GetHardpointNode();
+			if(node == null) return;
+			HardpointData hpNew = new HardpointData(node);
+			HardpointDisplayInfo hi = GetHardpointFromName(node.Name);
+			
+			Matrix t = Matrix.Identity;
+
+			switch(dir)
+			{
+				case Viewpoint.Rotate.X:
+					t.RotateX((clockwise ? 1 : -1) * (float)Math.PI / (fine ? 180 : 12));
+					break;
+				case Viewpoint.Rotate.Y:
+					t.RotateY((clockwise ? 1 : -1) * (float)Math.PI / (fine ? 180 : 12));
+					break;
+				case Viewpoint.Rotate.Z:
+					t.RotateZ((clockwise ? 1 : -1) * (float)Math.PI / (fine ? 180 : 12));
+					break;
+			}
+
+			hi.Matrix = Matrix.Multiply(t, hi.Matrix);
+			
+			hpNew.RotMatXX = hi.Matrix.M11;
+			hpNew.RotMatXY = hi.Matrix.M12;
+			hpNew.RotMatXZ = hi.Matrix.M13;
+
+			hpNew.RotMatYX = hi.Matrix.M21;
+			hpNew.RotMatYY = hi.Matrix.M22;
+			hpNew.RotMatYZ = hi.Matrix.M23;
+
+			hpNew.RotMatZX = hi.Matrix.M31;
+			hpNew.RotMatZY = hi.Matrix.M32;
+			hpNew.RotMatZZ = hi.Matrix.M33;
+			
+			hpNew.Write();
+			OnHardpointMoved();
+			
+			Invalidate();
 		}
         
         public override void Refresh()
@@ -2237,98 +2306,8 @@ namespace UTFEditor
 		{
 			MoveView(Viewpoint.Move.Left, true);
         }
-
-        private void rightToolStripMenuItem1_Click(object sender, EventArgs e)
-		{
-			MoveView(Viewpoint.Move.Right, false);
-        }
-
-        private void rightfineToolStripMenuItem_Click(object sender, EventArgs e)
-		{
-			MoveView(Viewpoint.Move.Right, true);
-        }
-
-        private void upToolStripMenuItem_Click(object sender, EventArgs e)
-		{
-			MoveView(Viewpoint.Move.Up, false);
-        }
-
-        private void upfineToolStripMenuItem_Click(object sender, EventArgs e)
-		{
-			MoveView(Viewpoint.Move.Up, true);
-        }
-
-        private void downToolStripMenuItem_Click(object sender, EventArgs e)
-		{
-			MoveView(Viewpoint.Move.Down, false);
-        }
-
-        private void downfineToolStripMenuItem_Click(object sender, EventArgs e)
-		{
-			MoveView(Viewpoint.Move.Down, true);
-        }
-
-		private void anticlockwiseYaxisToolStripMenuItem_Click(object sender, EventArgs e)
-		{
-			RotateView(Viewpoint.Rotate.Y, false, false);
-		}
-
-		private void anticlockwiseYaxisToolStripMenuItem1_Click(object sender, EventArgs e)
-		{
-			RotateView(Viewpoint.Rotate.Y, false, true);
-		}
-
-		private void clockwiseYaxisToolStripMenuItem_Click(object sender, EventArgs e)
-		{
-			RotateView(Viewpoint.Rotate.Y, true, false);
-		}
-
-		private void clockwiseYaxisToolStripMenuItem1_Click(object sender, EventArgs e)
-		{
-			RotateView(Viewpoint.Rotate.Y, true, true);
-		}
-
-		private void anticlockwiseXaxisToolStripMenuItem_Click(object sender, EventArgs e)
-		{
-			RotateView(Viewpoint.Rotate.X, false, false);
-		}
-
-		private void anticlockwiseXaxisToolStripMenuItem1_Click(object sender, EventArgs e)
-		{
-			RotateView(Viewpoint.Rotate.X, false, true);
-		}
-
-		private void clockwiseXaxisToolStripMenuItem_Click(object sender, EventArgs e)
-		{
-			RotateView(Viewpoint.Rotate.X, true, false);
-		}
-
-		private void clockwiseXaxisToolStripMenuItem1_Click(object sender, EventArgs e)
-		{
-			RotateView(Viewpoint.Rotate.X, true, true);
-		}
-
-		private void anticlockwiseZaxisToolStripMenuItem_Click(object sender, EventArgs e)
-		{
-			RotateView(Viewpoint.Rotate.Z, false, false);
-		}
-
-		private void anticlockwiseZaxisToolStripMenuItem1_Click(object sender, EventArgs e)
-		{
-			RotateView(Viewpoint.Rotate.Z, false, true);
-		}
-
-		private void clockwiseZaxisToolStripMenuItem_Click(object sender, EventArgs e)
-		{
-			RotateView(Viewpoint.Rotate.Z, true, false);
-		}
-
-		private void clockwiseZaxisToolStripMenuItem1_Click(object sender, EventArgs e)
-		{
-			RotateView(Viewpoint.Rotate.Z, true, true);
-		}
-
-		private void resetToolStripMenuItem_Click(object sender, EventArgs e)
+        
+        private void resetToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			ResetPosition();
 			ResetView(Viewpoint.Defaults.Back);
