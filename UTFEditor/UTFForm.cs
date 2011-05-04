@@ -67,8 +67,6 @@ namespace UTFEditor
         /// The name of the UTF file.
         /// </summary>
         public string fileName;
-        
-        private ModelViewForm modelView;
 
         /// <summary>
         /// This object encapsulates treenodes to copy from one treeview to another.
@@ -1679,16 +1677,12 @@ namespace UTFEditor
         {
             try
             {
-				if(modelView == null) {
-					modelView = new ModelViewForm(this, treeView1, fileName);
-					modelView.Show(this);
-					modelView.FormClosed += new FormClosedEventHandler(modelView_FormClosed);
-					modelView.HardpointMoved += new EventHandler(modelView_HardpointMoved);
-				}
+				ModelViewForm modelView = new ModelViewForm(this, treeView1, fileName);
+				modelView.Show(this);
+				modelView.HardpointMoved += new EventHandler(modelView_HardpointMoved);
             }
             catch (Exception ex)
             {
-				modelView = null;
                 MessageBox.Show(this, "Error '" + ex.Message + "'", "Error");
             }
         }
@@ -1698,11 +1692,6 @@ namespace UTFEditor
 			parent.SetSelectedNode(treeView1.SelectedNode);
 			Modified();
 		}
-
-		private void modelView_FormClosed(object sender, FormClosedEventArgs e)
-        {
-			modelView = null;
-        }
 
         private void treeView1_AfterLabelEdit(object sender, NodeLabelEditEventArgs e)
         {
@@ -1867,9 +1856,11 @@ namespace UTFEditor
                 this.Text = this.Text.Insert(0, "*");
                 fileChangesNotSaved = true;
             }
-            
-            if(modelView != null)
-				modelView.Refresh();
+
+			foreach (UTFFormObserver ob in observers)
+			{
+				ob.Invalidate();
+			}
         }
 
         public void Modified(TreeNode node)
@@ -1878,6 +1869,11 @@ namespace UTFEditor
             if (this == parent.ActiveMdiChild &&
                 (node == treeView1.SelectedNode || node == treeView1.SelectedNode.Parent))
                 parent.SetSelectedNode(treeView1.SelectedNode);
+        }
+        
+        public void SetSelectedNode(TreeNode node)
+        {
+			treeView1.SelectedNode = node;
         }
 
         private void UTFForm_FormClosing(object sender, FormClosingEventArgs e)
@@ -1895,8 +1891,11 @@ namespace UTFEditor
 					return;
 				}
             }
-            
-            if(modelView != null) modelView.Close();
+
+			foreach (UTFFormObserver ob in observers)
+			{
+				ob.Close();
+			}
         }
 
         private void UTFForm_Activated(object sender, EventArgs e)

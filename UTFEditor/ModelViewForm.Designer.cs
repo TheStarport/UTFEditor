@@ -42,6 +42,10 @@
 			this.colMPColor = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.colMPTexture = new System.Windows.Forms.DataGridViewComboBoxColumn();
 			this.hardpointPanelView = new System.Windows.Forms.DataGridView();
+			this.colHPVisible = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+			this.colHPName = new System.Windows.Forms.DataGridViewTextBoxColumn();
+			this.colHPRevolute = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+			this.colHPColor = new System.Windows.Forms.DataGridViewTextBoxColumn();
 			this.menu = new System.Windows.Forms.MenuStrip();
 			this.viewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.bottomToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -50,6 +54,8 @@
 			this.frontToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.rightToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.leftToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.resetToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.centerOnHardpointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.visibilityToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.backgroundToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.blackToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -61,42 +67,13 @@
 			this.zoomToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.inToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.outToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.navigationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.moveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.leftToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-			this.leftfineToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.rightToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-			this.rightfineToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.upToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.upfineToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.downToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.downfineToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.rotateToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.anticlockwiseYaxisToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.anticlockwiseYaxisToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-			this.clockwiseYaxisToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.clockwiseYaxisToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-			this.anticlockwiseXaxisToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.anticlockwiseXaxisToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-			this.clockwiseXaxisToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.clockwiseXaxisToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-			this.anticlockwiseZaxisToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.anticlockwiseZaxisToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-			this.clockwiseZaxisToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.clockwiseZaxisToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-			this.resetToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.centerOnHardpointToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.resetAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.shortcutsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.hardpointEditToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.showViewPanelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.colorDiag = new System.Windows.Forms.ColorDialog();
 			this.hardpointNameToolTip = new System.Windows.Forms.ToolTip(this.components);
-			this.colHPVisible = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-			this.colHPName = new System.Windows.Forms.DataGridViewTextBoxColumn();
-			this.colHPRevolute = new System.Windows.Forms.DataGridViewCheckBoxColumn();
-			this.colHPColor = new System.Windows.Forms.DataGridViewTextBoxColumn();
-			this.hardpointEditToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			((System.ComponentModel.ISupportInitialize)(this.trackBarScale)).BeginInit();
 			this.toolStripContainer1.ContentPanel.SuspendLayout();
 			this.toolStripContainer1.SuspendLayout();
@@ -307,443 +284,12 @@
 			this.hardpointPanelView.Name = "hardpointPanelView";
 			this.hardpointPanelView.RowHeadersVisible = false;
 			this.hardpointPanelView.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.CellSelect;
-			this.hardpointPanelView.Size = new System.Drawing.Size(315, 339);
+			this.hardpointPanelView.Size = new System.Drawing.Size(150, 46);
 			this.hardpointPanelView.TabIndex = 0;
 			this.hardpointPanelView.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.hardpointPanelView_CellValueChanged);
 			this.hardpointPanelView.SortCompare += new System.Windows.Forms.DataGridViewSortCompareEventHandler(this.hardpointPanelView_SortCompare);
 			this.hardpointPanelView.DoubleClick += new System.EventHandler(this.hardpointPanelView_DoubleClick);
 			this.hardpointPanelView.CurrentCellDirtyStateChanged += new System.EventHandler(this.hardpointPanelView_CurrentCellDirtyStateChanged);
-			// 
-			// menu
-			// 
-			this.menu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.viewToolStripMenuItem,
-            this.visibilityToolStripMenuItem,
-            this.navigationToolStripMenuItem,
-            this.resetAllToolStripMenuItem,
-            this.helpToolStripMenuItem,
-            this.hardpointEditToolStripMenuItem,
-            this.showViewPanelToolStripMenuItem});
-			this.menu.Location = new System.Drawing.Point(0, 0);
-			this.menu.Name = "menu";
-			this.menu.Size = new System.Drawing.Size(1008, 24);
-			this.menu.TabIndex = 8;
-			this.menu.Text = "menu";
-			// 
-			// viewToolStripMenuItem
-			// 
-			this.viewToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.bottomToolStripMenuItem,
-            this.topToolStripMenuItem,
-            this.backToolStripMenuItem,
-            this.frontToolStripMenuItem,
-            this.rightToolStripMenuItem,
-            this.leftToolStripMenuItem});
-			this.viewToolStripMenuItem.Name = "viewToolStripMenuItem";
-			this.viewToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
-			this.viewToolStripMenuItem.Text = "View";
-			// 
-			// bottomToolStripMenuItem
-			// 
-			this.bottomToolStripMenuItem.Name = "bottomToolStripMenuItem";
-			this.bottomToolStripMenuItem.ShortcutKeyDisplayString = "1";
-			this.bottomToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
-			this.bottomToolStripMenuItem.Text = "Bottom";
-			this.bottomToolStripMenuItem.Click += new System.EventHandler(this.bottomToolStripMenuItem_Click);
-			// 
-			// topToolStripMenuItem
-			// 
-			this.topToolStripMenuItem.Name = "topToolStripMenuItem";
-			this.topToolStripMenuItem.ShortcutKeyDisplayString = "2";
-			this.topToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
-			this.topToolStripMenuItem.Text = "Top";
-			this.topToolStripMenuItem.Click += new System.EventHandler(this.topToolStripMenuItem_Click);
-			// 
-			// backToolStripMenuItem
-			// 
-			this.backToolStripMenuItem.Name = "backToolStripMenuItem";
-			this.backToolStripMenuItem.ShortcutKeyDisplayString = "3";
-			this.backToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
-			this.backToolStripMenuItem.Text = "Back";
-			this.backToolStripMenuItem.Click += new System.EventHandler(this.backToolStripMenuItem_Click);
-			// 
-			// frontToolStripMenuItem
-			// 
-			this.frontToolStripMenuItem.Name = "frontToolStripMenuItem";
-			this.frontToolStripMenuItem.ShortcutKeyDisplayString = "4";
-			this.frontToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
-			this.frontToolStripMenuItem.Text = "Front";
-			this.frontToolStripMenuItem.Click += new System.EventHandler(this.frontToolStripMenuItem_Click);
-			// 
-			// rightToolStripMenuItem
-			// 
-			this.rightToolStripMenuItem.Name = "rightToolStripMenuItem";
-			this.rightToolStripMenuItem.ShortcutKeyDisplayString = "5";
-			this.rightToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
-			this.rightToolStripMenuItem.Text = "Right";
-			this.rightToolStripMenuItem.Click += new System.EventHandler(this.rightToolStripMenuItem_Click);
-			// 
-			// leftToolStripMenuItem
-			// 
-			this.leftToolStripMenuItem.Name = "leftToolStripMenuItem";
-			this.leftToolStripMenuItem.ShortcutKeyDisplayString = "6";
-			this.leftToolStripMenuItem.Size = new System.Drawing.Size(127, 22);
-			this.leftToolStripMenuItem.Text = "Left";
-			this.leftToolStripMenuItem.Click += new System.EventHandler(this.leftToolStripMenuItem_Click);
-			// 
-			// visibilityToolStripMenuItem
-			// 
-			this.visibilityToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.backgroundToolStripMenuItem,
-            this.hardpointSizeToolStripMenuItem,
-            this.zoomToolStripMenuItem});
-			this.visibilityToolStripMenuItem.Name = "visibilityToolStripMenuItem";
-			this.visibilityToolStripMenuItem.Size = new System.Drawing.Size(63, 20);
-			this.visibilityToolStripMenuItem.Text = "Visibility";
-			// 
-			// backgroundToolStripMenuItem
-			// 
-			this.backgroundToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.blackToolStripMenuItem,
-            this.whiteToolStripMenuItem});
-			this.backgroundToolStripMenuItem.Name = "backgroundToolStripMenuItem";
-			this.backgroundToolStripMenuItem.Size = new System.Drawing.Size(151, 22);
-			this.backgroundToolStripMenuItem.Text = "Background";
-			// 
-			// blackToolStripMenuItem
-			// 
-			this.blackToolStripMenuItem.Checked = true;
-			this.blackToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.blackToolStripMenuItem.Name = "blackToolStripMenuItem";
-			this.blackToolStripMenuItem.ShortcutKeyDisplayString = "B";
-			this.blackToolStripMenuItem.Size = new System.Drawing.Size(119, 22);
-			this.blackToolStripMenuItem.Text = "Black";
-			this.blackToolStripMenuItem.Click += new System.EventHandler(this.blackToolStripMenuItem_Click);
-			// 
-			// whiteToolStripMenuItem
-			// 
-			this.whiteToolStripMenuItem.Name = "whiteToolStripMenuItem";
-			this.whiteToolStripMenuItem.ShortcutKeyDisplayString = "B";
-			this.whiteToolStripMenuItem.Size = new System.Drawing.Size(119, 22);
-			this.whiteToolStripMenuItem.Text = "White";
-			this.whiteToolStripMenuItem.Click += new System.EventHandler(this.whiteToolStripMenuItem_Click);
-			// 
-			// hardpointSizeToolStripMenuItem
-			// 
-			this.hardpointSizeToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.decreaseToolStripMenuItem1,
-            this.increaseToolStripMenuItem1,
-            this.toolStripHardpointSizeSet});
-			this.hardpointSizeToolStripMenuItem.Name = "hardpointSizeToolStripMenuItem";
-			this.hardpointSizeToolStripMenuItem.Size = new System.Drawing.Size(151, 22);
-			this.hardpointSizeToolStripMenuItem.Text = "Hardpoint Size";
-			// 
-			// decreaseToolStripMenuItem1
-			// 
-			this.decreaseToolStripMenuItem1.Name = "decreaseToolStripMenuItem1";
-			this.decreaseToolStripMenuItem1.ShortcutKeyDisplayString = "/";
-			this.decreaseToolStripMenuItem1.Size = new System.Drawing.Size(160, 22);
-			this.decreaseToolStripMenuItem1.Text = "Decrease";
-			this.decreaseToolStripMenuItem1.Click += new System.EventHandler(this.decreaseToolStripMenuItem1_Click);
-			// 
-			// increaseToolStripMenuItem1
-			// 
-			this.increaseToolStripMenuItem1.Name = "increaseToolStripMenuItem1";
-			this.increaseToolStripMenuItem1.ShortcutKeyDisplayString = "*";
-			this.increaseToolStripMenuItem1.Size = new System.Drawing.Size(160, 22);
-			this.increaseToolStripMenuItem1.Text = "Increase";
-			this.increaseToolStripMenuItem1.Click += new System.EventHandler(this.increaseToolStripMenuItem1_Click);
-			// 
-			// toolStripHardpointSizeSet
-			// 
-			this.toolStripHardpointSizeSet.Name = "toolStripHardpointSizeSet";
-			this.toolStripHardpointSizeSet.Size = new System.Drawing.Size(100, 23);
-			this.toolStripHardpointSizeSet.TextBoxTextAlign = System.Windows.Forms.HorizontalAlignment.Right;
-			this.toolStripHardpointSizeSet.TextChanged += new System.EventHandler(this.toolStripHardpointSizeSet_TextChanged);
-			// 
-			// zoomToolStripMenuItem
-			// 
-			this.zoomToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.inToolStripMenuItem,
-            this.outToolStripMenuItem});
-			this.zoomToolStripMenuItem.Name = "zoomToolStripMenuItem";
-			this.zoomToolStripMenuItem.Size = new System.Drawing.Size(151, 22);
-			this.zoomToolStripMenuItem.Text = "Zoom";
-			// 
-			// inToolStripMenuItem
-			// 
-			this.inToolStripMenuItem.Name = "inToolStripMenuItem";
-			this.inToolStripMenuItem.ShortcutKeyDisplayString = "+";
-			this.inToolStripMenuItem.Size = new System.Drawing.Size(106, 22);
-			this.inToolStripMenuItem.Text = "In";
-			this.inToolStripMenuItem.Click += new System.EventHandler(this.inToolStripMenuItem_Click);
-			// 
-			// outToolStripMenuItem
-			// 
-			this.outToolStripMenuItem.Name = "outToolStripMenuItem";
-			this.outToolStripMenuItem.ShortcutKeyDisplayString = "-";
-			this.outToolStripMenuItem.Size = new System.Drawing.Size(106, 22);
-			this.outToolStripMenuItem.Text = "Out";
-			this.outToolStripMenuItem.Click += new System.EventHandler(this.outToolStripMenuItem_Click);
-			// 
-			// navigationToolStripMenuItem
-			// 
-			this.navigationToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.moveToolStripMenuItem,
-            this.rotateToolStripMenuItem,
-            this.resetToolStripMenuItem,
-            this.centerOnHardpointToolStripMenuItem});
-			this.navigationToolStripMenuItem.Name = "navigationToolStripMenuItem";
-			this.navigationToolStripMenuItem.Size = new System.Drawing.Size(77, 20);
-			this.navigationToolStripMenuItem.Text = "Navigation";
-			// 
-			// moveToolStripMenuItem
-			// 
-			this.moveToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.leftToolStripMenuItem1,
-            this.leftfineToolStripMenuItem,
-            this.rightToolStripMenuItem1,
-            this.rightfineToolStripMenuItem,
-            this.upToolStripMenuItem,
-            this.upfineToolStripMenuItem,
-            this.downToolStripMenuItem,
-            this.downfineToolStripMenuItem});
-			this.moveToolStripMenuItem.Name = "moveToolStripMenuItem";
-			this.moveToolStripMenuItem.Size = new System.Drawing.Size(255, 22);
-			this.moveToolStripMenuItem.Text = "Move";
-			// 
-			// leftToolStripMenuItem1
-			// 
-			this.leftToolStripMenuItem1.Name = "leftToolStripMenuItem1";
-			this.leftToolStripMenuItem1.ShortcutKeyDisplayString = "Arrow Left";
-			this.leftToolStripMenuItem1.Size = new System.Drawing.Size(241, 22);
-			this.leftToolStripMenuItem1.Text = "Left";
-			this.leftToolStripMenuItem1.Click += new System.EventHandler(this.leftToolStripMenuItem1_Click);
-			// 
-			// leftfineToolStripMenuItem
-			// 
-			this.leftfineToolStripMenuItem.Name = "leftfineToolStripMenuItem";
-			this.leftfineToolStripMenuItem.ShortcutKeyDisplayString = "Shift+Arrow Left";
-			this.leftfineToolStripMenuItem.Size = new System.Drawing.Size(241, 22);
-			this.leftfineToolStripMenuItem.Text = "Left (fine)";
-			this.leftfineToolStripMenuItem.Click += new System.EventHandler(this.leftfineToolStripMenuItem_Click);
-			// 
-			// rightToolStripMenuItem1
-			// 
-			this.rightToolStripMenuItem1.Name = "rightToolStripMenuItem1";
-			this.rightToolStripMenuItem1.ShortcutKeyDisplayString = "Arrow Right";
-			this.rightToolStripMenuItem1.Size = new System.Drawing.Size(241, 22);
-			this.rightToolStripMenuItem1.Text = "Right";
-			this.rightToolStripMenuItem1.Click += new System.EventHandler(this.rightToolStripMenuItem1_Click);
-			// 
-			// rightfineToolStripMenuItem
-			// 
-			this.rightfineToolStripMenuItem.Name = "rightfineToolStripMenuItem";
-			this.rightfineToolStripMenuItem.ShortcutKeyDisplayString = "Shift+Arrow Right";
-			this.rightfineToolStripMenuItem.Size = new System.Drawing.Size(241, 22);
-			this.rightfineToolStripMenuItem.Text = "Right (fine)";
-			this.rightfineToolStripMenuItem.Click += new System.EventHandler(this.rightfineToolStripMenuItem_Click);
-			// 
-			// upToolStripMenuItem
-			// 
-			this.upToolStripMenuItem.Name = "upToolStripMenuItem";
-			this.upToolStripMenuItem.ShortcutKeyDisplayString = "Arrow Up";
-			this.upToolStripMenuItem.Size = new System.Drawing.Size(241, 22);
-			this.upToolStripMenuItem.Text = "Up";
-			this.upToolStripMenuItem.Click += new System.EventHandler(this.upToolStripMenuItem_Click);
-			// 
-			// upfineToolStripMenuItem
-			// 
-			this.upfineToolStripMenuItem.Name = "upfineToolStripMenuItem";
-			this.upfineToolStripMenuItem.ShortcutKeyDisplayString = "Shift+Arrow Up";
-			this.upfineToolStripMenuItem.Size = new System.Drawing.Size(241, 22);
-			this.upfineToolStripMenuItem.Text = "Up (fine)";
-			this.upfineToolStripMenuItem.Click += new System.EventHandler(this.upfineToolStripMenuItem_Click);
-			// 
-			// downToolStripMenuItem
-			// 
-			this.downToolStripMenuItem.Name = "downToolStripMenuItem";
-			this.downToolStripMenuItem.ShortcutKeyDisplayString = "Arrow Down";
-			this.downToolStripMenuItem.Size = new System.Drawing.Size(241, 22);
-			this.downToolStripMenuItem.Text = "Down";
-			this.downToolStripMenuItem.Click += new System.EventHandler(this.downToolStripMenuItem_Click);
-			// 
-			// downfineToolStripMenuItem
-			// 
-			this.downfineToolStripMenuItem.Name = "downfineToolStripMenuItem";
-			this.downfineToolStripMenuItem.ShortcutKeyDisplayString = "Shift+Arrow Down";
-			this.downfineToolStripMenuItem.Size = new System.Drawing.Size(241, 22);
-			this.downfineToolStripMenuItem.Text = "Down (fine)";
-			this.downfineToolStripMenuItem.Click += new System.EventHandler(this.downfineToolStripMenuItem_Click);
-			// 
-			// rotateToolStripMenuItem
-			// 
-			this.rotateToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.anticlockwiseYaxisToolStripMenuItem,
-            this.anticlockwiseYaxisToolStripMenuItem1,
-            this.clockwiseYaxisToolStripMenuItem,
-            this.clockwiseYaxisToolStripMenuItem1,
-            this.anticlockwiseXaxisToolStripMenuItem,
-            this.anticlockwiseXaxisToolStripMenuItem1,
-            this.clockwiseXaxisToolStripMenuItem,
-            this.clockwiseXaxisToolStripMenuItem1,
-            this.anticlockwiseZaxisToolStripMenuItem,
-            this.anticlockwiseZaxisToolStripMenuItem1,
-            this.clockwiseZaxisToolStripMenuItem,
-            this.clockwiseZaxisToolStripMenuItem1});
-			this.rotateToolStripMenuItem.Name = "rotateToolStripMenuItem";
-			this.rotateToolStripMenuItem.Size = new System.Drawing.Size(255, 22);
-			this.rotateToolStripMenuItem.Text = "Rotate";
-			// 
-			// anticlockwiseYaxisToolStripMenuItem
-			// 
-			this.anticlockwiseYaxisToolStripMenuItem.Name = "anticlockwiseYaxisToolStripMenuItem";
-			this.anticlockwiseYaxisToolStripMenuItem.ShortcutKeyDisplayString = "Pg Up";
-			this.anticlockwiseYaxisToolStripMenuItem.Size = new System.Drawing.Size(296, 22);
-			this.anticlockwiseYaxisToolStripMenuItem.Text = "15° anti-clockwise Y-axis";
-			this.anticlockwiseYaxisToolStripMenuItem.Click += new System.EventHandler(this.anticlockwiseYaxisToolStripMenuItem_Click);
-			// 
-			// anticlockwiseYaxisToolStripMenuItem1
-			// 
-			this.anticlockwiseYaxisToolStripMenuItem1.Name = "anticlockwiseYaxisToolStripMenuItem1";
-			this.anticlockwiseYaxisToolStripMenuItem1.ShortcutKeyDisplayString = "Shift+Pg Up";
-			this.anticlockwiseYaxisToolStripMenuItem1.Size = new System.Drawing.Size(296, 22);
-			this.anticlockwiseYaxisToolStripMenuItem1.Text = "1° anti-clockwise Y-axis";
-			this.anticlockwiseYaxisToolStripMenuItem1.Click += new System.EventHandler(this.anticlockwiseYaxisToolStripMenuItem1_Click);
-			// 
-			// clockwiseYaxisToolStripMenuItem
-			// 
-			this.clockwiseYaxisToolStripMenuItem.Name = "clockwiseYaxisToolStripMenuItem";
-			this.clockwiseYaxisToolStripMenuItem.ShortcutKeyDisplayString = "Pg Dwn";
-			this.clockwiseYaxisToolStripMenuItem.Size = new System.Drawing.Size(296, 22);
-			this.clockwiseYaxisToolStripMenuItem.Text = "15° clockwise Y-axis";
-			this.clockwiseYaxisToolStripMenuItem.Click += new System.EventHandler(this.clockwiseYaxisToolStripMenuItem_Click);
-			// 
-			// clockwiseYaxisToolStripMenuItem1
-			// 
-			this.clockwiseYaxisToolStripMenuItem1.Name = "clockwiseYaxisToolStripMenuItem1";
-			this.clockwiseYaxisToolStripMenuItem1.ShortcutKeyDisplayString = "Shift+Pg Dwn";
-			this.clockwiseYaxisToolStripMenuItem1.Size = new System.Drawing.Size(296, 22);
-			this.clockwiseYaxisToolStripMenuItem1.Text = "1° clockwise Y-axis";
-			this.clockwiseYaxisToolStripMenuItem1.Click += new System.EventHandler(this.clockwiseYaxisToolStripMenuItem1_Click);
-			// 
-			// anticlockwiseXaxisToolStripMenuItem
-			// 
-			this.anticlockwiseXaxisToolStripMenuItem.Name = "anticlockwiseXaxisToolStripMenuItem";
-			this.anticlockwiseXaxisToolStripMenuItem.ShortcutKeyDisplayString = "Ctrl+Pg Up";
-			this.anticlockwiseXaxisToolStripMenuItem.Size = new System.Drawing.Size(296, 22);
-			this.anticlockwiseXaxisToolStripMenuItem.Text = "15° anti-clockwise X-axis";
-			this.anticlockwiseXaxisToolStripMenuItem.Click += new System.EventHandler(this.anticlockwiseXaxisToolStripMenuItem_Click);
-			// 
-			// anticlockwiseXaxisToolStripMenuItem1
-			// 
-			this.anticlockwiseXaxisToolStripMenuItem1.Name = "anticlockwiseXaxisToolStripMenuItem1";
-			this.anticlockwiseXaxisToolStripMenuItem1.ShortcutKeyDisplayString = "Shift+Ctrl+Pg Up";
-			this.anticlockwiseXaxisToolStripMenuItem1.Size = new System.Drawing.Size(296, 22);
-			this.anticlockwiseXaxisToolStripMenuItem1.Text = "1° anti-clockwise X-axis";
-			this.anticlockwiseXaxisToolStripMenuItem1.Click += new System.EventHandler(this.anticlockwiseXaxisToolStripMenuItem1_Click);
-			// 
-			// clockwiseXaxisToolStripMenuItem
-			// 
-			this.clockwiseXaxisToolStripMenuItem.Name = "clockwiseXaxisToolStripMenuItem";
-			this.clockwiseXaxisToolStripMenuItem.ShortcutKeyDisplayString = "Ctrl+Pg Dwn";
-			this.clockwiseXaxisToolStripMenuItem.Size = new System.Drawing.Size(296, 22);
-			this.clockwiseXaxisToolStripMenuItem.Text = "15° clockwise X-axis";
-			this.clockwiseXaxisToolStripMenuItem.Click += new System.EventHandler(this.clockwiseXaxisToolStripMenuItem_Click);
-			// 
-			// clockwiseXaxisToolStripMenuItem1
-			// 
-			this.clockwiseXaxisToolStripMenuItem1.Name = "clockwiseXaxisToolStripMenuItem1";
-			this.clockwiseXaxisToolStripMenuItem1.ShortcutKeyDisplayString = "Shift+Ctrl+Pg Dwn";
-			this.clockwiseXaxisToolStripMenuItem1.Size = new System.Drawing.Size(296, 22);
-			this.clockwiseXaxisToolStripMenuItem1.Text = "1° clockwise X-axis";
-			this.clockwiseXaxisToolStripMenuItem1.Click += new System.EventHandler(this.clockwiseXaxisToolStripMenuItem1_Click);
-			// 
-			// anticlockwiseZaxisToolStripMenuItem
-			// 
-			this.anticlockwiseZaxisToolStripMenuItem.Name = "anticlockwiseZaxisToolStripMenuItem";
-			this.anticlockwiseZaxisToolStripMenuItem.ShortcutKeyDisplayString = "Alt+Pg Up";
-			this.anticlockwiseZaxisToolStripMenuItem.Size = new System.Drawing.Size(296, 22);
-			this.anticlockwiseZaxisToolStripMenuItem.Text = "15° anti-clockwise Z-axis";
-			this.anticlockwiseZaxisToolStripMenuItem.Click += new System.EventHandler(this.anticlockwiseZaxisToolStripMenuItem_Click);
-			// 
-			// anticlockwiseZaxisToolStripMenuItem1
-			// 
-			this.anticlockwiseZaxisToolStripMenuItem1.Name = "anticlockwiseZaxisToolStripMenuItem1";
-			this.anticlockwiseZaxisToolStripMenuItem1.ShortcutKeyDisplayString = "Shift+Alt+Pg Up";
-			this.anticlockwiseZaxisToolStripMenuItem1.Size = new System.Drawing.Size(296, 22);
-			this.anticlockwiseZaxisToolStripMenuItem1.Text = "1° anti-clockwise Z-axis";
-			this.anticlockwiseZaxisToolStripMenuItem1.Click += new System.EventHandler(this.anticlockwiseZaxisToolStripMenuItem1_Click);
-			// 
-			// clockwiseZaxisToolStripMenuItem
-			// 
-			this.clockwiseZaxisToolStripMenuItem.Name = "clockwiseZaxisToolStripMenuItem";
-			this.clockwiseZaxisToolStripMenuItem.ShortcutKeyDisplayString = "Alt+Pg Dwn";
-			this.clockwiseZaxisToolStripMenuItem.Size = new System.Drawing.Size(296, 22);
-			this.clockwiseZaxisToolStripMenuItem.Text = "15° clockwise Z-axis";
-			this.clockwiseZaxisToolStripMenuItem.Click += new System.EventHandler(this.clockwiseZaxisToolStripMenuItem_Click);
-			// 
-			// clockwiseZaxisToolStripMenuItem1
-			// 
-			this.clockwiseZaxisToolStripMenuItem1.Name = "clockwiseZaxisToolStripMenuItem1";
-			this.clockwiseZaxisToolStripMenuItem1.ShortcutKeyDisplayString = "Shift+Alt+Pg Dwn";
-			this.clockwiseZaxisToolStripMenuItem1.Size = new System.Drawing.Size(296, 22);
-			this.clockwiseZaxisToolStripMenuItem1.Text = "1° clockwise Z-axis";
-			this.clockwiseZaxisToolStripMenuItem1.Click += new System.EventHandler(this.clockwiseZaxisToolStripMenuItem1_Click);
-			// 
-			// resetToolStripMenuItem
-			// 
-			this.resetToolStripMenuItem.Name = "resetToolStripMenuItem";
-			this.resetToolStripMenuItem.ShortcutKeyDisplayString = "Home";
-			this.resetToolStripMenuItem.Size = new System.Drawing.Size(255, 22);
-			this.resetToolStripMenuItem.Text = "Reset";
-			this.resetToolStripMenuItem.Click += new System.EventHandler(this.resetToolStripMenuItem_Click);
-			// 
-			// centerOnHardpointToolStripMenuItem
-			// 
-			this.centerOnHardpointToolStripMenuItem.Name = "centerOnHardpointToolStripMenuItem";
-			this.centerOnHardpointToolStripMenuItem.ShortcutKeyDisplayString = "Shift+Home";
-			this.centerOnHardpointToolStripMenuItem.Size = new System.Drawing.Size(255, 22);
-			this.centerOnHardpointToolStripMenuItem.Text = "Center on Hardpoint";
-			this.centerOnHardpointToolStripMenuItem.Click += new System.EventHandler(this.centerOnHardpointToolStripMenuItem_Click);
-			// 
-			// resetAllToolStripMenuItem
-			// 
-			this.resetAllToolStripMenuItem.Name = "resetAllToolStripMenuItem";
-			this.resetAllToolStripMenuItem.Size = new System.Drawing.Size(64, 20);
-			this.resetAllToolStripMenuItem.Text = "Reset All";
-			this.resetAllToolStripMenuItem.Click += new System.EventHandler(this.resetAllToolStripMenuItem_Click);
-			// 
-			// helpToolStripMenuItem
-			// 
-			this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.shortcutsToolStripMenuItem});
-			this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
-			this.helpToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
-			this.helpToolStripMenuItem.Text = "Help";
-			// 
-			// shortcutsToolStripMenuItem
-			// 
-			this.shortcutsToolStripMenuItem.Name = "shortcutsToolStripMenuItem";
-			this.shortcutsToolStripMenuItem.ShortcutKeyDisplayString = "F1";
-			this.shortcutsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-			this.shortcutsToolStripMenuItem.Text = "Shortcuts...";
-			this.shortcutsToolStripMenuItem.Click += new System.EventHandler(this.shortcutsToolStripMenuItem_Click);
-			// 
-			// showViewPanelToolStripMenuItem
-			// 
-			this.showViewPanelToolStripMenuItem.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
-			this.showViewPanelToolStripMenuItem.Checked = true;
-			this.showViewPanelToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.showViewPanelToolStripMenuItem.Name = "showViewPanelToolStripMenuItem";
-			this.showViewPanelToolStripMenuItem.Size = new System.Drawing.Size(116, 20);
-			this.showViewPanelToolStripMenuItem.Text = "Toggle View Panel";
-			this.showViewPanelToolStripMenuItem.Click += new System.EventHandler(this.showViewPanelToolStripMenuItem_Click);
-			// 
-			// hardpointNameToolTip
-			// 
-			this.hardpointNameToolTip.UseAnimation = false;
-			this.hardpointNameToolTip.UseFading = false;
 			// 
 			// colHPVisible
 			// 
@@ -775,6 +321,219 @@
 			this.colHPColor.Name = "colHPColor";
 			this.colHPColor.Width = 56;
 			// 
+			// menu
+			// 
+			this.menu.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.viewToolStripMenuItem,
+            this.visibilityToolStripMenuItem,
+            this.helpToolStripMenuItem,
+            this.hardpointEditToolStripMenuItem,
+            this.showViewPanelToolStripMenuItem,
+            this.resetAllToolStripMenuItem});
+			this.menu.Location = new System.Drawing.Point(0, 0);
+			this.menu.Name = "menu";
+			this.menu.Size = new System.Drawing.Size(1008, 24);
+			this.menu.TabIndex = 8;
+			this.menu.Text = "menu";
+			// 
+			// viewToolStripMenuItem
+			// 
+			this.viewToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.bottomToolStripMenuItem,
+            this.topToolStripMenuItem,
+            this.backToolStripMenuItem,
+            this.frontToolStripMenuItem,
+            this.rightToolStripMenuItem,
+            this.leftToolStripMenuItem,
+            this.resetToolStripMenuItem,
+            this.centerOnHardpointToolStripMenuItem});
+			this.viewToolStripMenuItem.Name = "viewToolStripMenuItem";
+			this.viewToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
+			this.viewToolStripMenuItem.Text = "View";
+			// 
+			// bottomToolStripMenuItem
+			// 
+			this.bottomToolStripMenuItem.Name = "bottomToolStripMenuItem";
+			this.bottomToolStripMenuItem.ShortcutKeyDisplayString = "1";
+			this.bottomToolStripMenuItem.Size = new System.Drawing.Size(255, 22);
+			this.bottomToolStripMenuItem.Text = "Bottom";
+			this.bottomToolStripMenuItem.Click += new System.EventHandler(this.bottomToolStripMenuItem_Click);
+			// 
+			// topToolStripMenuItem
+			// 
+			this.topToolStripMenuItem.Name = "topToolStripMenuItem";
+			this.topToolStripMenuItem.ShortcutKeyDisplayString = "2";
+			this.topToolStripMenuItem.Size = new System.Drawing.Size(255, 22);
+			this.topToolStripMenuItem.Text = "Top";
+			this.topToolStripMenuItem.Click += new System.EventHandler(this.topToolStripMenuItem_Click);
+			// 
+			// backToolStripMenuItem
+			// 
+			this.backToolStripMenuItem.Name = "backToolStripMenuItem";
+			this.backToolStripMenuItem.ShortcutKeyDisplayString = "3";
+			this.backToolStripMenuItem.Size = new System.Drawing.Size(255, 22);
+			this.backToolStripMenuItem.Text = "Back";
+			this.backToolStripMenuItem.Click += new System.EventHandler(this.backToolStripMenuItem_Click);
+			// 
+			// frontToolStripMenuItem
+			// 
+			this.frontToolStripMenuItem.Name = "frontToolStripMenuItem";
+			this.frontToolStripMenuItem.ShortcutKeyDisplayString = "4";
+			this.frontToolStripMenuItem.Size = new System.Drawing.Size(255, 22);
+			this.frontToolStripMenuItem.Text = "Front";
+			this.frontToolStripMenuItem.Click += new System.EventHandler(this.frontToolStripMenuItem_Click);
+			// 
+			// rightToolStripMenuItem
+			// 
+			this.rightToolStripMenuItem.Name = "rightToolStripMenuItem";
+			this.rightToolStripMenuItem.ShortcutKeyDisplayString = "5";
+			this.rightToolStripMenuItem.Size = new System.Drawing.Size(255, 22);
+			this.rightToolStripMenuItem.Text = "Right";
+			this.rightToolStripMenuItem.Click += new System.EventHandler(this.rightToolStripMenuItem_Click);
+			// 
+			// leftToolStripMenuItem
+			// 
+			this.leftToolStripMenuItem.Name = "leftToolStripMenuItem";
+			this.leftToolStripMenuItem.ShortcutKeyDisplayString = "6";
+			this.leftToolStripMenuItem.Size = new System.Drawing.Size(255, 22);
+			this.leftToolStripMenuItem.Text = "Left";
+			this.leftToolStripMenuItem.Click += new System.EventHandler(this.leftToolStripMenuItem_Click);
+			// 
+			// resetToolStripMenuItem
+			// 
+			this.resetToolStripMenuItem.Name = "resetToolStripMenuItem";
+			this.resetToolStripMenuItem.ShortcutKeyDisplayString = "Home";
+			this.resetToolStripMenuItem.Size = new System.Drawing.Size(255, 22);
+			this.resetToolStripMenuItem.Text = "Reset";
+			this.resetToolStripMenuItem.Click += new System.EventHandler(this.resetToolStripMenuItem_Click);
+			// 
+			// centerOnHardpointToolStripMenuItem
+			// 
+			this.centerOnHardpointToolStripMenuItem.Name = "centerOnHardpointToolStripMenuItem";
+			this.centerOnHardpointToolStripMenuItem.ShortcutKeyDisplayString = "Shift+Home";
+			this.centerOnHardpointToolStripMenuItem.Size = new System.Drawing.Size(255, 22);
+			this.centerOnHardpointToolStripMenuItem.Text = "Center on Hardpoint";
+			this.centerOnHardpointToolStripMenuItem.Click += new System.EventHandler(this.centerOnHardpointToolStripMenuItem_Click);
+			// 
+			// visibilityToolStripMenuItem
+			// 
+			this.visibilityToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.backgroundToolStripMenuItem,
+            this.hardpointSizeToolStripMenuItem,
+            this.zoomToolStripMenuItem});
+			this.visibilityToolStripMenuItem.Name = "visibilityToolStripMenuItem";
+			this.visibilityToolStripMenuItem.Size = new System.Drawing.Size(63, 20);
+			this.visibilityToolStripMenuItem.Text = "Visibility";
+			// 
+			// backgroundToolStripMenuItem
+			// 
+			this.backgroundToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.blackToolStripMenuItem,
+            this.whiteToolStripMenuItem});
+			this.backgroundToolStripMenuItem.Name = "backgroundToolStripMenuItem";
+			this.backgroundToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+			this.backgroundToolStripMenuItem.Text = "Background";
+			// 
+			// blackToolStripMenuItem
+			// 
+			this.blackToolStripMenuItem.Checked = true;
+			this.blackToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.blackToolStripMenuItem.Name = "blackToolStripMenuItem";
+			this.blackToolStripMenuItem.ShortcutKeyDisplayString = "B";
+			this.blackToolStripMenuItem.Size = new System.Drawing.Size(119, 22);
+			this.blackToolStripMenuItem.Text = "Black";
+			this.blackToolStripMenuItem.Click += new System.EventHandler(this.blackToolStripMenuItem_Click);
+			// 
+			// whiteToolStripMenuItem
+			// 
+			this.whiteToolStripMenuItem.Name = "whiteToolStripMenuItem";
+			this.whiteToolStripMenuItem.ShortcutKeyDisplayString = "B";
+			this.whiteToolStripMenuItem.Size = new System.Drawing.Size(119, 22);
+			this.whiteToolStripMenuItem.Text = "White";
+			this.whiteToolStripMenuItem.Click += new System.EventHandler(this.whiteToolStripMenuItem_Click);
+			// 
+			// hardpointSizeToolStripMenuItem
+			// 
+			this.hardpointSizeToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.decreaseToolStripMenuItem1,
+            this.increaseToolStripMenuItem1,
+            this.toolStripHardpointSizeSet});
+			this.hardpointSizeToolStripMenuItem.Name = "hardpointSizeToolStripMenuItem";
+			this.hardpointSizeToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+			this.hardpointSizeToolStripMenuItem.Text = "Hardpoint Size";
+			// 
+			// decreaseToolStripMenuItem1
+			// 
+			this.decreaseToolStripMenuItem1.Name = "decreaseToolStripMenuItem1";
+			this.decreaseToolStripMenuItem1.ShortcutKeyDisplayString = "/";
+			this.decreaseToolStripMenuItem1.Size = new System.Drawing.Size(160, 22);
+			this.decreaseToolStripMenuItem1.Text = "Decrease";
+			this.decreaseToolStripMenuItem1.Click += new System.EventHandler(this.decreaseToolStripMenuItem1_Click);
+			// 
+			// increaseToolStripMenuItem1
+			// 
+			this.increaseToolStripMenuItem1.Name = "increaseToolStripMenuItem1";
+			this.increaseToolStripMenuItem1.ShortcutKeyDisplayString = "*";
+			this.increaseToolStripMenuItem1.Size = new System.Drawing.Size(160, 22);
+			this.increaseToolStripMenuItem1.Text = "Increase";
+			this.increaseToolStripMenuItem1.Click += new System.EventHandler(this.increaseToolStripMenuItem1_Click);
+			// 
+			// toolStripHardpointSizeSet
+			// 
+			this.toolStripHardpointSizeSet.Name = "toolStripHardpointSizeSet";
+			this.toolStripHardpointSizeSet.Size = new System.Drawing.Size(100, 23);
+			this.toolStripHardpointSizeSet.TextBoxTextAlign = System.Windows.Forms.HorizontalAlignment.Right;
+			this.toolStripHardpointSizeSet.TextChanged += new System.EventHandler(this.toolStripHardpointSizeSet_TextChanged);
+			// 
+			// zoomToolStripMenuItem
+			// 
+			this.zoomToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.inToolStripMenuItem,
+            this.outToolStripMenuItem});
+			this.zoomToolStripMenuItem.Name = "zoomToolStripMenuItem";
+			this.zoomToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+			this.zoomToolStripMenuItem.Text = "Zoom";
+			// 
+			// inToolStripMenuItem
+			// 
+			this.inToolStripMenuItem.Name = "inToolStripMenuItem";
+			this.inToolStripMenuItem.ShortcutKeyDisplayString = "+";
+			this.inToolStripMenuItem.Size = new System.Drawing.Size(106, 22);
+			this.inToolStripMenuItem.Text = "In";
+			this.inToolStripMenuItem.Click += new System.EventHandler(this.inToolStripMenuItem_Click);
+			// 
+			// outToolStripMenuItem
+			// 
+			this.outToolStripMenuItem.Name = "outToolStripMenuItem";
+			this.outToolStripMenuItem.ShortcutKeyDisplayString = "-";
+			this.outToolStripMenuItem.Size = new System.Drawing.Size(106, 22);
+			this.outToolStripMenuItem.Text = "Out";
+			this.outToolStripMenuItem.Click += new System.EventHandler(this.outToolStripMenuItem_Click);
+			// 
+			// resetAllToolStripMenuItem
+			// 
+			this.resetAllToolStripMenuItem.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+			this.resetAllToolStripMenuItem.Name = "resetAllToolStripMenuItem";
+			this.resetAllToolStripMenuItem.Size = new System.Drawing.Size(64, 20);
+			this.resetAllToolStripMenuItem.Text = "Reset All";
+			this.resetAllToolStripMenuItem.Click += new System.EventHandler(this.resetAllToolStripMenuItem_Click);
+			// 
+			// helpToolStripMenuItem
+			// 
+			this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.shortcutsToolStripMenuItem});
+			this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
+			this.helpToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
+			this.helpToolStripMenuItem.Text = "Help";
+			// 
+			// shortcutsToolStripMenuItem
+			// 
+			this.shortcutsToolStripMenuItem.Name = "shortcutsToolStripMenuItem";
+			this.shortcutsToolStripMenuItem.ShortcutKeyDisplayString = "F1";
+			this.shortcutsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+			this.shortcutsToolStripMenuItem.Text = "Shortcuts...";
+			this.shortcutsToolStripMenuItem.Click += new System.EventHandler(this.shortcutsToolStripMenuItem_Click);
+			// 
 			// hardpointEditToolStripMenuItem
 			// 
 			this.hardpointEditToolStripMenuItem.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
@@ -782,6 +541,21 @@
 			this.hardpointEditToolStripMenuItem.Size = new System.Drawing.Size(170, 20);
 			this.hardpointEditToolStripMenuItem.Text = "Toggle Hardpoint Edit Mode";
 			this.hardpointEditToolStripMenuItem.Click += new System.EventHandler(this.hardpointEditToolStripMenuItem_Click);
+			// 
+			// showViewPanelToolStripMenuItem
+			// 
+			this.showViewPanelToolStripMenuItem.Alignment = System.Windows.Forms.ToolStripItemAlignment.Right;
+			this.showViewPanelToolStripMenuItem.Checked = true;
+			this.showViewPanelToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.showViewPanelToolStripMenuItem.Name = "showViewPanelToolStripMenuItem";
+			this.showViewPanelToolStripMenuItem.Size = new System.Drawing.Size(116, 20);
+			this.showViewPanelToolStripMenuItem.Text = "Toggle View Panel";
+			this.showViewPanelToolStripMenuItem.Click += new System.EventHandler(this.showViewPanelToolStripMenuItem_Click);
+			// 
+			// hardpointNameToolTip
+			// 
+			this.hardpointNameToolTip.UseAnimation = false;
+			this.hardpointNameToolTip.UseFading = false;
 			// 
 			// ModelViewForm
 			// 
@@ -843,29 +617,6 @@
 		private System.Windows.Forms.ToolStripMenuItem zoomToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem inToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem outToolStripMenuItem;
-		private System.Windows.Forms.ToolStripMenuItem navigationToolStripMenuItem;
-		private System.Windows.Forms.ToolStripMenuItem moveToolStripMenuItem;
-		private System.Windows.Forms.ToolStripMenuItem leftToolStripMenuItem1;
-		private System.Windows.Forms.ToolStripMenuItem leftfineToolStripMenuItem;
-		private System.Windows.Forms.ToolStripMenuItem rightToolStripMenuItem1;
-		private System.Windows.Forms.ToolStripMenuItem rightfineToolStripMenuItem;
-		private System.Windows.Forms.ToolStripMenuItem upToolStripMenuItem;
-		private System.Windows.Forms.ToolStripMenuItem upfineToolStripMenuItem;
-		private System.Windows.Forms.ToolStripMenuItem downToolStripMenuItem;
-		private System.Windows.Forms.ToolStripMenuItem downfineToolStripMenuItem;
-		private System.Windows.Forms.ToolStripMenuItem rotateToolStripMenuItem;
-		private System.Windows.Forms.ToolStripMenuItem anticlockwiseYaxisToolStripMenuItem;
-		private System.Windows.Forms.ToolStripMenuItem anticlockwiseYaxisToolStripMenuItem1;
-		private System.Windows.Forms.ToolStripMenuItem clockwiseYaxisToolStripMenuItem;
-		private System.Windows.Forms.ToolStripMenuItem clockwiseYaxisToolStripMenuItem1;
-		private System.Windows.Forms.ToolStripMenuItem anticlockwiseXaxisToolStripMenuItem;
-		private System.Windows.Forms.ToolStripMenuItem anticlockwiseXaxisToolStripMenuItem1;
-		private System.Windows.Forms.ToolStripMenuItem clockwiseXaxisToolStripMenuItem;
-		private System.Windows.Forms.ToolStripMenuItem clockwiseXaxisToolStripMenuItem1;
-		private System.Windows.Forms.ToolStripMenuItem anticlockwiseZaxisToolStripMenuItem;
-		private System.Windows.Forms.ToolStripMenuItem anticlockwiseZaxisToolStripMenuItem1;
-		private System.Windows.Forms.ToolStripMenuItem clockwiseZaxisToolStripMenuItem;
-		private System.Windows.Forms.ToolStripMenuItem clockwiseZaxisToolStripMenuItem1;
 		private System.Windows.Forms.ToolStripMenuItem resetToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem centerOnHardpointToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem resetAllToolStripMenuItem;

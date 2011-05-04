@@ -9,5 +9,7 @@ namespace UTFEditor
     public interface UTFFormObserver
     {
         void DataChanged(TreeNode node, string oldName, object oldData);
+        void Invalidate();
+        void Close();
     }
 }

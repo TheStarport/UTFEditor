@@ -388,46 +388,47 @@ namespace UTFEditor
                 buttonRenameNode.Enabled = false;
             }
 
-            dataView.Rows.Clear();
-            // Hide the last two columns, show them as needed.
-            dataView.Columns[2].Visible = dataView.Columns[3].Visible = false;
-            // Restore the style after a hex dump.
-            dataView.Columns[1].DefaultCellStyle =
-            dataView.Columns[2].DefaultCellStyle = dataView.DefaultCellStyle;
-            dataView.Columns[0].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCellsExceptHeader;
-            dataView.Columns[1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-			
+			dataView.Rows.Clear();
+			// Hide the last two columns, show them as needed.
+			dataView.Columns[2].Visible = dataView.Columns[3].Visible = false;
+			// Restore the style after a hex dump.
+			dataView.Columns[1].DefaultCellStyle =
+			dataView.Columns[2].DefaultCellStyle = dataView.DefaultCellStyle;
+			dataView.Columns[0].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCellsExceptHeader;
+			dataView.Columns[1].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
 			if(edit == Editable.Hardpoint)
 				DisplayData(childForm, node, true);
-            else if (data)
-            {
-                byte[] val = node.Tag as byte[];
-                DisplayData(childForm, node, true);
-                if (dataView.Rows.Count == 1)
+			else if (data)
+			{
+				byte[] val = node.Tag as byte[];
+				DisplayData(childForm, node, true);
+				if (dataView.Rows.Count == 1)
 					dataView.Rows.Add();
 				dataView[0, 1].ValueType = typeof(string);
-                dataView[0, 1].Value = String.Format("({0} {1})", val.Length, (val.Length == 1) ? "byte" : "bytes");
-                dataView[0, 1].ReadOnly = true;
-            }
-            else
-            {
-                if (node != null)
-                    foreach (TreeNode n in node.Nodes)
-                        DisplayData(childForm, n, false);
-            }
-            buttonApply.Enabled = false;
+				dataView[0, 1].Value = String.Format("({0} {1})", val.Length, (val.Length == 1) ? "byte" : "bytes");
+				dataView[0, 1].ReadOnly = true;
+			}
+			else
+			{
+				if (node != null)
+					foreach (TreeNode n in node.Nodes)
+						DisplayData(childForm, n, false);
+			}
+			buttonApply.Enabled = false;
 
-            buttonImport.Enabled = (node != null && node.Nodes.Count == 0);
-            buttonExport.Enabled = data;
+			buttonImport.Enabled = (node != null && node.Nodes.Count == 0);
+			buttonExport.Enabled = data;
 
-            buttonEdit.Enabled = (edit != Editable.No);
+			buttonEdit.Enabled = (edit != Editable.No);
 
-            buttonView.Enabled = (view != Viewable.No);
-            buttonView.Text = (view == Viewable.Wave) ? "Play" : "View";
+			buttonView.Enabled = (view != Viewable.No);
+			buttonView.Text = (view == Viewable.Wave) ? "Play" : "View";
        }
 
         private void DisplayData(UTFForm childForm, TreeNode node, bool fullHex)
         {
+			btnRevFixed.Visible = false;
             if (!childForm.ContainsData(node) && childForm.IsEditable(node) != Editable.Hardpoint)
                 return;
 
@@ -448,9 +449,10 @@ namespace UTFEditor
                 dataView[1, row].ReadOnly = false;
                 return;
             }
-
-            if (edit == Editable.Hardpoint)
-            {
+			
+			if (edit == Editable.Hardpoint)
+			{
+				btnRevFixed.Visible = true;
 				// Special case for a hardpoint's min/max nodes, to show degrees rather than radians.
 				if(Utilities.StrIEq(node.Name, "Min", "Max"))
 				{
@@ -460,10 +462,13 @@ namespace UTFEditor
 					cell.Value = Utilities.RadianToDegree(Utilities.GetFloat(data, ref pos));
 					cell.ReadOnly = false;
 					return;
-                }
-                else
-                {
-					HardpointData hpdata = new HardpointData(childForm.FindHardpoint(node));
+				}
+				else
+				{
+					dataView.Enabled = false;
+					TreeNode hpnode = childForm.FindHardpoint(node);
+					bool revolute = hpnode.Parent.Name == "Revolute";
+					HardpointData hpdata = new HardpointData(hpnode);
 					dataView[0, 0].Value = "X";
 					dataView[0, 0].ReadOnly = true;
 					dataView[1, 0].ValueType = typeof(float);
@@ -522,10 +527,11 @@ namespace UTFEditor
 					dataView[1, 5].Style.Format = "g";
 					dataView[1, 5].Value = roll;
 					dataView[1, 5].ReadOnly = false;
-					dataView.Rows.Add();
 
-					// TODO: Not display this if not defined
+					if(revolute)
 					{
+						dataView.Rows.Add();
+						
 						dataView[0, 6].Value = "Min";
 						dataView[0, 6].ReadOnly = true;
 						dataView[1, 6].ValueType = typeof(float);
@@ -540,132 +546,136 @@ namespace UTFEditor
 						dataView[1, 7].Style.Format = "g";
 						dataView[1, 7].Value = hpdata.Max;
 						dataView[1, 7].ReadOnly = false;
+						btnRevFixed.Text = "Make Fixed";
 					}
+					else
+						btnRevFixed.Text = "Make Revolute";
+					dataView.Enabled = true;
 					return;
-                }
-            }
+				}
+			}
 
-            if (view == Viewable.Texture)
-            {
-                DDSHeader dds = new DDSHeader();
-                if (dds.Read(data, out pos))
+			if (view == Viewable.Texture)
+			{
+				DDSHeader dds = new DDSHeader();
+				if (dds.Read(data, out pos))
 				{
 					dataView[1, row].ValueType = typeof(string);
-                    dataView[1, row].Value = String.Format("{0}x{1}", dds.width, dds.height);
+					dataView[1, row].Value = String.Format("{0}x{1}", dds.width, dds.height);
 					dataView[1, row].ReadOnly = dataView[2, row].ReadOnly = dataView[3, row].ReadOnly = true;
-                    if (dds.pflags == 4)
+					if (dds.pflags == 4)
 					{
 						dataView[2, row].ValueType = typeof(string);
-                        dataView[2, row].Value = dds.FourCC;
-                    }
-                    else
+						dataView[2, row].Value = dds.FourCC;
+					}
+					else
 					{
 						dataView[2, row].ValueType = typeof(string);
 						dataView[2, row].Value = String.Format("{0}bpp {1}", dds.bpp, (dds.pflags == 0x40) ? "RGB" : "RGBA");
 					}
 					dataView[3, row].ValueType = typeof(string);
 					dataView[3, row].Value = String.Format("{0} {1}", dds.mipmapcount, (dds.mipmapcount == 1) ? "level" : "levels");
-                    dataView.Columns[2].Visible = dataView.Columns[3].Visible = true;
-                    return;
-                }
-                TgaHeader tga = new TgaHeader();
-                if (tga.Read(data, out pos))
+					dataView.Columns[2].Visible = dataView.Columns[3].Visible = true;
+					return;
+				}
+				TgaHeader tga = new TgaHeader();
+				if (tga.Read(data, out pos))
 				{
 					dataView[1, row].ValueType = typeof(string);
 					dataView[1, row].Value = String.Format("{0}x{1}", tga.Image_Width, tga.Image_Height);
 					dataView[1, row].ReadOnly = dataView[2, row].ReadOnly = true;
-                    string type;
-                    switch (tga.Image_Type)
-                    {
-                        case 1: type = "map"; break;
-                        case 2: type = (tga.Pixel_Depth == 32) ? "RGBA" : "RGB"; break;
-                        default: type = "unknown"; break;
+					string type;
+					switch (tga.Image_Type)
+					{
+						case 1: type = "map"; break;
+						case 2: type = (tga.Pixel_Depth == 32) ? "RGBA" : "RGB"; break;
+						default: type = "unknown"; break;
 					}
 					dataView[2, row].ValueType = typeof(string);
 					dataView[2, row].Value = String.Format("{0}bpp {1}", tga.Pixel_Depth, type);
-                    dataView.Columns[2].Visible = true;
-                    return;
-                }
-            }
-            else
-            {
-                string format = null;
-                Type type = null;
-                switch (edit)
-                {
-                    case Editable.Float:
-                    case Editable.Color:
-                    case Editable.Hardpoint:
-                        type = typeof(float);
-                        format = "g";
-                        break;
-                    case Editable.Int:
-                        type = typeof(int);
-                        format = "";
-                        break;
-                    case Editable.IntHex:
-                        type = typeof(uint);
-                        format = "";// "X2";
-                        break;
-                }
-                if (type != null)
-                {
-                    int col = 1;
-                    if (data.Length > 4)
-                    {
-                        dataView.Columns[1].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCellsExceptHeader;
-                        dataView.Columns[2].Visible = true;
-                        if (data.Length > 8)
-                            dataView.Columns[3].Visible = true;
-                    }
-                    while (pos < data.Length)
-                    {
-                        if (col == 4)
-                        {
-                            col = 1;
-                            row = dataView.Rows.Add();
-                        }
-                        object num;
-                        if (type == typeof(float))
-                            num = Utilities.GetFloat(data, ref pos);
-                        else
-                            num = Utilities.GetInt(data, ref pos);
+					dataView.Columns[2].Visible = true;
+					return;
+				}
+			}
+			else
+			{
+				string format = null;
+				Type type = null;
+				switch (edit)
+				{
+					case Editable.Float:
+					case Editable.Color:
+					case Editable.Hardpoint:
+						type = typeof(float);
+						format = "g";
+						break;
+					case Editable.Int:
+						type = typeof(int);
+						format = "";
+						break;
+					case Editable.IntHex:
+						type = typeof(uint);
+						format = "";// "X2";
+						break;
+				}
+				if (type != null)
+				{
+					int col = 1;
+					if (data.Length > 4)
+					{
+						dataView.Columns[1].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCellsExceptHeader;
+						dataView.Columns[2].Visible = true;
+						if (data.Length > 8)
+							dataView.Columns[3].Visible = true;
+					}
+					while (pos < data.Length)
+					{
+						if (col == 4)
+						{
+							col = 1;
+							row = dataView.Rows.Add();
+						}
+						object num;
+						if (type == typeof(float))
+							num = Utilities.GetFloat(data, ref pos);
+						else
+							num = Utilities.GetInt(data, ref pos);
 						dataView[col, row].ReadOnly = false;
 						dataView[col, row].Style.Format = format;
 						dataView[col, row].ValueType = type;
-                        dataView[col++, row].Value = num;
-                    }
-                    return;
-                }
-            }
+						dataView[col++, row].Value = num;
+					}
+					return;
+				}
+			}
 
-            dataView.Columns[2].Visible = true;
-            if (fullHex)
-            {
-                DataGridViewCellStyle style = dataView.DefaultCellStyle.Clone();
-                style.Font = new Font(FontFamily.GenericMonospace, style.Font.SizeInPoints);
-                dataView.Columns[1].DefaultCellStyle =
-                dataView.Columns[2].DefaultCellStyle = style;
-                dataView.Columns[0].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
-                dataView.Columns[1].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCellsExceptHeader;
-            }
-            int len = Math.Min((fullHex) ? 80 : 8, data.Length);
-            for (pos = 0; pos < len; )
-            {
-                if (pos != 0)
-                    row = dataView.Rows.Add();
+			dataView.Columns[2].Visible = true;
+			if (fullHex)
+			{
+				DataGridViewCellStyle style = dataView.DefaultCellStyle.Clone();
+				style.Font = new Font(FontFamily.GenericMonospace, style.Font.SizeInPoints);
+				dataView.Columns[1].DefaultCellStyle =
+				dataView.Columns[2].DefaultCellStyle = style;
+				dataView.Columns[0].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+				dataView.Columns[1].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCellsExceptHeader;
+			}
+			int len = Math.Min((fullHex) ? 80 : 8, data.Length);
+			for (pos = 0; pos < len; )
+			{
+				if (pos != 0)
+					row = dataView.Rows.Add();
 				int curlen = Math.Min(8, len - pos);
 				dataView[1, row].ValueType = typeof(string);
-                dataView[1, row].Value = BitConverter.ToString(data, pos, curlen).Replace('-', ' ');
-                StringBuilder sb = new StringBuilder(8);
-                while (curlen-- != 0)
-                {
-                    byte b = data[pos++];
-                    sb.Append((b >= 32 && b <= 126) ? (char)b : '.');
+				dataView[1, row].Value = BitConverter.ToString(data, pos, curlen).Replace('-', ' ');
+				StringBuilder sb = new StringBuilder(8);
+				while (curlen-- != 0)
+				{
+					byte b = data[pos++];
+					sb.Append((b >= 32 && b <= 126) ? (char)b : '.');
 				}
 				dataView[2, row].ValueType = typeof(string);
 				dataView[2, row].Value = sb.ToString();
-            }
+			}
         }
 
         private void dataView_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e)
@@ -844,6 +854,7 @@ namespace UTFEditor
 				}
 				
 				hpdata.Write();
+				childForm.NodeChanged(node, "", null);
 			}
 
 			childForm.Modified();
@@ -1024,5 +1035,75 @@ namespace UTFEditor
                 childForm.CalcTangents();
             }
         }
+		private void btnRevFixed_Click(object sender, EventArgs e)
+		{
+			Editable edit;
+			Viewable view;
+			TreeNode node;
+			UTFForm childForm;
+			bool data;
+			if (this.ActiveMdiChild is UTFForm)
+			{
+				childForm = this.ActiveMdiChild as UTFForm;
+				node = childForm.GetSelectedNode();
+				edit = childForm.IsEditable(node);
+				view = childForm.IsViewable(node);
+				data = childForm.ContainsData(node);
+			}
+			else
+				return;
+			
+			if (edit == Editable.Hardpoint) {
+				TreeNode hp = childForm.FindHardpoint(node);
+				TreeNode grp = hp.Parent.Parent;
+				string currType = hp.Parent.Name;
+				hp.Remove();
+				if (currType == "Revolute")
+				{
+					if (grp.Nodes["Fixed"] == null)
+					{
+						TreeNode fix = new TreeNode("Fixed");
+						fix.Name = "Fixed";
+						fix.Tag = new byte[0];
+						grp.Nodes.Add(fix);
+					}
+					grp.Nodes["Fixed"].Nodes.Add(hp);
+
+					if (hp.Nodes["Axis"] != null) hp.Nodes["Axis"].Remove();
+					if (hp.Nodes["Min"] != null) hp.Nodes["Min"].Remove();
+					if (hp.Nodes["Max"] != null) hp.Nodes["Max"].Remove();
+				}
+				else
+				{
+					if (grp.Nodes["Revolute"] == null)
+					{
+						TreeNode rev = new TreeNode("Revolute");
+						rev.Name = "Revolute";
+						rev.Tag = new byte[0];
+						grp.Nodes.Add(rev);
+					}
+					grp.Nodes["Revolute"].Nodes.Add(hp);
+
+					TreeNode axis = new TreeNode();
+					axis.Tag = new float[2] { 0, 1 };
+					axis.Name = axis.Text = "Axis";
+					hp.Nodes.Add(axis);
+
+					TreeNode min = new TreeNode();
+					min.Tag = BitConverter.GetBytes((float)(-Math.PI / 4));
+					min.Name = min.Text = "Min";
+					hp.Nodes.Add(min);
+
+					TreeNode max = new TreeNode();
+					max.Tag = BitConverter.GetBytes((float)(Math.PI / 4));
+					max.Name = max.Text = "Max";
+					hp.Nodes.Add(max);
+				}
+				
+				SetSelectedNode(node);
+				childForm.SetSelectedNode(node);
+				childForm.NodeChanged(node, "", null);
+			}
+		}
     }
 }
