@@ -558,7 +558,9 @@ namespace UTFEditor
                         MeshGroups.Add(mg);
                     }
                 }
-                catch { }
+                catch {
+                    MessageBox.Show("Exception while loading a meshgroup!", "Error");
+                }
             }
 
             // Find the offset and rotations from the Fix, Rev, Pris and Sphere nodes.
