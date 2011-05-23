@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.21022</ProductVersion>
+    <ProductVersion>9.0.30729</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{AFD599E7-602D-4E61-B588-2C74DF739FC7}</ProjectGuid>
     <OutputType>WinExe</OutputType>
@@ -96,6 +96,12 @@
     <Compile Include="CmpFixData.cs" />
     <Compile Include="CmpRevData.cs" />
     <Compile Include="CmpSphereData.cs" />
+    <Compile Include="CalcCRCForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="CalcCRCForm.Designer.cs">
+      <DependentUpon>CalcCRCForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="EditColorForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -191,6 +197,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="AboutForm.resx">
       <DependentUpon>AboutForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="CalcCRCForm.resx">
+      <DependentUpon>CalcCRCForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="EditColorForm.resx">
       <DependentUpon>EditColorForm.cs</DependentUpon>

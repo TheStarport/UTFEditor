@@ -1105,5 +1105,10 @@ namespace UTFEditor
 				childForm.NodeChanged(node, "", null);
 			}
 		}
+
+        private void calcCRCToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            new CalcCRCForm().Show();
+        }
     }
 }
