@@ -983,6 +983,7 @@ namespace UTFEditor
                 case "material_name":
                 case "name":
                 case "object name":
+				case "ot_name":
                 case "parent name":
                 case "type":
                     return Editable.String;
@@ -1028,6 +1029,7 @@ namespace UTFEditor
                 case "et_flags":
                 case "flags":
                 case "maflags":
+				case "ot_flags":
                     return Editable.IntHex;
                     
                 // single value

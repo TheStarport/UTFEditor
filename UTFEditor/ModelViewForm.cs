@@ -347,11 +347,20 @@ namespace UTFEditor
 				depthFormat = format;
 				if (Manager.CheckDepthStencilMatch(0, DeviceType.Hardware, Manager.Adapters.Default.CurrentDisplayMode.Format, Manager.Adapters.Default.CurrentDisplayMode.Format, depthFormat)) break;
 			}
-			
-			device = new Device(0, DeviceType.Hardware, modelView.Panel1.Handle, CreateFlags.HardwareVertexProcessing, presentParams);
+
+			try
+			{
+				device = new Device(0, DeviceType.Hardware, modelView.Panel1.Handle, CreateFlags.HardwareVertexProcessing, presentParams);
+			}
+			catch
+			{
+				device = null;
+			}
+			if (device == null)
+				device = new Device(0, DeviceType.Hardware, modelView.Panel1.Handle, CreateFlags.SoftwareVertexProcessing, presentParams);
             
             if (device == null)
-                throw new Exception("Unable to initialise Directx.");
+                throw new Exception("Unable to initialise DirectX.");
 
 			this.SetupDevice(device);
 			
@@ -1644,8 +1653,8 @@ namespace UTFEditor
 				try
 				{
 					bool isSelectedNode = (hi.Node == node);
-					if (!isSelectedNode && splitViewHardpoint.Panel2Collapsed) continue;
-					if (!hi.Display && !isSelectedNode) continue;
+					if (!isSelectedNode)
+						if (splitViewHardpoint.Panel2Collapsed || !hi.Display) continue;
 					float scale = hp.scale * (isSelectedNode ? 4f : 1f);
 					device.Transform.World = Matrix.Scaling(scale, scale, scale) * hi.Matrix * hi.MeshGroup.Transform * Matrix.Translation(orgX, orgY, orgZ);
 
@@ -2498,8 +2507,8 @@ namespace UTFEditor
 			foreach(HardpointDisplayInfo hi in otherHardpoints)
 			{
 				bool selected = hi.Node == selectedHp;
-				if (splitViewHardpoint.Panel2Collapsed && !selected) continue;
-				if(!selected && !hi.Display) continue;
+				if (!selected)
+					if (splitViewHardpoint.Panel2Collapsed || !hi.Display) continue;
 				Vector3 hpLoc = new Vector3(hi.Matrix.M41, hi.Matrix.M42, hi.Matrix.M43);
 				hpLoc.TransformCoordinate(hi.MeshGroup.Transform);
 
