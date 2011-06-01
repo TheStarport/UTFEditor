@@ -7,19 +7,32 @@ namespace UTFEditor
 {
     public partial class CalcCRCForm : Form
     {
-        TreeNode node;
         public CalcCRCForm()
         {           
             InitializeComponent();           
         }
 
-        private void button1_Click(object sender, EventArgs e)
-        {          
-            string st = textBox1.Text + "\r\n";
-            st += String.Format(" model crc = {0:X8}\r\n", Utilities.FLModelCRC(textBox1.Text));
-            st += String.Format(" id hash= {0:X8}\r\n", Utilities.CreateID(textBox1.Text));
+		private string last_string = string.Empty;
 
-            textBox3.Text = st + textBox3.Text;
+        private void button1_Click(object sender, EventArgs e)
+        {
+			if (textBox1.Text.Length == 0 || textBox1.Text == last_string)
+				return;
+			last_string = textBox1.Text;
+
+			StringBuilder sb = new StringBuilder(textBox1.Text);
+            sb.Append("\r\n");
+            sb.AppendFormat("    model crc = 0x{0:X8}\r\n", Utilities.FLModelCRC(textBox1.Text));
+            sb.AppendFormat("    id hash = 0x{0:X8}\r\n", Utilities.CreateID(textBox1.Text));
+
+            textBox3.Text = sb.ToString() + textBox3.Text;
+			textBox1.SelectAll();
         }
+
+		private void CalcCRCForm_KeyDown(object sender, KeyEventArgs e)
+		{
+			if (e.KeyCode == Keys.Escape)
+				Close();
+		}
     }
 }
