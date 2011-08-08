@@ -169,7 +169,7 @@ namespace UTFEditor
             if (this.ActiveMdiChild is UTFForm)
             {
                 UTFForm childForm = this.ActiveMdiChild as UTFForm;
-                childForm.Cut();
+                if (!childForm.Cut()) SendKeys.Send("^X");
             }
         }
 
@@ -178,7 +178,7 @@ namespace UTFEditor
             if (this.ActiveMdiChild is UTFForm)
             {
                 UTFForm childForm = this.ActiveMdiChild as UTFForm;
-                childForm.Copy();
+                if (!childForm.Copy()) SendKeys.Send("^C");
             }
         }
 
@@ -187,7 +187,7 @@ namespace UTFEditor
             if (this.ActiveMdiChild is UTFForm)
             {
                 UTFForm childForm = this.ActiveMdiChild as UTFForm;
-                childForm.Paste();
+                if (!childForm.Paste()) SendKeys.Send("^V");
             }
         }
 
@@ -1105,6 +1105,11 @@ namespace UTFEditor
 				childForm.NodeChanged(node, "", null);
 			}
 		}
+
+        private void selectAllToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SendKeys.Send("^A");
+        }
 
         private void calcCRCToolStripMenuItem_Click(object sender, EventArgs e)
         {
