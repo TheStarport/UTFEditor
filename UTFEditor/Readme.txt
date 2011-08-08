@@ -32,6 +32,8 @@ This program is free software. You may do what you like with it but don't forget
 
 * Adoxa - Fixes and improvements for 2.1
 * Cannon - Wrote version 2.0, added the model viewer and other random features.
+* FriendlyFire - Added hardpoint support to model viewer and miscellaneous features and bug fixes.
+* w0dk4 - Bugfixes and support for normal mapping-enabled models.
 
 Additional thanks to the following people:
 * Mario 'HCl' Brito - UTF (CMP) file structures and for releasing the source code to the original utf_edit program.

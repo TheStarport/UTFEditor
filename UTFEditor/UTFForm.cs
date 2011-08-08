@@ -392,12 +392,31 @@ namespace UTFEditor
 
         private void treeView1_KeyDown(object sender, KeyEventArgs e)
         {
-            if (treeView1.SelectedNode != null && e.KeyCode == Keys.Enter)
+            if (treeView1.SelectedNode != null)
             {
-                if (toolStripMenuItemEdit.Enabled)
-                    EditNode();
-                else if (toolStripMenuItemView.Enabled)
-                    ViewNode();
+                if(e.KeyCode == Keys.Enter)
+                {
+                    if (toolStripMenuItemEdit.Enabled)
+                        EditNode();
+                    else if (toolStripMenuItemView.Enabled)
+                        ViewNode();
+                }
+
+                if (e.Control && !e.Alt && !e.Shift)
+                {
+                    switch (e.KeyCode)
+                    {
+                        case Keys.C:
+                            e.Handled = Copy();
+                            break;
+                        case Keys.X:
+                            e.Handled = Cut();
+                            break;
+                        case Keys.V:
+                            e.Handled = Paste();
+                            break;
+                    }
+                }
             }
         }
 
@@ -1645,34 +1664,46 @@ namespace UTFEditor
             }
         }
 
-        public void Cut()
+        public bool Cut()
         {
-            if (treeView1.SelectedNode != null)
+            if (treeView1.SelectedNode != null && !treeView1.SelectedNode.IsEditing)
             {
-                Copy();
+                if(!Copy()) return false;
                 treeView1.SelectedNode.Remove();
                 Modified();
+
+                return true;
             }
+
+            return false;
         }
 
-        public void Copy()
+        public bool Copy()
         {
-            if (treeView1.SelectedNode != null)
+            if (treeView1.SelectedNode != null && !treeView1.SelectedNode.IsEditing)
             {
                 CopyNodesObject obj = new CopyNodesObject();
                 TreeNode node = treeView1.SelectedNode;
                 obj.Nodes.Add(node);
                 Clipboard.SetData(CopyNodesObjectName, obj);
+
+                return true;
             }
+
+            return false;
         }
 
-        public void Paste()
+        public bool Paste()
         {
-            if (Clipboard.ContainsData(CopyNodesObjectName))
+            if (Clipboard.ContainsData(CopyNodesObjectName) && !treeView1.SelectedNode.IsEditing)
             {
                 CopyNodesObject obj = Clipboard.GetData(CopyNodesObjectName) as CopyNodesObject;
                 CopyNodes(obj, DragDropEffects.Copy);
+
+                return true;
             }
+
+            return false;
         }
 
         public void ShowModel()
