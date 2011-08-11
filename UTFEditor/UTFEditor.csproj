@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.30729</ProductVersion>
+    <ProductVersion>9.0.21022</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{AFD599E7-602D-4E61-B588-2C74DF739FC7}</ProjectGuid>
     <OutputType>WinExe</OutputType>
@@ -180,6 +180,9 @@
     </Compile>
     <Compile Include="SUR.cs" />
     <Compile Include="SurFile.cs" />
+    <Compile Include="TreeViewMultiSelect.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="UTFFile.cs" />
     <Compile Include="UTFForm.cs">
       <SubType>Form</SubType>
