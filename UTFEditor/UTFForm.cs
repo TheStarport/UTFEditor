@@ -1669,7 +1669,8 @@ namespace UTFEditor
             if (treeView1.SelectedNode != null && !treeView1.SelectedNode.IsEditing)
             {
                 if(!Copy()) return false;
-                treeView1.SelectedNode.Remove();
+                foreach (TreeNode n in treeView1.SelectedNodes.ToArray())
+                    n.Remove();
                 Modified();
 
                 return true;
@@ -1683,8 +1684,8 @@ namespace UTFEditor
             if (treeView1.SelectedNode != null && !treeView1.SelectedNode.IsEditing)
             {
                 CopyNodesObject obj = new CopyNodesObject();
-                TreeNode node = treeView1.SelectedNode;
-                obj.Nodes.Add(node);
+                foreach (TreeNode n in treeView1.SelectedNodes)
+                    obj.Nodes.Add(n);
                 Clipboard.SetData(CopyNodesObjectName, obj);
 
                 return true;
@@ -1698,7 +1699,10 @@ namespace UTFEditor
             if (Clipboard.ContainsData(CopyNodesObjectName) && !treeView1.SelectedNode.IsEditing)
             {
                 CopyNodesObject obj = Clipboard.GetData(CopyNodesObjectName) as CopyNodesObject;
-                CopyNodes(obj, DragDropEffects.Copy);
+                TreeNode dest = treeView1.SelectedNode;
+
+                foreach (TreeNode n in obj.Nodes)
+                    dest.Nodes.Add(n);
 
                 return true;
             }
