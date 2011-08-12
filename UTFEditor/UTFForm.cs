@@ -630,6 +630,36 @@ namespace UTFEditor
             }
         }
 
+        public void ExportAllTextures(string path)
+        {
+            foreach (TreeNode n in treeView1.Nodes[0].Nodes)
+            {
+                foreach (TreeNode p in n.Nodes)
+                {
+                    foreach (TreeNode m in p.Nodes)
+                    {
+                        try
+                        {
+                            if (m.Text == "MIPS")
+                            {
+                                byte[] data = m.Tag as byte[];
+                                File.WriteAllBytes(path + "\\" + Path.ChangeExtension(p.Text, ".dds"), data);
+                            }
+                            else if (m.Text.StartsWith("MIP"))
+                            {
+                                byte[] data = m.Tag as byte[];
+                                File.WriteAllBytes(path + "\\" + Path.ChangeExtension(p.Text, ".tga"), data);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show(this, "Error " + ex.Message, "Error");
+                        }
+                    }
+                }   
+            }
+        }
+
         public void MakeAnimFrames()
         {
             TreeNode node = treeView1.SelectedNode;
