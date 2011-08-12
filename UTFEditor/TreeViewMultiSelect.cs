@@ -105,51 +105,88 @@ namespace UTFEditor
                 if (parent)
                 {
                     TreeNode n = endNode;
-                    while (n != startNode.Parent)
+                    while (n != startNode)
+                    {
+
+                        if (!selectedItems.Contains(n))
+                            newItems.Enqueue(n);
+
+                        while (n.PrevNode != null)
+                        {
+                            n = n.PrevNode;
+
+                            EnqueueNodeAndChildren(n, newItems);
+                        }
+
+                        n = n.Parent;
+                    }
+
+                    if (!selectedItems.Contains(startNode))
+                        newItems.Enqueue(startNode);
+                }
+                else
+                {
+                    int indexStart = -1, indexEnd = -1;
+
+                    {
+                        int startDepth = startNode.GetDepth();
+                        int endDepth = endNode.GetDepth();
+
+                        TreeNode sNode = startNode;
+                        TreeNode eNode = endNode;
+
+                        if (startDepth > endDepth)
+                            while (startDepth > endDepth)
+                            {
+                                sNode = sNode.Parent;
+                                startDepth--;
+                            }
+                        else
+                            while (startDepth < endDepth)
+                            {
+                                eNode = eNode.Parent;
+                                endDepth--;
+                            }
+
+                        while (sNode.Parent != eNode.Parent)
+                        {
+                            sNode = sNode.Parent;
+                            eNode = eNode.Parent;
+                        }
+
+                        indexStart = sNode.Index;
+                        indexEnd = eNode.Index;
+                    }
+                    // See whether nodes are reversed
+                    if (indexStart > indexEnd)
+                    {
+                        TreeNode temp = startNode;
+                        startNode = endNode;
+                        endNode = temp;
+
+                        indexStart = startNode.Index;
+                        indexEnd = endNode.Index;
+                    }
+
+                    TreeNode n = startNode;
+                    while (n != endNode)
                     {
                         if (!selectedItems.Contains(n))
                             newItems.Enqueue(n);
 
-                        n = n.Parent;
-                    }
-                }
-                else
-                {
-                    if (
-                        (startNode.Parent == null && endNode.Parent == null) ||
-                        (startNode.Parent != null && startNode.Parent.Nodes.Contains(endNode))
-                       )
-                    {
-                        int indexStart = startNode.Index;
-                        int indexEnd = endNode.Index;
-
-                        // See whether nodes are reversed
-                        if (indexStart > indexEnd)
-                        {
-                            TreeNode temp = startNode;
-                            startNode = endNode;
-                            endNode = temp;
-
-                            indexStart = startNode.Index;
-                            indexEnd = endNode.Index;
-                        }
-
-                        TreeNode n = startNode;
-                        while (indexStart <= indexEnd)
-                        {
-                            if (!selectedItems.Contains(n))
-                                newItems.Enqueue(n);
-
+                        if (n.Nodes.Count > 0)
+                            n = n.FirstNode;
+                        else if (n.NextNode != null)
                             n = n.NextNode;
-
-                            indexStart++;
+                        else
+                        {
+                            while (n.NextNode == null) n = n.Parent;
+                            n = n.NextNode;
                         }
                     }
-                    else
-                    {
-                        if (!selectedItems.Contains(startNode)) newItems.Enqueue(startNode);
-                        if (!selectedItems.Contains(endNode)) newItems.Enqueue(endNode);
-                    }
+
+                    if (!selectedItems.Contains(endNode))
+                        newItems.Enqueue(endNode);
                 }
 
                 selectedItems.AddRange(newItems);
@@ -182,6 +219,8 @@ namespace UTFEditor
             if (selectedItems.Count == 0) return;
 
             TreeNode n0 = (TreeNode)selectedItems[0];
+            if (n0.TreeView == null) return;
+
             Color back = n0.TreeView.BackColor;
             Color fore = n0.TreeView.ForeColor;
 
@@ -285,6 +324,32 @@ namespace UTFEditor
             if (node.Parent == null) return false;
 
             return ContainsNode(nodes, node.Parent);
+        }
+
+        private void EnqueueNodeAndChildren(TreeNode node, Queue queue)
+        {
+            if (node == null || queue == null) return;
+
+            if (!queue.Contains(node))
+                queue.Enqueue(node);
+
+            foreach (TreeNode n in node.Nodes)
+                EnqueueNodeAndChildren(n, queue);
+        }
+    }
+
+    public static class TreeNodeExtensions
+    {
+        public static int GetDepth(this TreeNode node)
+        {
+            int depth = 0;
+            while (node.Parent != null)
+            {
+                node = node.Parent;
+                depth++;
+            }
+
+            return depth;
         }
     }
 }
