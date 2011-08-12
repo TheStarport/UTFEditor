@@ -1115,5 +1115,18 @@ namespace UTFEditor
         {
             new CalcCRCForm().Show();
         }
+
+        private void exportAllTexturesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (this.ActiveMdiChild is UTFForm)
+            {
+                UTFForm childForm = this.ActiveMdiChild as UTFForm;
+
+                if (folderBrowserDialog1.ShowDialog(this) == DialogResult.OK)
+                {
+                    childForm.ExportAllTextures(folderBrowserDialog1.SelectedPath);
+                }
+            }
+        }
     }
 }
