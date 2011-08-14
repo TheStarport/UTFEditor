@@ -6,7 +6,7 @@ using System.Collections;
 using System.Windows.Forms;
 using System.Drawing;
 
-// Heavily based off code by Stephane Rodriguez
+// Inspired by code from Stephane Rodriguez
 // http://www.arstdesign.com/articles/treeviewms.html
 
 namespace UTFEditor
@@ -32,7 +32,8 @@ namespace UTFEditor
                 removePaintFromNodes();
                 selectedItems.Clear();
                 selectedItems = value;
-                if (!selectedItems.Contains(this.SelectedNode))
+                if (selectedItems.Count == 0) this.SelectedNode = null;
+                else if (!selectedItems.Contains(this.SelectedNode))
                     this.SelectedNode = (TreeNode) selectedItems[0];
                 paintSelectedNodes();
             }
@@ -87,94 +88,75 @@ namespace UTFEditor
                 TreeNode startNode = firstNode;
                 TreeNode endNode = e.Node;
 
-                // See whether nodes are direct descendants of one another
-                bool parent = isParent(startNode, endNode);
-                if (!parent)
+                int indexStart = -1, indexEnd = -1;
+
+                // See whether nodes are reversed by calculating indices for both.
+                // In order to have comparable indices, the nodes are tracked back
+                // up as their parents until both resulting nodes are siblings,
+                // at which point their indices are compared.
                 {
-                    parent = isParent(endNode, startNode);
+                    int startDepth = startNode.GetDepth();
+                    int endDepth = endNode.GetDepth();
 
-                    // See whether nodes are reversed
-                    if (parent)
-                    {
-                        TreeNode temp = startNode;
-                        startNode = endNode;
-                        endNode = temp;
-                    }
-                }
+                    TreeNode sNode = startNode;
+                    TreeNode eNode = endNode;
 
-                if (parent)
-                {
-                    TreeNode n = endNode;
-                    while (n != startNode)
-                    {
-
-                        if (!selectedItems.Contains(n))
-                            newItems.Enqueue(n);
-
-                        while (n.PrevNode != null)
-                        {
-                            n = n.PrevNode;
-
-                            EnqueueNodeAndChildren(n, newItems);
-                        }
-
-                        n = n.Parent;
-                    }
-
-                    if (!selectedItems.Contains(startNode))
-                        newItems.Enqueue(startNode);
-                }
-                else
-                {
-                    int indexStart = -1, indexEnd = -1;
-
-                    {
-                        int startDepth = startNode.GetDepth();
-                        int endDepth = endNode.GetDepth();
-
-                        TreeNode sNode = startNode;
-                        TreeNode eNode = endNode;
-
-                        if (startDepth > endDepth)
-                            while (startDepth > endDepth)
-                            {
-                                sNode = sNode.Parent;
-                                startDepth--;
-                            }
-                        else
-                            while (startDepth < endDepth)
-                            {
-                                eNode = eNode.Parent;
-                                endDepth--;
-                            }
-
-                        while (sNode.Parent != eNode.Parent)
+                    if (startDepth > endDepth)
+                        while (startDepth > endDepth)
                         {
                             sNode = sNode.Parent;
+                            startDepth--;
+                        }
+                    else
+                        while (startDepth < endDepth)
+                        {
                             eNode = eNode.Parent;
+                            endDepth--;
                         }
 
-                        indexStart = sNode.Index;
-                        indexEnd = eNode.Index;
-                    }
-                    // See whether nodes are reversed
-                    if (indexStart > indexEnd)
+                    while (sNode.Parent != eNode.Parent)
                     {
-                        TreeNode temp = startNode;
-                        startNode = endNode;
-                        endNode = temp;
-
-                        indexStart = startNode.Index;
-                        indexEnd = endNode.Index;
+                        sNode = sNode.Parent;
+                        eNode = eNode.Parent;
                     }
 
+                    indexStart = sNode.Index;
+                    indexEnd = eNode.Index;
+                }
+
+                if (indexStart == indexEnd && startNode != endNode)
+                {
+                    // Identical indices mean one of the two nodes
+                    // is the parent of the other. Find which and
+                    // reorder appropriatedly.
+
+                    TreeNode n = startNode;
+                    while (n != null)
+                    {
+                        n = n.Parent;
+                        if (n == endNode)
+                        {
+                            indexStart++;
+                            break;
+                        }
+                    }
+                }
+
+                if (indexStart > indexEnd)
+                {
+                    TreeNode temp = startNode;
+                    startNode = endNode;
+                    endNode = temp;
+                }
+
+                {
                     TreeNode n = startNode;
                     while (n != endNode)
                     {
                         if (!selectedItems.Contains(n))
                             newItems.Enqueue(n);
 
-                        if (n.Nodes.Count > 0)
+                        if (n.Nodes.Count > 0 && n.IsExpanded)
                             n = n.FirstNode;
                         else if (n.NextNode != null)
                             n = n.NextNode;
@@ -184,10 +166,10 @@ namespace UTFEditor
                             n = n.NextNode;
                         }
                     }
-
-                    if (!selectedItems.Contains(endNode))
-                        newItems.Enqueue(endNode);
                 }
+
+                if (!selectedItems.Contains(endNode))
+                    newItems.Enqueue(endNode);
 
                 selectedItems.AddRange(newItems);
 
@@ -231,26 +213,11 @@ namespace UTFEditor
             }
         }
 
-        protected bool isParent(TreeNode parent, TreeNode child)
-        {
-            TreeNode n = child;
-            while (n.Parent != null)
-            {
-                if (n.Parent == parent) return true;
-                else n = n.Parent;
-            }
-
-            return false;
-        }
-
         protected bool isDragging = false;
 
         protected override void OnItemDrag(ItemDragEventArgs e)
         {
             isDragging = true;
-
-            foreach (TreeNode n in this.selectedItems)
-                System.Diagnostics.Debug.WriteLine(n.Name);
 
             if (e.Button == MouseButtons.Left)
                 DoDragDrop(this.selectedItems.Clone(), DragDropEffects.Move);
@@ -275,18 +242,13 @@ namespace UTFEditor
 
             Point tgt = this.PointToClient(new Point(e.X, e.Y));
 
-            ArrayList lst = new ArrayList();
-            lst.Add(this.GetNodeAt(tgt));
-
-            this.SelectedNodes = lst;
+            this.SelectedNode = this.GetNodeAt(tgt);
 
             base.OnDragOver(e);
         }
 
         protected override void OnDragDrop(DragEventArgs e)
         {
-            isDragging = false;
-
             Point tgt = this.PointToClient(new Point(e.X, e.Y));
 
             TreeNode targetNode = this.GetNodeAt(tgt);
@@ -294,6 +256,7 @@ namespace UTFEditor
             if (e.Data.GetDataPresent(typeof(ArrayList)))
             {
                 ArrayList nodes = (ArrayList)e.Data.GetData(typeof(ArrayList));
+                nodes.Reverse();
 
                 if (!ContainsNode(nodes, targetNode))
                 {
@@ -301,21 +264,60 @@ namespace UTFEditor
                     {
                         foreach (TreeNode n in nodes)
                         {
+                            if (n.Parent != null && nodes.Contains(n.Parent)) continue;
+
                             n.Remove();
-                            targetNode.Nodes.Add(n);
+                            targetNode.Nodes.Insert(0, n);
                         }
                     }
                     else if (e.Effect == DragDropEffects.Copy)
                     {
+                        ArrayList newSelectedNodes = new ArrayList();
+
                         foreach (TreeNode n in nodes)
-                            targetNode.Nodes.Add((TreeNode)n.Clone());
+                        {
+                            if (n.Parent != null && nodes.Contains(n.Parent)) continue;
+
+                            TreeNode newNode = (TreeNode)n.Clone();
+                            if (n.IsExpanded) newNode.Expand();
+                            newSelectedNodes.Add(newNode);
+
+                            TreeNode n2 = newNode.FirstNode;
+                            TreeNode n2o = n.FirstNode;
+
+                            while(n2 != null)
+                            {
+                                TreeNode next = n2.NextNode;
+                                TreeNode nexto = n2o.NextNode;
+
+                                if (!nodes.Contains(n2o))
+                                    n2.Remove();
+                                else if (newNode.IsExpanded)
+                                    newSelectedNodes.Add(n2);
+
+                                n2 = next;
+                                n2o = nexto;
+                            }
+
+                            targetNode.Nodes.Insert(0, newNode);
+                        }
+
+                        newSelectedNodes.Add(targetNode);
+
+                        this.SelectedNode = targetNode;
+                        this.SelectedNodes = newSelectedNodes;
                     }
 
                     targetNode.Expand();
                 }
             }
 
-            base.OnDragDrop(e);
+            isDragging = false;
+
+            // Leaving this enabled causes the node that is actually dragged
+            // to be duplicated and appended to the end of the children
+            // of the target node.
+            //      base.OnDragDrop(e);
         }
 
         private bool ContainsNode(ArrayList nodes, TreeNode node)
@@ -326,15 +328,14 @@ namespace UTFEditor
             return ContainsNode(nodes, node.Parent);
         }
 
-        private void EnqueueNodeAndChildren(TreeNode node, Queue queue)
+        protected override void OnMouseDown(MouseEventArgs e)
         {
-            if (node == null || queue == null) return;
+            // The ItemDrag event does not get fired on right-click; known bug still not fixed.
+            // First diagnosis dates from 2007. Work around it by force-calling it.
+            if(e.Button == MouseButtons.Right)
+                OnItemDrag(new ItemDragEventArgs(MouseButtons.Right));
 
-            if (!queue.Contains(node))
-                queue.Enqueue(node);
-
-            foreach (TreeNode n in node.Nodes)
-                EnqueueNodeAndChildren(n, queue);
+            base.OnMouseDown(e);
         }
     }
 
