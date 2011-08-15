@@ -1,10 +1,15 @@
 ﻿Freelancer UTF Editor
 
-This is a version of the Freelancer UTF editor. It continues the work of Colin Sanby and Mario 'HCl' Brito.
-
-You should be able to find the latest version of this software at http://the-starport.net.
+This is a version of the Freelancer UTF editor. It continues the work of Colin Sanby and Mario 'HCl' Brito. You should be able to find the latest version of this software at http://the-starport.net.
 
 This program is free software. You may do what you like with it but don't forget to the credit the people who made this possible.
+
+You may need to install "DirectX End-User Runtime Web Installer" (dxwebsetup.exe) for .NET assemblies to make the model viewer work.
+link: http://www.microsoft.com/downloads/details.aspx?familyid=2DA43D38-DB71-4C1B-BC6A-9B6652CD92A3&displaylang=en
+
+==== Changes in 3.0 ====
+
+* Improved hardpoint editing and lots of stuff
 
 ==== Changes in 2.1 ====
 
@@ -30,7 +35,7 @@ This program is free software. You may do what you like with it but don't forget
 
 ==== Credits ==== 
 
-* Adoxa - Fixes and improvements for 2.1
+* Adoxa - Fixes and improvements for 2.1 & 3.0
 * Cannon - Wrote version 2.0, added the model viewer and other random features.
 * FriendlyFire - Added hardpoint support to model viewer and miscellaneous features and bug fixes.
 * w0dk4 - Bugfixes and support for normal mapping-enabled models.
