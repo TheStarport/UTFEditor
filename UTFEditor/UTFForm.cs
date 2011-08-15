@@ -49,11 +49,6 @@ namespace UTFEditor
         UTFEditor parent;
 
         /// <summary>
-        /// THe name of the object used for drag-down operations.
-        /// </summary>
-        private const string CopyNodesObjectName = "UTFEditor.UTFForm+CopyNodesObject";
-
-        /// <summary>
         /// True if there are pending file changes that have not been saved.
         /// </summary>
         private bool fileChangesNotSaved = false;
@@ -67,15 +62,6 @@ namespace UTFEditor
         /// The name of the UTF file.
         /// </summary>
         public string fileName;
-
-        /// <summary>
-        /// This object encapsulates treenodes to copy from one treeview to another.
-        /// </summary>
-        [Serializable]
-        private class CopyNodesObject
-        {
-            public List<TreeNode> Nodes = new List<TreeNode>();
-        };
 
 
         /// <summary>
@@ -120,6 +106,8 @@ namespace UTFEditor
             if (utfFile.Hardpoints.Nodes.Count == 0 &&
                 utfFile.Parts.Nodes.Count == 0)
                 treeView1.Nodes[0].Expand();
+
+            treeView1.Modified += (s, e) => { Modified(); };
         }
 
         /// <sumary>
@@ -219,138 +207,6 @@ namespace UTFEditor
 
         bool doubleClicked = false;
 
-        /// <summary>
-        /// On mouse down select the treenode under the pointer
-        /// </summary>
-        private void treeView1_MouseDown(object sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Right)
-            {
-                treeView1.SelectedNode = treeView1.GetNodeAt(e.X, e.Y);
-            }
-            doubleClicked = (e.Clicks > 1);
-        }
-
-        /// <summary>
-        /// Start dragging the selected treenode
-        /// </summary>
-        private void treeView1_ItemDrag(object sender, ItemDragEventArgs e)
-        {
-            CopyNodesObject obj = new CopyNodesObject();
-            obj.Nodes.Add((TreeNode)e.Item);
-            DoDragDrop(obj, DragDropEffects.Copy | DragDropEffects.Move);
-        }
-
-        /// <summary>
-        /// If a treenode is being dragged into the treeview then set
-        /// the drag state.
-        /// </summary>
-        private void treeView1_DragEnter(object sender, DragEventArgs e)
-        {
-            if (e.Data.GetDataPresent(CopyNodesObjectName, true))
-            {
-                e.Effect = e.AllowedEffect;
-                treeView1.Focus();
-            }
-            else
-            {
-                e.Effect = DragDropEffects.None;
-            }
-        }
-
-        /// <summary>
-        /// Select the treenode under the point.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void treeView1_DragOver(object sender, DragEventArgs e)
-        {
-            if (e.Data.GetDataPresent(CopyNodesObjectName, true))
-            {
-                Point pt = new Point(e.X, e.Y);
-                pt = treeView1.PointToClient(pt);
-                treeView1.SelectedNode = treeView1.GetNodeAt(pt);
-                
-                // Shift to move, control to copy.
-                // Default is copy, unless the parents are the same, then move.
-                if ((e.KeyState & 4) != 0)
-                    e.Effect = DragDropEffects.Move;
-                else if ((e.KeyState & 8) != 0)
-                    e.Effect = DragDropEffects.Copy;
-                else
-                {
-                    try
-                    {
-                        CopyNodesObject obj = e.Data.GetData(CopyNodesObjectName, true) as CopyNodesObject;
-                        TreeNode node = obj.Nodes[0];
-                        if (node.Parent.FullPath == treeView1.SelectedNode.Parent.FullPath)
-                            e.Effect = DragDropEffects.Move;
-                        else
-                            e.Effect = DragDropEffects.Copy;
-                    }
-                    catch 
-                    {
-                        e.Effect = DragDropEffects.Copy;
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Copy the tree node into this treeview
-        /// </summary>
-        private void treeView1_DragDrop(object sender, DragEventArgs e)
-        {
-            if (e.Data.GetDataPresent(CopyNodesObjectName, true))
-            {
-                CopyNodesObject obj = e.Data.GetData(CopyNodesObjectName, true) as CopyNodesObject;
-                CopyNodes(obj, e.Effect);
-            }
-        }
-
-        private void CopyNodes(CopyNodesObject obj, DragDropEffects effect)
-        {
-            foreach (TreeNode node in obj.Nodes)
-            {
-                if (node == treeView1.SelectedNode)
-                    continue;
-
-                TreeNode newNode;
-                bool move = false;
-                if (effect == DragDropEffects.Move)
-                {
-                    try
-                    {
-                        // If the nodes have the same parent, shift the order,
-                        // rather than making it a child.
-                        if (node.Parent.FullPath == treeView1.SelectedNode.Parent.FullPath)
-                            move = true;
-                    }
-                    catch { }
-                    (node.TreeView.FindForm() as UTFForm).Modified();
-                    node.Remove();
-                    newNode = node;
-                }
-                else
-                {
-                    newNode = (TreeNode)node.Clone();
-                }
-                if (treeView1.SelectedNode == null)
-                {
-                    treeView1.Nodes.Add(newNode);
-                }
-                else
-                {
-                    if (move)
-                        treeView1.SelectedNode.Parent.Nodes.Insert(treeView1.SelectedNode.Index, newNode);
-                    else
-                        treeView1.SelectedNode.Nodes.Add(newNode);
-                    treeView1.SelectedNode = newNode;
-                }
-                Modified();
-            }
-        }
-
         // The node in the double-click event might not actually be the node that was
         // double-clicked, due to scrolling caused by also expanding or collapsing it.
         // Use the node from the click event, instead.
@@ -416,6 +272,8 @@ namespace UTFEditor
                             e.Handled = Paste();
                             break;
                     }
+
+                    if (e.Handled) e.SuppressKeyPress = true;
                 }
             }
         }
@@ -1698,10 +1556,7 @@ namespace UTFEditor
         {
             if (treeView1.SelectedNode != null && !treeView1.SelectedNode.IsEditing)
             {
-                if(!Copy()) return false;
-                foreach (TreeNode n in treeView1.SelectedNodes.ToArray())
-                    n.Remove();
-                Modified();
+                treeView1.Cut();
 
                 return true;
             }
@@ -1713,10 +1568,7 @@ namespace UTFEditor
         {
             if (treeView1.SelectedNode != null && !treeView1.SelectedNode.IsEditing)
             {
-                CopyNodesObject obj = new CopyNodesObject();
-                foreach (TreeNode n in treeView1.SelectedNodes)
-                    obj.Nodes.Add(n);
-                Clipboard.SetData(CopyNodesObjectName, obj);
+                treeView1.Copy();
 
                 return true;
             }
@@ -1726,13 +1578,9 @@ namespace UTFEditor
 
         public bool Paste()
         {
-            if (Clipboard.ContainsData(CopyNodesObjectName) && !treeView1.SelectedNode.IsEditing)
+            if (!treeView1.SelectedNode.IsEditing)
             {
-                CopyNodesObject obj = Clipboard.GetData(CopyNodesObjectName) as CopyNodesObject;
-                TreeNode dest = treeView1.SelectedNode;
-
-                foreach (TreeNode n in obj.Nodes)
-                    dest.Nodes.Add(n);
+                treeView1.Paste();
 
                 return true;
             }
