@@ -6,7 +6,7 @@ using System.Collections;
 using System.Windows.Forms;
 using System.Drawing;
 
-// Inspired by code from Stephane Rodriguez
+// Multiselection code inspired by works from Stephane Rodriguez
 // http://www.arstdesign.com/articles/treeviewms.html
 
 namespace UTFEditor
@@ -20,6 +20,10 @@ namespace UTFEditor
         {
             selectedItems = new ArrayList();
         }
+
+        /***********************
+         * MULTISELECTION CODE *
+         ***********************/
 
         public ArrayList SelectedNodes
         {
@@ -200,11 +204,8 @@ namespace UTFEditor
         {
             if (selectedItems.Count == 0) return;
 
-            TreeNode n0 = (TreeNode)selectedItems[0];
-            if (n0.TreeView == null) return;
-
-            Color back = n0.TreeView.BackColor;
-            Color fore = n0.TreeView.ForeColor;
+            Color back = this.BackColor;
+            Color fore = this.ForeColor;
 
             foreach (TreeNode n in selectedItems)
             {
@@ -212,6 +213,33 @@ namespace UTFEditor
                 n.ForeColor = fore;
             }
         }
+
+        protected void resetPaintNodes()
+        {
+            Color back = this.BackColor;
+            Color fore = this.ForeColor;
+
+            TreeNode n = this.Nodes[0];
+            while (n != null)
+            {
+                n.BackColor = back;
+                n.ForeColor = fore;
+                System.Diagnostics.Debug.WriteLine(n.Name);
+
+                if (n.Nodes.Count > 0)
+                    n = n.FirstNode;
+                else if (n.NextNode != null)
+                    n = n.NextNode;
+                else if (n.Parent != null)
+                    n = n.Parent.NextNode;
+                else
+                    n = null;
+            }
+        }
+
+        /**********************
+         * DRAG-AND-DROP CODE *
+         **********************/
 
         protected bool isDragging = false;
 
@@ -256,68 +284,24 @@ namespace UTFEditor
             if (e.Data.GetDataPresent(typeof(ArrayList)))
             {
                 ArrayList nodes = (ArrayList)e.Data.GetData(typeof(ArrayList));
-                nodes.Reverse();
 
                 if (!ContainsNode(nodes, targetNode))
                 {
                     if (e.Effect == DragDropEffects.Move)
                     {
-                        foreach (TreeNode n in nodes)
-                        {
-                            if (n.Parent != null && nodes.Contains(n.Parent)) continue;
-
-                            n.Remove();
-                            targetNode.Nodes.Insert(0, n);
-                        }
+                        Cut(nodes, false);
+                        Paste(nodes, targetNode, true);
                     }
                     else if (e.Effect == DragDropEffects.Copy)
                     {
-                        ArrayList newSelectedNodes = new ArrayList();
-
-                        foreach (TreeNode n in nodes)
-                        {
-                            if (n.Parent != null && nodes.Contains(n.Parent)) continue;
-
-                            TreeNode newNode = (TreeNode)n.Clone();
-                            if (n.IsExpanded) newNode.Expand();
-                            newSelectedNodes.Add(newNode);
-
-                            TreeNode n2 = newNode.FirstNode;
-                            TreeNode n2o = n.FirstNode;
-
-                            while(n2 != null)
-                            {
-                                TreeNode next = n2.NextNode;
-                                TreeNode nexto = n2o.NextNode;
-
-                                if (!nodes.Contains(n2o))
-                                    n2.Remove();
-                                else if (newNode.IsExpanded)
-                                    newSelectedNodes.Add(n2);
-
-                                n2 = next;
-                                n2o = nexto;
-                            }
-
-                            targetNode.Nodes.Insert(0, newNode);
-                        }
-
-                        newSelectedNodes.Add(targetNode);
-
-                        this.SelectedNode = targetNode;
-                        this.SelectedNodes = newSelectedNodes;
+                        Copy(nodes, false);
+                        Paste(nodes, targetNode, false);
                     }
-
-                    targetNode.Expand();
                 }
             }
 
+            // Resume normal Select events
             isDragging = false;
-
-            // Leaving this enabled causes the node that is actually dragged
-            // to be duplicated and appended to the end of the children
-            // of the target node.
-            //      base.OnDragDrop(e);
         }
 
         private bool ContainsNode(ArrayList nodes, TreeNode node)
@@ -331,11 +315,126 @@ namespace UTFEditor
         protected override void OnMouseDown(MouseEventArgs e)
         {
             // The ItemDrag event does not get fired on right-click; known bug still not fixed.
-            // First diagnosis dates from 2007. Work around it by force-calling it.
+            // Work around it by calling it manually.
             if(e.Button == MouseButtons.Right)
                 OnItemDrag(new ItemDragEventArgs(MouseButtons.Right));
 
             base.OnMouseDown(e);
+        }
+
+        /***********************
+         * CUT/COPY/PASTE CODE *
+         ***********************/
+
+        /// <summary>
+        /// This object encapsulates treenodes to copy from one treeview to another.
+        /// </summary>
+        [Serializable]
+        private class CopyNodesObject
+        {
+            public ArrayList Nodes = new ArrayList();
+
+            public CopyNodesObject(ArrayList n)
+            {
+                Nodes = n;
+            }
+        };
+        
+        /// <summary>
+        /// THe name of the object used for drag-down operations.
+        /// </summary>
+        private const string CopyNodesObjectName = "UTFEditor.UTFForm+CopyNodesObject";
+
+        public void Copy()
+        {
+            Copy((ArrayList)this.selectedItems.Clone(), true);
+        }
+
+        public void Copy(ArrayList nodes, bool save)
+        {
+            if (save)
+                Clipboard.SetData(CopyNodesObjectName, new CopyNodesObject(nodes));
+        }
+
+        public void Cut()
+        {
+            Cut((ArrayList)this.selectedItems.Clone(), true);
+        }
+
+        public void Cut(ArrayList nodes, bool save)
+        {
+            foreach (TreeNode n in nodes)
+            {
+                if (n.Parent != null && nodes.Contains(n.Parent)) continue;
+
+                n.Remove();
+            }
+
+            OnModified(new EventArgs());
+
+            Copy(nodes, save);
+        }
+
+        public void Paste()
+        {
+            if(Clipboard.ContainsData(CopyNodesObjectName))
+                Paste(((CopyNodesObject)Clipboard.GetData(CopyNodesObjectName)).Nodes, this.SelectedNode, false);
+        }
+
+        public void Paste(ArrayList nodes, TreeNode targetNode, bool pasteAllChildren)
+        {
+            nodes.Reverse();
+
+            ArrayList newSelectedNodes = new ArrayList();
+
+            foreach (TreeNode n in nodes)
+            {
+                if (n.Parent != null && nodes.Contains(n.Parent)) continue;
+
+                TreeNode newNode = (TreeNode)n.Clone();
+                if (n.IsExpanded) newNode.Expand();
+                newSelectedNodes.Add(newNode);
+
+                TreeNode n2 = newNode.FirstNode;
+                TreeNode n2o = n.FirstNode;
+
+                while (n2 != null)
+                {
+                    TreeNode next = n2.NextNode;
+                    TreeNode nexto = n2o.NextNode;
+
+                    if (!pasteAllChildren && !nodes.Contains(n2o))
+                        n2.Remove();
+                    else if (newNode.IsExpanded)
+                        newSelectedNodes.Add(n2);
+
+                    n2 = next;
+                    n2o = nexto;
+                }
+
+                targetNode.Nodes.Insert(0, newNode);
+            }
+
+            targetNode.Expand();
+
+            newSelectedNodes.Add(targetNode);
+
+            this.SelectedNode = targetNode;
+            this.SelectedNodes = newSelectedNodes;
+
+            OnModified(new EventArgs());
+        }
+
+
+
+        public event EventHandler Modified;
+
+        protected void OnModified(EventArgs e)
+        {
+            if (Modified != null)
+                Modified(this, e);
+
+            resetPaintNodes();
         }
     }
 
