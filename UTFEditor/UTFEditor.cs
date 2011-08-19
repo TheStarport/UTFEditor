@@ -1128,5 +1128,14 @@ namespace UTFEditor
                 }
             }
         }
+
+        private void deleteToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (this.ActiveMdiChild is UTFForm)
+            {
+                UTFForm childForm = this.ActiveMdiChild as UTFForm;
+                if (!childForm.Delete()) SendKeys.Send("{DEL}");
+            }
+        }
     }
 }

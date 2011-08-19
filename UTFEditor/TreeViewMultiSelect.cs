@@ -16,6 +16,8 @@ namespace UTFEditor
         protected ArrayList selectedItems;
         protected TreeNode lastNode, firstNode;
 
+        public bool RenamePaste = false;
+
         public TreeViewMultiSelect() : base()
         {
             selectedItems = new ArrayList();
@@ -40,6 +42,26 @@ namespace UTFEditor
                 else if (!selectedItems.Contains(this.SelectedNode))
                     this.SelectedNode = (TreeNode) selectedItems[0];
                 paintSelectedNodes();
+            }
+        }
+
+        public new TreeNode SelectedNode
+        {
+            get
+            {
+                return base.SelectedNode;
+            }
+            set
+            {
+                if (!selectedItems.Contains(value) && value != null)
+                {
+                    removePaintFromNodes();
+                    selectedItems.Clear();
+                    selectedItems.Add(value);
+                    paintSelectedNodes();
+                }
+
+                base.SelectedNode = value;
             }
         }
 
@@ -312,15 +334,48 @@ namespace UTFEditor
             return ContainsNode(nodes, node.Parent);
         }
 
+        private bool isRightDragging = false;
+
         protected override void OnMouseDown(MouseEventArgs e)
         {
+            base.OnMouseDown(e);
+
             // The ItemDrag event does not get fired on right-click; known bug still not fixed.
             // Work around it by calling it manually.
-            if(e.Button == MouseButtons.Right)
-                OnItemDrag(new ItemDragEventArgs(MouseButtons.Right));
-
-            base.OnMouseDown(e);
+            if (e.Button == MouseButtons.Right)
+                isRightDragging = true;
         }
+
+        protected override void OnMouseMove(MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right && isRightDragging)
+            {
+                isRightDragging = false;
+                OnItemDrag(new ItemDragEventArgs(MouseButtons.Right));
+            }
+
+            base.OnMouseMove(e);
+        }
+
+        protected override void OnNodeMouseClick(TreeNodeMouseClickEventArgs e)
+        {
+            this.SelectedNode = e.Node;
+            base.OnNodeMouseClick(e);
+        }
+
+        /*protected override void OnMouseUp(MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right && !isRightDragging)
+            {
+                Point tgt = this.PointToClient(new Point(e.X, e.Y));
+                TreeNode s = this.GetNodeAt(tgt);
+                OnBeforeSelect(new TreeViewCancelEventArgs(s, false, TreeViewAction.ByMouse));
+                this.SelectedNode = s;
+                OnAfterSelect(new TreeViewEventArgs(s));
+            }
+
+            base.OnMouseUp(e);
+        }*/
 
         /***********************
          * CUT/COPY/PASTE CODE *
@@ -363,14 +418,7 @@ namespace UTFEditor
 
         public void Cut(ArrayList nodes, bool save)
         {
-            foreach (TreeNode n in nodes)
-            {
-                if (n.Parent != null && nodes.Contains(n.Parent)) continue;
-
-                n.Remove();
-            }
-
-            OnModified(new EventArgs());
+            Delete(nodes);
 
             Copy(nodes, save);
         }
@@ -412,6 +460,32 @@ namespace UTFEditor
                     n2o = nexto;
                 }
 
+                if (RenamePaste)
+                {
+                    string name = newNode.Text;
+                    int count = 1;
+
+                    bool found;
+                    do
+                    {
+                        found = false;
+                        foreach (TreeNode nn in targetNode.Nodes)
+                        {
+                            if (nn.Text == newNode.Text)
+                            {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (found == true)
+                        {
+                            newNode.Text = name + " (" + count + ")";
+                            count++;
+                        }
+
+                    } while (found == true);
+                }
+
                 targetNode.Nodes.Insert(0, newNode);
             }
 
@@ -425,7 +499,22 @@ namespace UTFEditor
             OnModified(new EventArgs());
         }
 
+        public void Delete()
+        {
+            Delete((ArrayList)this.selectedItems.Clone());
+        }
 
+        public void Delete(ArrayList nodes)
+        {
+            foreach (TreeNode n in nodes)
+            {
+                if (n.Parent != null && nodes.Contains(n.Parent)) continue;
+
+                n.Remove();
+            }
+
+            OnModified(new EventArgs());
+        }
 
         public event EventHandler Modified;
 
