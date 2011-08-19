@@ -81,6 +81,8 @@ namespace UTFEditor
                 this.Text += " - " + path;
             }
             this.parent = parent;
+
+            this.treeView1.RenamePaste = true;
         }
 
         /// <summary>
@@ -275,6 +277,8 @@ namespace UTFEditor
 
                     if (e.Handled) e.SuppressKeyPress = true;
                 }
+
+                if (e.KeyCode == Keys.Delete && (e.Handled = Delete())) e.SuppressKeyPress = true;
             }
         }
 
@@ -331,12 +335,9 @@ namespace UTFEditor
 
         public void DeleteSelectedNodes()
         {
-            if (treeView1.SelectedNode != null)
+            if (treeView1.SelectedNodes != null)
             {
-                TreeNode node = treeView1.SelectedNode;
-                treeView1.SelectedNode = node.Parent;
-                node.Remove();
-                Modified();
+                treeView1.Delete();
             }
         }
 
@@ -344,12 +345,13 @@ namespace UTFEditor
         {
             if (treeView1.SelectedNode != null)
             {
-                if (new RenameNodeForm(this, treeView1.SelectedNode).ShowDialog(this) == DialogResult.OK)
+                treeView1.SelectedNode.BeginEdit();
+                /*if (new RenameNodeForm(this, treeView1.SelectedNode).ShowDialog(this) == DialogResult.OK)
                 {
                     parent.SetSelectedNode(treeView1.SelectedNode);
                     Modified();
                 }
-                treeView1.Select();
+                treeView1.Select();*/
             }
         }
 
@@ -1581,6 +1583,18 @@ namespace UTFEditor
             if (!treeView1.SelectedNode.IsEditing)
             {
                 treeView1.Paste();
+
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool Delete()
+        {
+            if (treeView1.SelectedNode != null && !treeView1.SelectedNode.IsEditing)
+            {
+                treeView1.Delete();
 
                 return true;
             }
