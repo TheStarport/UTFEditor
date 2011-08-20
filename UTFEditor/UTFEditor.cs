@@ -409,11 +409,25 @@ namespace UTFEditor
 				dataView[0, 1].Value = String.Format("({0} {1})", val.Length, (val.Length == 1) ? "byte" : "bytes");
 				dataView[0, 1].ReadOnly = true;
 			}
-			else
-			{
-				if (node != null)
-					foreach (TreeNode n in node.Nodes)
-						DisplayData(childForm, n, false);
+			else if(node != null)
+            {
+                if (node.Nodes.Count > 0)
+                {
+                    int nodeCount = 0;
+
+                    foreach (TreeNode n in node.Nodes)
+                    {
+                        DisplayData(childForm, n, false);
+                        if (n != node.LastNode) dataView.Rows.Add();
+                        nodeCount++;
+
+                        if (nodeCount == 15)
+                        {
+                            dataView.Rows.Add(new object[] { "", (node.Nodes.Count - nodeCount) + " more nodes..." });
+                            break;
+                        }
+                    }
+                }
 			}
 			buttonApply.Enabled = false;
 
@@ -429,8 +443,8 @@ namespace UTFEditor
         private void DisplayData(UTFForm childForm, TreeNode node, bool fullHex)
         {
 			btnRevFixed.Visible = false;
-            if (!childForm.ContainsData(node) && childForm.IsEditable(node) != Editable.Hardpoint)
-                return;
+            //if (!childForm.ContainsData(node) && childForm.IsEditable(node) != Editable.Hardpoint)
+            //    return;
 
             Editable edit = childForm.IsEditable(node);
             Viewable view = childForm.IsViewable(node);
@@ -465,32 +479,32 @@ namespace UTFEditor
 				}
 				else
 				{
-					dataView.Enabled = false;
 					TreeNode hpnode = childForm.FindHardpoint(node);
 					bool revolute = hpnode.Parent.Name == "Revolute";
-					HardpointData hpdata = new HardpointData(hpnode);
-					dataView[0, 0].Value = "X";
-					dataView[0, 0].ReadOnly = true;
-					dataView[1, 0].ValueType = typeof(float);
-					dataView[1, 0].Style.Format = "g";
-					dataView[1, 0].Value = hpdata.PosX;
-					dataView[1, 0].ReadOnly = false;
+                    HardpointData hpdata = new HardpointData(hpnode);
+                    dataView.Rows.Add();
+                    dataView[0, row + 1].Value = "X";
+                    dataView[0, row + 1].ReadOnly = true;
+                    dataView[1, row + 1].ValueType = typeof(float);
+                    dataView[1, row + 1].Style.Format = "g";
+                    dataView[1, row + 1].Value = hpdata.PosX;
+                    dataView[1, row + 1].ReadOnly = false;
 					dataView.Rows.Add();
 
-					dataView[0, 1].Value = "Y";
-					dataView[0, 1].ReadOnly = true;
-					dataView[1, 1].ValueType = typeof(float);
-					dataView[1, 1].Style.Format = "g";
-					dataView[1, 1].Value = hpdata.PosY;
-					dataView[1, 1].ReadOnly = false;
+                    dataView[0, row + 2].Value = "Y";
+                    dataView[0, row + 2].ReadOnly = true;
+                    dataView[1, row + 2].ValueType = typeof(float);
+                    dataView[1, row + 2].Style.Format = "g";
+                    dataView[1, row + 2].Value = hpdata.PosY;
+                    dataView[1, row + 2].ReadOnly = false;
 					dataView.Rows.Add();
 
-					dataView[0, 2].Value = "Z";
-					dataView[0, 2].ReadOnly = true;
-					dataView[1, 2].ValueType = typeof(float);
-					dataView[1, 2].Style.Format = "g";
-					dataView[1, 2].Value = hpdata.PosZ;
-					dataView[1, 2].ReadOnly = false;
+                    dataView[0, row + 3].Value = "Z";
+                    dataView[0, row + 3].ReadOnly = true;
+                    dataView[1, row + 3].ValueType = typeof(float);
+                    dataView[1, row + 3].Style.Format = "g";
+                    dataView[1, row + 3].Value = hpdata.PosZ;
+                    dataView[1, row + 3].ReadOnly = false;
 					dataView.Rows.Add();
 
 					float pitch, yaw, roll;
@@ -505,52 +519,51 @@ namespace UTFEditor
 													hpdata.RotMatZZ,
 													out pitch, out yaw, out roll);
 
-					dataView[0, 3].Value = "RotX";
-					dataView[0, 3].ReadOnly = true;
-					dataView[1, 3].ValueType = typeof(float);
-					dataView[1, 3].Style.Format = "g";
-					dataView[1, 3].Value = pitch;
-					dataView[1, 3].ReadOnly = false;
+                    dataView[0, row + 4].Value = "RotX";
+                    dataView[0, row + 4].ReadOnly = true;
+                    dataView[1, row + 4].ValueType = typeof(float);
+                    dataView[1, row + 4].Style.Format = "g";
+                    dataView[1, row + 4].Value = pitch;
+                    dataView[1, row + 4].ReadOnly = false;
 					dataView.Rows.Add();
 
-					dataView[0, 4].Value = "RotY";
-					dataView[0, 4].ReadOnly = true;
-					dataView[1, 4].ValueType = typeof(float);
-					dataView[1, 4].Style.Format = "g";
-					dataView[1, 4].Value = yaw;
-					dataView[1, 4].ReadOnly = false;
+                    dataView[0, row + 5].Value = "RotY";
+                    dataView[0, row + 5].ReadOnly = true;
+                    dataView[1, row + 5].ValueType = typeof(float);
+                    dataView[1, row + 5].Style.Format = "g";
+                    dataView[1, row + 5].Value = yaw;
+                    dataView[1, row + 5].ReadOnly = false;
 					dataView.Rows.Add();
 
-					dataView[0, 5].Value = "RotZ";
-					dataView[0, 5].ReadOnly = true;
-					dataView[1, 5].ValueType = typeof(float);
-					dataView[1, 5].Style.Format = "g";
-					dataView[1, 5].Value = roll;
-					dataView[1, 5].ReadOnly = false;
+                    dataView[0, row + 6].Value = "RotZ";
+                    dataView[0, row + 6].ReadOnly = true;
+                    dataView[1, row + 6].ValueType = typeof(float);
+                    dataView[1, row + 6].Style.Format = "g";
+                    dataView[1, row + 6].Value = roll;
+                    dataView[1, row + 6].ReadOnly = false;
 
 					if(revolute)
 					{
 						dataView.Rows.Add();
-						
-						dataView[0, 6].Value = "Min";
-						dataView[0, 6].ReadOnly = true;
-						dataView[1, 6].ValueType = typeof(float);
-						dataView[1, 6].Style.Format = "g";
-						dataView[1, 6].Value = hpdata.Min;
-						dataView[1, 6].ReadOnly = false;
+
+                        dataView[0, row + 7].Value = "Min";
+                        dataView[0, row + 7].ReadOnly = true;
+                        dataView[1, row + 7].ValueType = typeof(float);
+                        dataView[1, row + 7].Style.Format = "g";
+                        dataView[1, row + 7].Value = hpdata.Min;
+                        dataView[1, row + 7].ReadOnly = false;
 						dataView.Rows.Add();
 
-						dataView[0, 7].Value = "Max";
-						dataView[0, 7].ReadOnly = true;
-						dataView[1, 7].ValueType = typeof(float);
-						dataView[1, 7].Style.Format = "g";
-						dataView[1, 7].Value = hpdata.Max;
-						dataView[1, 7].ReadOnly = false;
+                        dataView[0, row + 8].Value = "Max";
+                        dataView[0, row + 8].ReadOnly = true;
+                        dataView[1, row + 8].ValueType = typeof(float);
+                        dataView[1, row + 8].Style.Format = "g";
+                        dataView[1, row + 8].Value = hpdata.Max;
+                        dataView[1, row + 8].ReadOnly = false;
 						btnRevFixed.Text = "Make Fixed";
 					}
 					else
 						btnRevFixed.Text = "Make Revolute";
-					dataView.Enabled = true;
 					return;
 				}
 			}
