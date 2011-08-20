@@ -260,7 +260,7 @@ namespace UTFEditor
                         ViewNode();
                 }
 
-                if (e.Control && !e.Alt && !e.Shift)
+                if (e.Control)
                 {
                     switch (e.KeyCode)
                     {
@@ -271,7 +271,10 @@ namespace UTFEditor
                             e.Handled = Cut();
                             break;
                         case Keys.V:
-                            e.Handled = Paste();
+                            if (e.Shift)
+                                e.Handled = PasteBefore();
+                            else
+                                e.Handled = Paste();
                             break;
                     }
 
@@ -1583,6 +1586,18 @@ namespace UTFEditor
             if (!treeView1.SelectedNode.IsEditing)
             {
                 treeView1.Paste();
+
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool PasteBefore()
+        {
+            if (!treeView1.SelectedNode.IsEditing)
+            {
+                treeView1.PasteBefore();
 
                 return true;
             }
