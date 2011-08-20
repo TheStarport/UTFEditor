@@ -425,8 +425,17 @@ namespace UTFEditor
 
         public void Paste()
         {
-            if(Clipboard.ContainsData(CopyNodesObjectName))
+            if (Clipboard.ContainsData(CopyNodesObjectName) && this.SelectedNode != null)
                 Paste(((CopyNodesObject)Clipboard.GetData(CopyNodesObjectName)).Nodes, this.SelectedNode, false);
+        }
+
+        public void PasteBefore()
+        {
+            TreeNode n = this.SelectedNode;
+            if (Clipboard.ContainsData(CopyNodesObjectName) && this.SelectedNode != null && this.SelectedNode.Parent != null)
+                Paste(((CopyNodesObject)Clipboard.GetData(CopyNodesObjectName)).Nodes, this.SelectedNode.Parent, false);
+
+            this.SelectedNode = n;
         }
 
         public void Paste(ArrayList nodes, TreeNode targetNode, bool pasteAllChildren)
