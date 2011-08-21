@@ -315,6 +315,8 @@ namespace UTFEditor
         CmpSphereData sphereData;
         Dictionary<string, Matrix> ParentTransform = new Dictionary<string, Matrix>();
 
+        AddHardpoints addHps;
+
         public ModelViewForm(UTFForm parent, TreeView utf, string directoryPath)
         {
             this.parent = parent;
@@ -1389,6 +1391,7 @@ namespace UTFEditor
         {
             parent.DelObserver(this);
             device.Dispose();
+            CloseAddHardpoints();
         }
 
         /// <summary>
@@ -2009,7 +2012,7 @@ namespace UTFEditor
 				// Toggle hardpoint edit mode
 				case Keys.Space:
 					splitViewHardpoint.Panel2Collapsed = !splitViewHardpoint.Panel2Collapsed;
-					hardpointEditToolStripMenuItem.Checked = splitViewHardpoint.Panel2Collapsed;
+                    editHardpointsToolStripMenuItem1.Checked = splitViewHardpoint.Panel2Collapsed;
 					Invalidate();
 					break;
 
@@ -2643,9 +2646,41 @@ namespace UTFEditor
 
 		private void hardpointEditToolStripMenuItem_Click(object sender, EventArgs e)
 		{
+            if (addHps != null) CloseAddHardpoints();
+
 			splitViewHardpoint.Panel2Collapsed = !splitViewHardpoint.Panel2Collapsed;
 			Invalidate();
-			hardpointEditToolStripMenuItem.Checked = splitViewHardpoint.Panel2Collapsed;
+            editHardpointsToolStripMenuItem1.Checked = splitViewHardpoint.Panel2Collapsed;
 		}
+
+        private void addHardpointsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (addHps == null)
+            {
+                addHps = new AddHardpoints(this);
+                addHps.FormClosing += new FormClosingEventHandler(addHps_FormClosing);
+                addHps.Show();
+                splitViewHardpoint.Panel2Collapsed = false;
+                Invalidate();
+            }
+            else
+                CloseAddHardpoints();
+        }
+
+        void addHps_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            CloseAddHardpoints(false);
+        }
+
+        private void CloseAddHardpoints() { CloseAddHardpoints(true); }
+        private void CloseAddHardpoints(bool close)
+        {
+            if (addHps == null) return;
+
+            if(close) addHps.Close();
+            addHps = null;
+            splitViewHardpoint.Panel2Collapsed = true;
+            Invalidate();
+        }
     }
 }

@@ -93,6 +93,12 @@
     <Compile Include="AboutForm.Designer.cs">
       <DependentUpon>AboutForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="AddHardpoints.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="AddHardpoints.Designer.cs">
+      <DependentUpon>AddHardpoints.cs</DependentUpon>
+    </Compile>
     <Compile Include="CmpFixData.cs" />
     <Compile Include="CmpRevData.cs" />
     <Compile Include="CmpSphereData.cs" />
@@ -200,6 +206,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="AboutForm.resx">
       <DependentUpon>AboutForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="AddHardpoints.resx">
+      <DependentUpon>AddHardpoints.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="CalcCRCForm.resx">
       <DependentUpon>CalcCRCForm.cs</DependentUpon>
