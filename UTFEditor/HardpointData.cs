@@ -6,7 +6,7 @@ using System.Windows.Forms;
 
 namespace UTFEditor
 {
-    class HardpointData
+    public class HardpointData
     {
         public float PosX, PosY, PosZ;
         public float RotMatXX, RotMatXY, RotMatXZ;
@@ -15,7 +15,49 @@ namespace UTFEditor
         public float AxisX, AxisY, AxisZ;
         public float Min, Max;
 
+        public string Name
+        {
+            get
+            {
+                return hardpoint.Name;
+            }
+        }
+
+        public TreeNode Node
+        {
+            get
+            {
+                return hardpoint;
+            }
+        }
+
         TreeNode hardpoint;
+
+        private TreeNode MakeNode(string name)
+        {
+            TreeNode n = new TreeNode(name);
+            n.Name = n.Text;
+            n.Tag = new byte[0];
+
+            return n;
+        }
+
+        public HardpointData(string name, string type)
+        {
+            hardpoint = new TreeNode(name);
+
+            hardpoint.Nodes.Add(MakeNode("Position"));
+            hardpoint.Nodes.Add(MakeNode("Orientation"));
+
+            if (Utilities.StrIEq(type, "Revolute"))
+            {
+                hardpoint.Nodes.Add(MakeNode("Axis"));
+                hardpoint.Nodes.Add(MakeNode("Min"));
+                hardpoint.Nodes.Add(MakeNode("Max"));
+            }
+
+            Write();
+        }
 
         public HardpointData(TreeNode hardpoint)
         {
@@ -74,7 +116,7 @@ namespace UTFEditor
             data[8] = RotMatZZ;
             Write("Orientation", data, 9);
 
-            if (Utilities.StrIEq(hardpoint.Parent.Name, "Revolute"))
+            if ((hardpoint.Parent == null && hardpoint.Nodes["Axis"] != null) || (hardpoint.Parent != null && Utilities.StrIEq(hardpoint.Parent.Name, "Revolute")))
             {
                 data[0] = AxisX;
                 data[1] = AxisY;
@@ -86,6 +128,12 @@ namespace UTFEditor
 
                 data[0] = Max;
                 Write("Max", data, 1);
+            }
+            else if (hardpoint.Parent != null && !Utilities.StrIEq(hardpoint.Parent.Name, "Revolute"))
+            {
+                if (hardpoint.Nodes["Axis"] != null) hardpoint.Nodes["Axis"].Remove();
+                if (hardpoint.Nodes["Min"] != null) hardpoint.Nodes["Min"].Remove();
+                if (hardpoint.Nodes["Max"] != null) hardpoint.Nodes["Max"].Remove();
             }
         }
 
