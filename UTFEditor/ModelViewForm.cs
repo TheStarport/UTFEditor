@@ -782,6 +782,31 @@ namespace UTFEditor
 			return m;
         }
 
+        Matrix GetHardpointMatrix(HardpointData hp)
+        {
+            Matrix m = Matrix.Identity;
+            m.M41 = hp.PosX;
+            m.M42 = hp.PosY;
+            m.M43 = hp.PosZ;
+            m.M44 = 1;
+
+            m.M11 = hp.RotMatXX;
+            m.M21 = hp.RotMatXY;
+            m.M31 = hp.RotMatXZ;
+
+            m.M12 = hp.RotMatYX;
+            m.M22 = hp.RotMatYY;
+            m.M32 = hp.RotMatYZ;
+
+            m.M13 = hp.RotMatZX;
+            m.M23 = hp.RotMatZY;
+            m.M33 = hp.RotMatZZ;
+
+            m.M14 = m.M24 = m.M34 = 0;
+
+            return m;
+        }
+
 		MeshGroupDisplayInfo GetMeshGroupDisplayInfo(bool def, string name, string level)
         {
 			for(int a = 0; a < viewPanelView.Rows.Count; a++)
@@ -1769,27 +1794,50 @@ namespace UTFEditor
 
 			return true;
         }
-        
-        private void PlaceHardpoint(int x, int y)
+
+        public bool MakeHardpoint(int x, int y, string hpName, string type)
         {
-			if(x < 0 || y < 0 || x > device.Viewport.Width || y > device.Viewport.Height) return;
+            if (x < 0 || y < 0 || x > device.Viewport.Width || y > device.Viewport.Height) return false;
 
-			TreeNode node = GetHardpointNode();
-			if (node == null) return;
+            Vector3 faceNormal;
+            string nameFinal;
+            Vector3 loc;
+            if (!GetHitFromScreen(x, y, out loc, out faceNormal, out nameFinal)) return false;
+            if (nameFinal == null) return false;
 
-			string nameInit = FindGroupName(node);
-			
-			Vector3 faceNormal;
-			string nameFinal;
-			Vector3 loc;
-			if (!GetHitFromScreen(x, y, out loc, out faceNormal, out nameFinal)) return;
+            HardpointData hp = new HardpointData(hpName, type);
+
+            LinkHardpoint(hp.Node, nameFinal, type);
+
+            return PlaceHardpoint(x, y, hp, loc, faceNormal, nameFinal);
+        }
+
+        public bool PlaceHardpoint(int x, int y)
+        {
+            if (x < 0 || y < 0 || x > device.Viewport.Width || y > device.Viewport.Height) return false;
+
+            TreeNode node = GetHardpointNode();
+            if (node == null) return false;
+
+            string nameInit = FindGroupName(node);
+
+            Vector3 faceNormal;
+            string nameFinal;
+            Vector3 loc;
+            if (!GetHitFromScreen(x, y, out loc, out faceNormal, out nameFinal)) return false;
 
             if (nameInit != null && nameFinal != null && nameFinal != nameInit)
             {
                 RelinkHardpoint(node, nameFinal);
             }
 
-			HardpointData hpNew = new HardpointData(node);
+            HardpointData hpNew = new HardpointData(node);
+
+            return PlaceHardpoint(x, y, hpNew, loc, faceNormal, nameFinal);
+        }
+
+        public bool PlaceHardpoint(int x, int y, HardpointData hpNew, Vector3 loc, Vector3 faceNormal, string nameFinal)
+        {
 			hpNew.PosX = loc.X;
 			hpNew.PosY = loc.Y;
 			hpNew.PosZ = loc.Z;
@@ -1816,10 +1864,12 @@ namespace UTFEditor
 
 			hpNew.Write();
 			OnHardpointMoved();
-			HardpointDisplayInfo hi = GetHardpointFromName(node.Name);
-			hi.Matrix = GetHardpointMatrix(node);
+            HardpointDisplayInfo hi = GetHardpointFromName(hpNew.Name);
+            hi.Matrix = GetHardpointMatrix(hpNew);
 			hi.MeshGroup = MeshGroups[mapFileToMesh[hi.Node.Parent.Parent.Parent.Name]];
 			Invalidate();
+
+            return true;
 		}
 
         private string FindGroupName(TreeNode node)
@@ -1832,6 +1882,12 @@ namespace UTFEditor
         }
 
         private void RelinkHardpoint(TreeNode node, string name)
+        {
+            LinkHardpoint(node, name, node.Parent.Text);
+            UnlinkHardpoint(node);
+        }
+
+        private void LinkHardpoint(TreeNode node, string name, string type)
         {
             TreeNode cmpnd = rootNode.Nodes["Cmpnd"];
 			if (cmpnd == null)
@@ -1849,7 +1905,6 @@ namespace UTFEditor
             }
             if (fileName == null) return;
 
-			string type = node.Parent.Text;
 			foreach (TreeNode n in rootNode.Nodes)
             {
                 if (n.Text == fileName)
@@ -1872,21 +1927,25 @@ namespace UTFEditor
                         FixRev.Tag = new byte[0];
                         Hardpoints.Nodes.Add(FixRev);
                     }
-					if (node.Parent.Nodes.Count == 1)
-					{
-						if (node.Parent.Parent.Nodes.Count == 1)
-							node.Parent.Parent.Remove();
-						else
-							node.Parent.Remove();
-					}
-					else
-						node.Remove();
                     FixRev.Nodes.Add(node);
 					n.TreeView.SelectedNode = node;
                     n.TreeView.EndUpdate();
                     return;
                 }
             }
+        }
+
+        private void UnlinkHardpoint(TreeNode node)
+        {
+            if (node.Parent.Nodes.Count == 1)
+            {
+                if (node.Parent.Parent.Nodes.Count == 1)
+                    node.Parent.Parent.Remove();
+                else
+                    node.Parent.Remove();
+            }
+            else
+                node.Remove();
         }
 
         private void modelView_Panel1_PreviewKeyDown(object sender, PreviewKeyDownEventArgs e)
