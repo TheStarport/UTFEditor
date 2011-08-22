@@ -2132,42 +2132,58 @@ namespace UTFEditor
 					showViewPanelToolStripMenuItem.Checked = modelView.Panel2Collapsed;
 					break;
 					
-				// Toggle hardpoint edit mode
+				// Toggle hardpoint edit/add mode
 				case Keys.Space:
-                    if (addHps != null) return;
+                    if (e.Control)
+                        SwitchAddHardpoints();
+                    else
+                    {
+                        if (addHps != null) return;
 
-					splitViewHardpoint.Panel2Collapsed = !splitViewHardpoint.Panel2Collapsed;
-                    editHardpointsToolStripMenuItem1.Checked = splitViewHardpoint.Panel2Collapsed;
+                        splitViewHardpoint.Panel2Collapsed = !splitViewHardpoint.Panel2Collapsed;
+                        editHardpointsToolStripMenuItem1.Checked = splitViewHardpoint.Panel2Collapsed;
+                    }
 					Invalidate();
-					break;
+                    break;
 
-				case Keys.NumPad4:
+                // Edit keys (also valid in Add mode)
+
+				case Keys.A:
                     RotateHardpoint(Viewpoint.Rotate.Y, true, e.Shift);
 					break;
 
-				case Keys.NumPad6:
+				case Keys.D:
 					RotateHardpoint(Viewpoint.Rotate.Y, false, e.Shift);
 					break;
 
-				case Keys.NumPad8:
+				case Keys.W:
 					RotateHardpoint(Viewpoint.Rotate.X, false, e.Shift);
 					break;
 
-				case Keys.NumPad2:
+				case Keys.X:
 					RotateHardpoint(Viewpoint.Rotate.X, true, e.Shift);
 					break;
 
-				case Keys.NumPad7:
+				case Keys.Q:
 					RotateHardpoint(Viewpoint.Rotate.Z, true, e.Shift);
 					break;
 
-				case Keys.NumPad9:
+				case Keys.E:
 					RotateHardpoint(Viewpoint.Rotate.Z, false, e.Shift);
 					break;
 
-                // Add mode hotkeys
+                case Keys.Z:
+                    MinMaxHardpoint((e.Shift ? 1 : 5) * (e.Control ? -1 : 1), 0);
+                    break;
+
+                case Keys.C:
+                    MinMaxHardpoint(0, (e.Shift ? 1 : 5) * (e.Control ? -1 : 1));
+                    break;
+
+                // Add mode keys
+
                 case Keys.Enter:
-                    if (addHps != null && addHps.AddingMode) addHps.NextHardpoint();
+                    if (addHps != null && addHps.AddingMode && addHps.CurrentIsSet) addHps.NextHardpoint();
                     break;
 
                 case Keys.N:
@@ -2181,48 +2197,67 @@ namespace UTFEditor
             }
 			e.IsInputKey = true;
 		}
-		
-		private void RotateHardpoint(Viewpoint.Rotate dir, bool clockwise, bool fine)
-		{
-			TreeNode node = GetHardpointNode();
-			if(node == null) return;
-			HardpointData hpNew = new HardpointData(node);
-			HardpointDisplayInfo hi = GetHardpointFromName(node.Name);
-			
-			Matrix t = Matrix.Identity;
 
-			switch(dir)
-			{
-				case Viewpoint.Rotate.X:
-					t.RotateX((clockwise ? 1 : -1) * (float)Math.PI / (fine ? 180 : 12));
-					break;
-				case Viewpoint.Rotate.Y:
-					t.RotateY((clockwise ? 1 : -1) * (float)Math.PI / (fine ? 180 : 12));
-					break;
-				case Viewpoint.Rotate.Z:
-					t.RotateZ((clockwise ? 1 : -1) * (float)Math.PI / (fine ? 180 : 12));
-					break;
-			}
+        private void RotateHardpoint(Viewpoint.Rotate dir, bool clockwise, bool fine)
+        {
+            TreeNode node = GetHardpointNode();
+            if (node == null) return;
+            HardpointData hpNew = new HardpointData(node);
+            HardpointDisplayInfo hi = GetHardpointFromName(node.Name);
 
-			hi.Matrix = Matrix.Multiply(t, hi.Matrix);
-			
-			hpNew.RotMatXX = hi.Matrix.M11;
-			hpNew.RotMatXY = hi.Matrix.M12;
-			hpNew.RotMatXZ = hi.Matrix.M13;
+            Matrix t = Matrix.Identity;
 
-			hpNew.RotMatYX = hi.Matrix.M21;
-			hpNew.RotMatYY = hi.Matrix.M22;
-			hpNew.RotMatYZ = hi.Matrix.M23;
+            switch (dir)
+            {
+                case Viewpoint.Rotate.X:
+                    t.RotateX((clockwise ? 1 : -1) * (float)Math.PI / (fine ? 180 : 12));
+                    break;
+                case Viewpoint.Rotate.Y:
+                    t.RotateY((clockwise ? 1 : -1) * (float)Math.PI / (fine ? 180 : 12));
+                    break;
+                case Viewpoint.Rotate.Z:
+                    t.RotateZ((clockwise ? 1 : -1) * (float)Math.PI / (fine ? 180 : 12));
+                    break;
+            }
 
-			hpNew.RotMatZX = hi.Matrix.M31;
-			hpNew.RotMatZY = hi.Matrix.M32;
-			hpNew.RotMatZZ = hi.Matrix.M33;
-			
-			hpNew.Write();
-			OnHardpointMoved();
-			
-			Invalidate();
-		}
+            hi.Matrix = Matrix.Multiply(t, hi.Matrix);
+
+            hpNew.RotMatXX = hi.Matrix.M11;
+            hpNew.RotMatXY = hi.Matrix.M12;
+            hpNew.RotMatXZ = hi.Matrix.M13;
+
+            hpNew.RotMatYX = hi.Matrix.M21;
+            hpNew.RotMatYY = hi.Matrix.M22;
+            hpNew.RotMatYZ = hi.Matrix.M23;
+
+            hpNew.RotMatZX = hi.Matrix.M31;
+            hpNew.RotMatZY = hi.Matrix.M32;
+            hpNew.RotMatZZ = hi.Matrix.M33;
+
+            hpNew.Write();
+            OnHardpointMoved();
+
+            Invalidate();
+        }
+
+        private void MinMaxHardpoint(int min, int max)
+        {
+            TreeNode node = GetHardpointNode();
+            if (node == null) return;
+            if (node.Parent.Name != "Revolute") return;
+            HardpointData hpNew = new HardpointData(node);
+            HardpointDisplayInfo hi = GetHardpointFromName(node.Name);
+
+            hpNew.Min = (float)Math.Max(-Math.PI, Math.Min(0, hpNew.Min - min * Math.PI / 180));
+            hpNew.Max = (float)Math.Min(Math.PI, Math.Max(0, hpNew.Max + max * Math.PI / 180));
+            hi.Min = hpNew.Min;
+            hi.Max = hpNew.Max;
+
+            hpNew.Write();
+            OnHardpointMoved();
+
+            Invalidate();
+        }
         
         public override void Refresh()
         {
@@ -2612,8 +2647,18 @@ namespace UTFEditor
 		private void modelView_Panel1_MouseDoubleClick(object sender, MouseEventArgs e)
 		{
 			HardpointDisplayInfo hi;
-			if(GetHardpointFromScreen(e.X, e.Y, out hi))
-				utf.SelectedNode = hi.Node;
+            if (GetHardpointFromScreen(e.X, e.Y, out hi))
+            {
+                utf.SelectedNode = hi.Node;
+                foreach (DataGridViewRow row in hardpointPanelView.Rows)
+                {
+                    if ((string) row.Cells[1].Value == hi.Name)
+                    {
+                        hardpointPanelView.CurrentCell = row.Cells[0];
+                        break;
+                    }
+                }
+            }
 		}
 		
 		private bool GetHardpointFromScreen(int x, int y, out HardpointDisplayInfo foundHardpoint)
@@ -2794,16 +2839,7 @@ namespace UTFEditor
 
         private void addHardpointsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (addHps == null)
-            {
-                addHps = new AddHardpoints(this.rootNode);
-                addHps.FormClosing += new FormClosingEventHandler(addHps_FormClosing);
-                addHps.Show();
-                splitViewHardpoint.Panel2Collapsed = false;
-                Invalidate();
-            }
-            else
-                CloseAddHardpoints();
+            SwitchAddHardpoints();
         }
 
         void addHps_FormClosing(object sender, FormClosingEventArgs e)
@@ -2822,12 +2858,18 @@ namespace UTFEditor
             Invalidate();
         }
 
-        public Control ModelView
+        private void SwitchAddHardpoints()
         {
-            get
+            if (addHps == null)
             {
-                return modelView;
+                addHps = new AddHardpoints(this.rootNode);
+                addHps.FormClosing += new FormClosingEventHandler(addHps_FormClosing);
+                addHps.Show();
+                splitViewHardpoint.Panel2Collapsed = false;
+                Invalidate();
             }
+            else
+                CloseAddHardpoints();
         }
     }
 }

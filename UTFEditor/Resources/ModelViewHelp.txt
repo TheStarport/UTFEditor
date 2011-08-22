@@ -22,6 +22,19 @@ Ctrl+Page    Rotate around the X axis\par
 Alt+Page     Rotate around the Z axis\par
 Home         Move to center, remove rotation\par
 \par
+{\b\ul EDIT KEYS}\par
+Space		Enter Edit Mode\par
+A, D		Rotate selected hardpoint 15° (1° with Shift) around the Y axis\par
+W, X		Rotate around the X axis\par
+Q, E		Rotate around the Z axis\par
+Z, C		Increase (decrease with Ctrl) min or max by 5° (1° with Shift) for selected revolute hardpoint\par
+\par
+{\b\ul ADD KEYS}\par
+Ctrl+Space	Enter Add Mode\par
+Enter		Move to next hardpoint\par
+N		Switch to previous hardpoint type\par
+M		Switch to next hardpoint type\par
+\par
 {\b\ul MOUSE}\par
 \par
 Left         Rotate around the Y axis (left/right) and X axis (up/down)\par
