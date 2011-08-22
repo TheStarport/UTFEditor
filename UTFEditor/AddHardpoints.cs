@@ -169,7 +169,7 @@ namespace UTFEditor
                 new HardpointType("HpWeapon##", true),
                 new HardpointType("HpEngine0#", false),
                 new HardpointType("HpEngineGlow##", false),
-                new HardpointType("HpTractor_Source##", false),
+                new HardpointType("HpTractor_Source", false),
             });
 
             comboPresets.Items.Add(ship);
