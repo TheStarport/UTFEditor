@@ -6,13 +6,12 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using System.Text.RegularExpressions;
 
 namespace UTFEditor
 {
     public partial class AddHardpoints : Form
     {
-        ModelViewForm parent;
-
         private class Preset
         {
 
@@ -79,12 +78,16 @@ namespace UTFEditor
             }
         }
 
-        public AddHardpoints(ModelViewForm parent)
+        TreeNode root;
+        List<TreeNode> fixRevs = new List<TreeNode>();
+
+        public AddHardpoints(TreeNode root)
         {
-            this.parent = parent;
             InitializeComponent();
 
+            this.root = root;
             LoadPresets();
+            LoadFixRevs();
         }
 
         private void comboPresets_SelectionChangeCommitted(object sender, EventArgs e)
@@ -250,8 +253,9 @@ namespace UTFEditor
 
         private void lstHps_SelectedIndexChanged(object sender, EventArgs e)
         {
-            bool hasSel = lstHps.SelectedIndex >= 0;
-            btnRemoveHp.Enabled = btnMoveDown.Enabled = btnMoveUp.Enabled = hasSel;
+            btnRemoveHp.Enabled = btnMoveDown.Enabled = btnMoveUp.Enabled = lstHps.SelectedIndex >= 0 && !adding;
+            txtHp.Text = GetNextHardpoint();
+            chkSet.Checked = false;
         }
 
         private void btnSavePreset_Click(object sender, EventArgs e)
@@ -271,18 +275,238 @@ namespace UTFEditor
         {
             if (lstHps.Items.Count == 0)
             {
-                if (!adding) return;
-                else
+                if (adding)
                 {
                     adding = false;
-                    btnStart.Text = adding ? "Stop" : "Start";
-                    grpAddHps.Enabled = adding;
+                    btnStart.Text = "Start";
+                    grpAddHps.Enabled = false;
                 }
+
+                return;
             }
             adding = !adding;
             btnStart.Text = adding ? "Stop" : "Start";
             grpAddHps.Enabled = adding;
             lstHps.SelectedIndex = 0;
+
+            btnRemoveHp.Enabled = btnMoveDown.Enabled = btnMoveUp.Enabled = lstHps.SelectedIndex >= 0 && !adding;
+            btnAddHp.Enabled = txtAddHp.Enabled = chkRevolute.Enabled = !adding;
+
+            if (adding)
+            {
+                txtHp.Text = GetNextHardpoint();
+                chkSet.Checked = false;
+            }
+            else
+            {
+                txtHp.Text = "";
+            }
         }
+
+        public bool AddingMode
+        {
+            get
+            {
+                return adding;
+            }
+        }
+
+        public string CurrentName
+        {
+            get
+            {
+                return txtHp.Text;
+            }
+        }
+
+        public bool CurrentRevolute
+        {
+            get
+            {
+                return ((HardpointType)lstHps.SelectedItem).Revolute;
+            }
+        }
+
+        public bool CurrentIsSet
+        {
+            get
+            {
+                return chkSet.Checked;
+            }
+        }
+
+        public void HardpointSet()
+        {
+            chkSet.Checked = true;
+        }
+
+        private string GetNextHardpoint()
+        {
+            HardpointType hptype = (HardpointType)lstHps.SelectedItem;
+            if (hptype == null) return "";
+
+            int mask = GetMaskType(hptype.Name);
+
+            int num = 1;
+
+            string name = MakeHardpointName(hptype.Name, num, mask);
+
+            string staticpattern = hptype.Name.Substring(0, hptype.Name.Length - mask);
+
+            foreach (TreeNode fr in fixRevs)
+            {
+                foreach (TreeNode h in fr.Nodes)
+                {
+                    if (h.Text.Substring(0, h.Text.Length - mask).Equals(staticpattern, StringComparison.InvariantCultureIgnoreCase))
+                        name = MakeNextHardpointName(hptype.Name, name, h.Text, num, mask);
+                }
+            }
+
+            return name;
+        }
+
+        private void LoadFixRevs()
+        {
+            fixRevs.Clear();
+            foreach(TreeNode n in root.Nodes)
+            {
+                if (n.Nodes["Hardpoints"] != null)
+                {
+                    TreeNode hps = n.Nodes["Hardpoints"];
+                    if (hps.Nodes["Fixed"] != null)
+                        fixRevs.Add(hps.Nodes["Fixed"]);
+                    if (hps.Nodes["Revolute"] != null)
+                        fixRevs.Add(hps.Nodes["Revolute"]);
+                }
+                    
+            }
+        }
+
+        private int GetMaskType(string init)
+        {
+            if (init.EndsWith("##"))
+                return 2;
+            else if (init.EndsWith("#"))
+                return 1;
+            else
+                return 0;
+        }
+
+        private string MakeHardpointName(string pattern, int num, int mask)
+        {
+            switch (mask)
+            {
+                case 1:
+                    return pattern.Substring(0, pattern.Length - 1) + num;
+                case 2:
+                    return pattern.Substring(0, pattern.Length - 2) + num.ToString("00");
+                default:
+                    return pattern;
+            }
+        }
+
+        private string MakeNextHardpointName(string pattern, string current, string match, int num, int mask)
+        {
+            int othernum = 0;
+            try
+            {
+                switch (mask)
+                {
+                    case 0:
+                        return current;
+                    case 1:
+                        othernum = Int32.Parse(match.Substring(match.Length - 1));
+                        break;
+                    case 2:
+                        othernum = Int32.Parse(match.Substring(match.Length - 2));
+                        break;
+                }
+            }
+            catch(FormatException)
+            {
+                return current;
+            }
+
+            if (othernum < num) return current;
+
+            return MakeHardpointName(pattern, othernum + 1, mask);
+        }
+
+        public void NextHardpoint()
+        {
+            txtHp.Text = GetNextHardpoint();
+            chkSet.Checked = false;
+        }
+
+        public void ChangeHardpointType(int direction)
+        {
+            lstHps.SelectedIndex = mod(lstHps.SelectedIndex + direction, lstHps.Items.Count);
+            NextHardpoint();
+        }
+
+        private void btnNext_Click(object sender, EventArgs e)
+        {
+            NextHardpoint();
+        }
+
+        private void btnNextType_Click(object sender, EventArgs e)
+        {
+            ChangeHardpointType(1);
+        }
+
+        private void btnPrevType_Click(object sender, EventArgs e)
+        {
+            ChangeHardpointType(-1);
+        }
+
+        private void chkSet_CheckedChanged(object sender, EventArgs e)
+        {
+            btnNext.Enabled = chkSet.Checked;
+        }
+
+        /*private Regex MakeTypePattern(string init)
+        {
+            if (!init.Contains('#')) return new Regex("^" + init + "$");
+
+            char[] ch = init.ToCharArray();
+            StringBuilder sb = new StringBuilder("^");
+            int numLen = 0;
+            for (int a = 0; a < ch.Length; a++)
+            {
+                if (ch[a] == '#')
+                    numLen++;
+                else if (numLen > 0)
+                {
+                    sb.Append("[0-9]{" + numLen + ",}");
+                    numLen = 0;
+                }
+                else
+                    sb.Append(ch[a]);
+            }
+            sb.Append('$');
+
+            return new Regex(sb.ToString());
+        }
+
+        private string MakeNextHardpointName(string pattern, Regex rg, int current, string match)
+        {
+            int other = GetHardpointNumber(rg, match);
+
+            if (other >= current)
+            {
+            }
+            else
+                return current;
+        }
+
+        private int GetHardpointNumber(Regex pattern, string hp)
+        {
+            MatchCollection matches = pattern.Matches(hp);
+            StringBuilder sb = new StringBuilder();
+            foreach (Match m in matches)
+                sb.Append(m.Value);
+
+            return Int32.Parse(sb.ToString());
+        }*/
     }
 }

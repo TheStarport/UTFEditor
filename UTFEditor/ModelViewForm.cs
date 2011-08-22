@@ -1328,8 +1328,24 @@ namespace UTFEditor
 		{
 			TimeSpan t = DateTime.Now.Subtract(lastClickTime);
 
-			if (t.TotalMilliseconds < 200 && GetHardpointNode() != null && (Control.ModifierKeys & Keys.Control) != Keys.None)
-				PlaceHardpoint(e.X, e.Y);
+            if (t.TotalMilliseconds < 200 && (Control.ModifierKeys & Keys.Control) != Keys.None)
+            {
+                if(addHps == null || (addHps != null && !addHps.AddingMode))
+                {
+                    if(GetHardpointNode() != null)
+				        PlaceHardpoint(e.X, e.Y);
+                }
+                else
+                {
+                    if (GetHardpointNode() != null && addHps.CurrentIsSet)
+                        PlaceHardpoint(e.X, e.Y);
+                    else
+                    {
+                        if (MakeHardpoint(e.X, e.Y, addHps.CurrentName, addHps.CurrentRevolute))
+                            addHps.HardpointSet();
+                    }
+                }
+            }
 		}
 
         /// <summary>
@@ -1795,7 +1811,7 @@ namespace UTFEditor
 			return true;
         }
 
-        public bool MakeHardpoint(int x, int y, string hpName, string type)
+        public bool MakeHardpoint(int x, int y, string hpName, bool revolute)
         {
             if (x < 0 || y < 0 || x > device.Viewport.Width || y > device.Viewport.Height) return false;
 
@@ -1805,11 +1821,17 @@ namespace UTFEditor
             if (!GetHitFromScreen(x, y, out loc, out faceNormal, out nameFinal)) return false;
             if (nameFinal == null) return false;
 
-            HardpointData hp = new HardpointData(hpName, type);
+            HardpointData hp = new HardpointData(hpName, revolute);
 
-            LinkHardpoint(hp.Node, nameFinal, type);
+            if (!LinkHardpoint(hp.Node, nameFinal, revolute)) return false;
 
-            return PlaceHardpoint(x, y, hp, loc, faceNormal, nameFinal);
+            DataChanged(null, "", null);
+
+            bool made = PlaceHardpoint(x, y, hp, loc, faceNormal, nameFinal);
+
+            if(made) rootNode.TreeView.SelectedNode = hp.Node;
+
+            return made;
         }
 
         public bool PlaceHardpoint(int x, int y)
@@ -1883,15 +1905,15 @@ namespace UTFEditor
 
         private void RelinkHardpoint(TreeNode node, string name)
         {
-            LinkHardpoint(node, name, node.Parent.Text);
+            LinkHardpoint(node, name, node.Parent.Text.Equals("Revolute", StringComparison.InvariantCultureIgnoreCase));
             UnlinkHardpoint(node);
         }
 
-        private void LinkHardpoint(TreeNode node, string name, string type)
+        private bool LinkHardpoint(TreeNode node, string name, bool revolute)
         {
             TreeNode cmpnd = rootNode.Nodes["Cmpnd"];
 			if (cmpnd == null)
-				return;
+				return false;
             
 			string fileName = null;
             foreach (TreeNode n in cmpnd.Nodes)
@@ -1903,7 +1925,7 @@ namespace UTFEditor
                     break;
                 }
             }
-            if (fileName == null) return;
+            if (fileName == null) return false;
 
 			foreach (TreeNode n in rootNode.Nodes)
             {
@@ -1919,10 +1941,10 @@ namespace UTFEditor
                         Hardpoints.Tag = new byte[0];
                         n.Nodes.Add(Hardpoints);
                     }
-					TreeNode FixRev = Hardpoints.Nodes[type];
+					TreeNode FixRev = Hardpoints.Nodes[revolute ? "Revolute" : "Fixed"];
                     if (FixRev == null)
                     {
-                        FixRev = new TreeNode(type);
+                        FixRev = new TreeNode(revolute ? "Revolute" : "Fixed");
                         FixRev.Name = FixRev.Text;
                         FixRev.Tag = new byte[0];
                         Hardpoints.Nodes.Add(FixRev);
@@ -1930,9 +1952,11 @@ namespace UTFEditor
                     FixRev.Nodes.Add(node);
 					n.TreeView.SelectedNode = node;
                     n.TreeView.EndUpdate();
-                    return;
+                    return true;
                 }
             }
+
+            return false;
         }
 
         private void UnlinkHardpoint(TreeNode node)
@@ -2070,13 +2094,15 @@ namespace UTFEditor
 					
 				// Toggle hardpoint edit mode
 				case Keys.Space:
+                    if (addHps != null) return;
+
 					splitViewHardpoint.Panel2Collapsed = !splitViewHardpoint.Panel2Collapsed;
                     editHardpointsToolStripMenuItem1.Checked = splitViewHardpoint.Panel2Collapsed;
 					Invalidate();
 					break;
 
 				case Keys.NumPad4:
-					RotateHardpoint(Viewpoint.Rotate.Y, true, e.Shift);
+                    RotateHardpoint(Viewpoint.Rotate.Y, true, e.Shift);
 					break;
 
 				case Keys.NumPad6:
@@ -2098,6 +2124,20 @@ namespace UTFEditor
 				case Keys.NumPad9:
 					RotateHardpoint(Viewpoint.Rotate.Z, false, e.Shift);
 					break;
+
+                // Add mode hotkeys
+                case Keys.Enter:
+                    if (addHps != null && addHps.AddingMode) addHps.NextHardpoint();
+                    break;
+
+                case Keys.N:
+                    if (addHps != null && addHps.AddingMode) addHps.ChangeHardpointType(-1);
+                    break;
+
+                case Keys.M:
+                    if (addHps != null && addHps.AddingMode) addHps.ChangeHardpointType(1);
+                    break;
+
             }
 			e.IsInputKey = true;
 		}
@@ -2716,7 +2756,7 @@ namespace UTFEditor
         {
             if (addHps == null)
             {
-                addHps = new AddHardpoints(this);
+                addHps = new AddHardpoints(this.rootNode);
                 addHps.FormClosing += new FormClosingEventHandler(addHps_FormClosing);
                 addHps.Show();
                 splitViewHardpoint.Panel2Collapsed = false;
@@ -2740,6 +2780,14 @@ namespace UTFEditor
             addHps = null;
             splitViewHardpoint.Panel2Collapsed = true;
             Invalidate();
+        }
+
+        public Control ModelView
+        {
+            get
+            {
+                return modelView;
+            }
         }
     }
 }
