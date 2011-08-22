@@ -42,19 +42,21 @@ namespace UTFEditor
             return n;
         }
 
-        public HardpointData(string name, string type)
+        public HardpointData(string name, bool revolute)
         {
-            hardpoint = new TreeNode(name);
+            hardpoint = MakeNode(name);
 
             hardpoint.Nodes.Add(MakeNode("Position"));
             hardpoint.Nodes.Add(MakeNode("Orientation"));
 
-            if (Utilities.StrIEq(type, "Revolute"))
+            if (revolute)
             {
                 hardpoint.Nodes.Add(MakeNode("Axis"));
                 hardpoint.Nodes.Add(MakeNode("Min"));
                 hardpoint.Nodes.Add(MakeNode("Max"));
             }
+
+            RotMatXX = RotMatYY = RotMatZZ = 1;
 
             Write();
         }

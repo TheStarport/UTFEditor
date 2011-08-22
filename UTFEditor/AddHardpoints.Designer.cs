@@ -43,10 +43,9 @@
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
             this.btnPrevType = new System.Windows.Forms.Button();
             this.btnNextType = new System.Windows.Forms.Button();
-            this.btnPrev = new System.Windows.Forms.Button();
             this.btnNext = new System.Windows.Forms.Button();
             this.txtHp = new System.Windows.Forms.TextBox();
-            this.btnDel = new System.Windows.Forms.Button();
+            this.chkSet = new System.Windows.Forms.CheckBox();
             this.btnStart = new System.Windows.Forms.Button();
             this.grpHpList.SuspendLayout();
             this.grpAddHps.SuspendLayout();
@@ -207,16 +206,15 @@
             // 
             // tableLayoutPanel1
             // 
-            this.tableLayoutPanel1.ColumnCount = 3;
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20F));
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 60F));
-            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 20F));
-            this.tableLayoutPanel1.Controls.Add(this.btnPrevType, 1, 0);
-            this.tableLayoutPanel1.Controls.Add(this.btnNextType, 1, 2);
-            this.tableLayoutPanel1.Controls.Add(this.btnPrev, 0, 1);
-            this.tableLayoutPanel1.Controls.Add(this.btnNext, 2, 1);
-            this.tableLayoutPanel1.Controls.Add(this.txtHp, 1, 1);
-            this.tableLayoutPanel1.Controls.Add(this.btnDel, 0, 2);
+            this.tableLayoutPanel1.ColumnCount = 2;
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 75F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 25F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 20F));
+            this.tableLayoutPanel1.Controls.Add(this.btnPrevType, 0, 0);
+            this.tableLayoutPanel1.Controls.Add(this.btnNextType, 0, 2);
+            this.tableLayoutPanel1.Controls.Add(this.btnNext, 1, 1);
+            this.tableLayoutPanel1.Controls.Add(this.txtHp, 0, 1);
+            this.tableLayoutPanel1.Controls.Add(this.chkSet, 1, 2);
             this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tableLayoutPanel1.GrowStyle = System.Windows.Forms.TableLayoutPanelGrowStyle.FixedSize;
             this.tableLayoutPanel1.Location = new System.Drawing.Point(3, 16);
@@ -233,71 +231,63 @@
             this.btnPrevType.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnPrevType.Location = new System.Drawing.Point(53, 3);
+            this.btnPrevType.Location = new System.Drawing.Point(3, 3);
             this.btnPrevType.Name = "btnPrevType";
-            this.btnPrevType.Size = new System.Drawing.Size(146, 24);
+            this.btnPrevType.Size = new System.Drawing.Size(184, 24);
             this.btnPrevType.TabIndex = 0;
             this.btnPrevType.Text = "Prev Hardpoint Type";
             this.btnPrevType.UseVisualStyleBackColor = true;
+            this.btnPrevType.Click += new System.EventHandler(this.btnPrevType_Click);
             // 
             // btnNextType
             // 
             this.btnNextType.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnNextType.Location = new System.Drawing.Point(53, 63);
+            this.btnNextType.Location = new System.Drawing.Point(3, 63);
             this.btnNextType.Name = "btnNextType";
-            this.btnNextType.Size = new System.Drawing.Size(146, 26);
+            this.btnNextType.Size = new System.Drawing.Size(184, 26);
             this.btnNextType.TabIndex = 1;
             this.btnNextType.Text = "Next Hardpoint Type";
             this.btnNextType.UseVisualStyleBackColor = true;
-            // 
-            // btnPrev
-            // 
-            this.btnPrev.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnPrev.Location = new System.Drawing.Point(3, 33);
-            this.btnPrev.Name = "btnPrev";
-            this.btnPrev.Size = new System.Drawing.Size(44, 24);
-            this.btnPrev.TabIndex = 2;
-            this.btnPrev.Text = "Prev";
-            this.btnPrev.UseVisualStyleBackColor = true;
+            this.btnNextType.Click += new System.EventHandler(this.btnNextType_Click);
             // 
             // btnNext
             // 
             this.btnNext.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnNext.Location = new System.Drawing.Point(205, 33);
+            this.btnNext.Location = new System.Drawing.Point(193, 33);
             this.btnNext.Name = "btnNext";
-            this.btnNext.Size = new System.Drawing.Size(46, 24);
+            this.btnNext.Size = new System.Drawing.Size(58, 24);
             this.btnNext.TabIndex = 3;
             this.btnNext.Text = "Next";
             this.btnNext.UseVisualStyleBackColor = true;
+            this.btnNext.Click += new System.EventHandler(this.btnNext_Click);
             // 
             // txtHp
             // 
             this.txtHp.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtHp.Location = new System.Drawing.Point(53, 33);
+            this.txtHp.Location = new System.Drawing.Point(3, 33);
             this.txtHp.Name = "txtHp";
             this.txtHp.ReadOnly = true;
-            this.txtHp.Size = new System.Drawing.Size(146, 20);
+            this.txtHp.Size = new System.Drawing.Size(184, 20);
             this.txtHp.TabIndex = 4;
             // 
-            // btnDel
+            // chkSet
             // 
-            this.btnDel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnDel.Location = new System.Drawing.Point(3, 63);
-            this.btnDel.Name = "btnDel";
-            this.btnDel.Size = new System.Drawing.Size(44, 26);
-            this.btnDel.TabIndex = 5;
-            this.btnDel.Text = "Del";
-            this.btnDel.UseVisualStyleBackColor = true;
+            this.chkSet.AutoSize = true;
+            this.chkSet.Enabled = false;
+            this.chkSet.Location = new System.Drawing.Point(193, 63);
+            this.chkSet.Name = "chkSet";
+            this.chkSet.Size = new System.Drawing.Size(53, 17);
+            this.chkSet.TabIndex = 6;
+            this.chkSet.TabStop = false;
+            this.chkSet.Text = "Exists";
+            this.chkSet.UseVisualStyleBackColor = true;
+            this.chkSet.CheckedChanged += new System.EventHandler(this.chkSet_CheckedChanged);
             // 
             // btnStart
             // 
@@ -324,9 +314,11 @@
             this.Controls.Add(this.grpHpList);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.comboPresets);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.SizableToolWindow;
+            this.MaximizeBox = false;
             this.Name = "AddHardpoints";
+            this.ShowIcon = false;
             this.Text = "Add Hardpoints";
+            this.TopMost = true;
             this.grpHpList.ResumeLayout(false);
             this.grpHpList.PerformLayout();
             this.grpAddHps.ResumeLayout(false);
@@ -351,13 +343,12 @@
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         private System.Windows.Forms.Button btnPrevType;
         private System.Windows.Forms.Button btnNextType;
-        private System.Windows.Forms.Button btnPrev;
         private System.Windows.Forms.Button btnNext;
         private System.Windows.Forms.TextBox txtHp;
         private System.Windows.Forms.Button btnStart;
-        private System.Windows.Forms.Button btnDel;
         private System.Windows.Forms.CheckBox chkRevolute;
         private System.Windows.Forms.Button btnMoveDown;
         private System.Windows.Forms.Button btnMoveUp;
+        private System.Windows.Forms.CheckBox chkSet;
     }
 }
