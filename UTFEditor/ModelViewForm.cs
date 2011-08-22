@@ -740,7 +740,7 @@ namespace UTFEditor
 			hardpointPanelView.Sort(hardpointPanelView.Columns[1], ListSortDirection.Ascending);
         }
         
-        void CreateHardpointRow(HardpointDisplayInfo hi)
+        int CreateHardpointRow(HardpointDisplayInfo hi)
         {
 			int row = hardpointPanelView.Rows.Add();
 			CreateHardpointPanelMeshGroupRow(row, hi.MeshGroup);
@@ -750,6 +750,8 @@ namespace UTFEditor
 			hardpointPanelView[2, row].Value = hi.Revolute;
 			hardpointPanelView[3, row].Value = String.Format("#{0:X8}", hi.Color.ToArgb());
 			hardpointPanelView[1, row].Tag = new object[] { hi.MeshGroup, false };
+
+            return row;
 		}
         
         Matrix GetHardpointMatrix(TreeNode node)
@@ -885,7 +887,7 @@ namespace UTFEditor
 
 		void CreateHardpointPanelMeshGroupRow(int row, MeshGroup mg)
 		{
-			for (int a = row; a > 0; a--)
+			for (int a = row; a >= 0; a--)
 			{
 				object[] data = (object[])hardpointPanelView[1, a].Tag;
 				if (data == null) continue;
@@ -1825,7 +1827,45 @@ namespace UTFEditor
 
             if (!LinkHardpoint(hp.Node, nameFinal, revolute)) return false;
 
-            DataChanged(null, "", null);
+            //DataChanged(null, "", null);
+
+            HardpointDisplayInfo hi = new HardpointDisplayInfo();
+            hi.Matrix = GetHardpointMatrix(hp.Node);
+            hi.Name = hp.Name;
+            hi.Node = hp.Node;
+            hi.MeshGroup = MeshGroups[mapFileToMesh[hi.Node.Parent.Parent.Parent.Name]];
+            hi.Color = UTFEditor.FindHpColor(hp.Node.Name);
+            hi.Display = true;
+
+            if (revolute)
+            {
+                TreeNode n = hp.Node.Nodes["Max"];
+                float max = BitConverter.ToSingle(n.Tag as byte[], 0);
+                n = hp.Node.Nodes["Min"];
+                float min = BitConverter.ToSingle(n.Tag as byte[], 0);
+                // If max is 360° or min is -360°, set them to ±180°.
+                if (max >= (float)Math.PI * 2 - 0.0001f || min <= 0.0001f - (float)Math.PI * 2)
+                {
+                    max = (float)Math.PI;
+                    min = -max;
+                }
+                // Axis doesn't seem to be used, so just rotate them to fit.
+                max = -max - (float)Math.PI / 2;
+                min = -min - (float)Math.PI / 2;
+
+                hi.Min = min;
+                hi.Max = max;
+                hi.Revolute = true;
+            }
+            else
+            {
+                hi.Min = hi.Max = 0;
+                hi.Revolute = false;
+            }
+
+            otherHardpoints.Add(hi);
+            int row = CreateHardpointRow(hi);
+            hardpointPanelView.CurrentCell = hardpointPanelView.Rows[row].Cells[0];
 
             bool made = PlaceHardpoint(x, y, hp, loc, faceNormal, nameFinal);
 
