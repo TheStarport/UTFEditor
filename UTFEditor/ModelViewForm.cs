@@ -690,7 +690,7 @@ namespace UTFEditor
 					hi.Min = hi.Max = 0;
 					hi.MeshGroup = MeshGroups[mapFileToMesh[hi.Node.Parent.Parent.Parent.Name]];
 					hi.Revolute = false;
-					hi.Color = UTFEditor.FindHpColor(node.Name);
+					hi.Color = UTFEditorMain.FindHpColor(node.Name);
 					hi.Display = true;
 					otherHardpoints.Add(hi);
 
@@ -728,7 +728,7 @@ namespace UTFEditor
 					hi.Max = max;
 					hi.MeshGroup = MeshGroups[mapFileToMesh[hi.Node.Parent.Parent.Parent.Name]];
 					hi.Revolute = true;
-					hi.Color = UTFEditor.FindHpColor(node.Name);
+					hi.Color = UTFEditorMain.FindHpColor(node.Name);
 					hi.Display = true;
 					otherHardpoints.Add(hi);
 					
@@ -1834,7 +1834,7 @@ namespace UTFEditor
             hi.Name = hp.Name;
             hi.Node = hp.Node;
             hi.MeshGroup = MeshGroups[mapFileToMesh[hi.Node.Parent.Parent.Parent.Name]];
-            hi.Color = UTFEditor.FindHpColor(hp.Node.Name);
+            hi.Color = UTFEditorMain.FindHpColor(hp.Node.Name);
             hi.Display = true;
 
             if (revolute)
@@ -2870,6 +2870,43 @@ namespace UTFEditor
             }
             else
                 CloseAddHardpoints();
+        }
+
+        private FuseEditor fuse;
+
+        private void fuseComposerToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SwitchFuseEditor();
+        }
+
+        void fuse_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            CloseFuseEditor(false);
+        }
+
+        private void CloseFuseEditor() { CloseFuseEditor(true); }
+        private void CloseFuseEditor(bool close)
+        {
+            if (fuse == null) return;
+
+            if (close) fuse.Close();
+            fuse = null;
+            splitViewHardpoint.Panel2Collapsed = true;
+            Invalidate();
+        }
+
+        private void SwitchFuseEditor()
+        {
+            if (fuse == null)
+            {
+                fuse = new FuseEditor();
+                fuse.FormClosing += new FormClosingEventHandler(fuse_FormClosing);
+                fuse.Show();
+                splitViewHardpoint.Panel2Collapsed = false;
+                Invalidate();
+            }
+            else
+                CloseFuseEditor();
         }
     }
 }

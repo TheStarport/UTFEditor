@@ -47,6 +47,11 @@
             this.colHPRevolute = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             this.colHPColor = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.menu = new System.Windows.Forms.MenuStrip();
+            this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.resetAllToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.editHardpointsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.editHardpointsToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.addHardpointsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.viewToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.bottomToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.topToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -70,13 +75,9 @@
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.shortcutsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.showViewPanelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.editToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.resetAllToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-            this.editHardpointsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.editHardpointsToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-            this.addHardpointsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.colorDiag = new System.Windows.Forms.ColorDialog();
             this.hardpointNameToolTip = new System.Windows.Forms.ToolTip(this.components);
+            this.fuseComposerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarScale)).BeginInit();
             this.toolStripContainer1.ContentPanel.SuspendLayout();
             this.toolStripContainer1.SuspendLayout();
@@ -338,6 +339,46 @@
             this.menu.TabIndex = 8;
             this.menu.Text = "menu";
             // 
+            // editToolStripMenuItem
+            // 
+            this.editToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.resetAllToolStripMenuItem1,
+            this.editHardpointsToolStripMenuItem});
+            this.editToolStripMenuItem.Name = "editToolStripMenuItem";
+            this.editToolStripMenuItem.Size = new System.Drawing.Size(39, 20);
+            this.editToolStripMenuItem.Text = "Edit";
+            // 
+            // resetAllToolStripMenuItem1
+            // 
+            this.resetAllToolStripMenuItem1.Name = "resetAllToolStripMenuItem1";
+            this.resetAllToolStripMenuItem1.Size = new System.Drawing.Size(152, 22);
+            this.resetAllToolStripMenuItem1.Text = "Reset Settings";
+            this.resetAllToolStripMenuItem1.Click += new System.EventHandler(this.resetAllToolStripMenuItem_Click);
+            // 
+            // editHardpointsToolStripMenuItem
+            // 
+            this.editHardpointsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.editHardpointsToolStripMenuItem1,
+            this.addHardpointsToolStripMenuItem,
+            this.fuseComposerToolStripMenuItem});
+            this.editHardpointsToolStripMenuItem.Name = "editHardpointsToolStripMenuItem";
+            this.editHardpointsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.editHardpointsToolStripMenuItem.Text = "Mode";
+            // 
+            // editHardpointsToolStripMenuItem1
+            // 
+            this.editHardpointsToolStripMenuItem1.Name = "editHardpointsToolStripMenuItem1";
+            this.editHardpointsToolStripMenuItem1.Size = new System.Drawing.Size(158, 22);
+            this.editHardpointsToolStripMenuItem1.Text = "Edit Hardpoints";
+            this.editHardpointsToolStripMenuItem1.Click += new System.EventHandler(this.hardpointEditToolStripMenuItem_Click);
+            // 
+            // addHardpointsToolStripMenuItem
+            // 
+            this.addHardpointsToolStripMenuItem.Name = "addHardpointsToolStripMenuItem";
+            this.addHardpointsToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
+            this.addHardpointsToolStripMenuItem.Text = "Add Hardpoints";
+            this.addHardpointsToolStripMenuItem.Click += new System.EventHandler(this.addHardpointsToolStripMenuItem_Click);
+            // 
             // viewToolStripMenuItem
             // 
             this.viewToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -433,7 +474,7 @@
             this.blackToolStripMenuItem,
             this.whiteToolStripMenuItem});
             this.backgroundToolStripMenuItem.Name = "backgroundToolStripMenuItem";
-            this.backgroundToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.backgroundToolStripMenuItem.Size = new System.Drawing.Size(151, 22);
             this.backgroundToolStripMenuItem.Text = "Background";
             // 
             // blackToolStripMenuItem
@@ -461,7 +502,7 @@
             this.increaseToolStripMenuItem1,
             this.toolStripHardpointSizeSet});
             this.hardpointSizeToolStripMenuItem.Name = "hardpointSizeToolStripMenuItem";
-            this.hardpointSizeToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.hardpointSizeToolStripMenuItem.Size = new System.Drawing.Size(151, 22);
             this.hardpointSizeToolStripMenuItem.Text = "Hardpoint Size";
             // 
             // decreaseToolStripMenuItem1
@@ -493,7 +534,7 @@
             this.inToolStripMenuItem,
             this.outToolStripMenuItem});
             this.zoomToolStripMenuItem.Name = "zoomToolStripMenuItem";
-            this.zoomToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.zoomToolStripMenuItem.Size = new System.Drawing.Size(151, 22);
             this.zoomToolStripMenuItem.Text = "Zoom";
             // 
             // inToolStripMenuItem
@@ -538,49 +579,17 @@
             this.showViewPanelToolStripMenuItem.Text = "Toggle View Panel";
             this.showViewPanelToolStripMenuItem.Click += new System.EventHandler(this.showViewPanelToolStripMenuItem_Click);
             // 
-            // editToolStripMenuItem
-            // 
-            this.editToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.resetAllToolStripMenuItem1,
-            this.editHardpointsToolStripMenuItem});
-            this.editToolStripMenuItem.Name = "editToolStripMenuItem";
-            this.editToolStripMenuItem.Size = new System.Drawing.Size(39, 20);
-            this.editToolStripMenuItem.Text = "Edit";
-            // 
-            // resetAllToolStripMenuItem1
-            // 
-            this.resetAllToolStripMenuItem1.Name = "resetAllToolStripMenuItem1";
-            this.resetAllToolStripMenuItem1.Size = new System.Drawing.Size(152, 22);
-            this.resetAllToolStripMenuItem1.Text = "Reset Settings";
-            this.resetAllToolStripMenuItem1.Click += new System.EventHandler(this.resetAllToolStripMenuItem_Click);
-            // 
-            // editHardpointsToolStripMenuItem
-            // 
-            this.editHardpointsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.editHardpointsToolStripMenuItem1,
-            this.addHardpointsToolStripMenuItem});
-            this.editHardpointsToolStripMenuItem.Name = "editHardpointsToolStripMenuItem";
-            this.editHardpointsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.editHardpointsToolStripMenuItem.Text = "Mode";
-            // 
-            // editHardpointsToolStripMenuItem1
-            // 
-            this.editHardpointsToolStripMenuItem1.Name = "editHardpointsToolStripMenuItem1";
-            this.editHardpointsToolStripMenuItem1.Size = new System.Drawing.Size(158, 22);
-            this.editHardpointsToolStripMenuItem1.Text = "Edit Hardpoints";
-            this.editHardpointsToolStripMenuItem1.Click += new System.EventHandler(this.hardpointEditToolStripMenuItem_Click);
-            // 
-            // addHardpointsToolStripMenuItem
-            // 
-            this.addHardpointsToolStripMenuItem.Name = "addHardpointsToolStripMenuItem";
-            this.addHardpointsToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
-            this.addHardpointsToolStripMenuItem.Text = "Add Hardpoints";
-            this.addHardpointsToolStripMenuItem.Click += new System.EventHandler(this.addHardpointsToolStripMenuItem_Click);
-            // 
             // hardpointNameToolTip
             // 
             this.hardpointNameToolTip.UseAnimation = false;
             this.hardpointNameToolTip.UseFading = false;
+            // 
+            // fuseComposerToolStripMenuItem
+            // 
+            this.fuseComposerToolStripMenuItem.Name = "fuseComposerToolStripMenuItem";
+            this.fuseComposerToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
+            this.fuseComposerToolStripMenuItem.Text = "Fuse Composer";
+            this.fuseComposerToolStripMenuItem.Click += new System.EventHandler(this.fuseComposerToolStripMenuItem_Click);
             // 
             // ModelViewForm
             // 
@@ -665,5 +674,6 @@
         private System.Windows.Forms.ToolStripMenuItem editHardpointsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem editHardpointsToolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem addHardpointsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem fuseComposerToolStripMenuItem;
     }
 }

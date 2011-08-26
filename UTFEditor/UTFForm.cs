@@ -46,7 +46,7 @@ namespace UTFEditor
         /// <summary>
         /// The parent window containing this form.
         /// </summary>
-        UTFEditor parent;
+        UTFEditorMain parent;
 
         /// <summary>
         /// True if there are pending file changes that have not been saved.
@@ -67,7 +67,7 @@ namespace UTFEditor
         /// <summary>
         /// Create an empty form.
         /// </summary>
-        public UTFForm(UTFEditor parent, string name)
+        public UTFForm(UTFEditorMain parent, string name)
         {
             InitializeComponent();
             fileName = name;
