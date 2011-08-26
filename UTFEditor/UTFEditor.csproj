@@ -171,6 +171,12 @@
     <Compile Include="FloatBox.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="FuseEditor.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FuseEditor.Designer.cs">
+      <DependentUpon>FuseEditor.cs</DependentUpon>
+    </Compile>
     <Compile Include="HardpointData.cs" />
     <Compile Include="ModelViewForm.cs">
       <SubType>Form</SubType>
@@ -186,6 +192,9 @@
     </Compile>
     <Compile Include="SUR.cs" />
     <Compile Include="SurFile.cs" />
+    <Compile Include="Timeline.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="TreeViewMultiSelect.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -196,11 +205,11 @@
     <Compile Include="UTFForm.Designer.cs">
       <DependentUpon>UTFForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="UTFEditor.cs">
+    <Compile Include="UTFEditorMain.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UTFEditor.Designer.cs">
-      <DependentUpon>UTFEditor.cs</DependentUpon>
+    <Compile Include="UTFEditorMain.Designer.cs">
+      <DependentUpon>UTFEditorMain.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -244,6 +253,10 @@
     <EmbeddedResource Include="EditAnimChannel.resx">
       <DependentUpon>EditAnimChannel.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="FuseEditor.resx">
+      <DependentUpon>FuseEditor.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
     <EmbeddedResource Include="ModelViewForm.resx">
       <DependentUpon>ModelViewForm.cs</DependentUpon>
     </EmbeddedResource>
@@ -253,8 +266,8 @@
     <EmbeddedResource Include="UTFForm.resx">
       <DependentUpon>UTFForm.cs</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="UTFEditor.resx">
-      <DependentUpon>UTFEditor.cs</DependentUpon>
+    <EmbeddedResource Include="UTFEditorMain.resx">
+      <DependentUpon>UTFEditorMain.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

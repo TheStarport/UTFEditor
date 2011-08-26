@@ -13,7 +13,7 @@ using System.Reflection;
 
 namespace UTFEditor
 {
-    public partial class UTFEditor : Form
+    public partial class UTFEditorMain : Form
     {
         const string UTFfilter = "FL UTF Files|*.3db;*.ale;*.anm;*.cmp;*.dfm;*.mat;*.sph;*.txm;*.utf;*.vms|" +
                                  "Model Files (*.3db)|*.3db|" +
@@ -30,7 +30,7 @@ namespace UTFEditor
 
         private int childFormNumber = 0;
 
-        public UTFEditor(string[] args)
+        public UTFEditorMain(string[] args)
         {
             InitializeComponent();
             SetSelectedNode(null);

@@ -15,7 +15,7 @@ namespace UTFEditor
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new UTFEditor(args));
+            Application.Run(new UTFEditorMain(args));
         }
     }
 }
