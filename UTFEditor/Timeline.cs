@@ -9,13 +9,28 @@ namespace UTFEditor
 {
     class Timeline : Panel
     {
-        private class Event
+        public class Event
         {
             public List<float> At = new List<float>();
+            public object Data;
+            public string Text;
 
-            public Event(ICollection<float> ats)
+            public Event(params float[] ats)
             {
                 At = ats.ToList<float>();
+            }
+
+            public Event(object data, params float[] ats)
+            {
+                At = ats.ToList<float>();
+                Data = data;
+            }
+
+            public Event(object data, string text, params float[] ats)
+            {
+                At = ats.ToList<float>();
+                Data = data;
+                Text = text;
             }
         }
 
@@ -104,6 +119,26 @@ namespace UTFEditor
             }
         }
 
+        public Event SelectedEvent
+        {
+            get
+            {
+                return selected;
+            }
+            set
+            {
+                selected = value;
+            }
+        }
+
+        public List<Event> Items
+        {
+            get
+            {
+                return events;
+            }
+        }
+
         public Timeline()
         {
             SetStyle(ControlStyles.UserPaint | ControlStyles.DoubleBuffer | ControlStyles.AllPaintingInWmPaint, true);
@@ -124,12 +159,10 @@ namespace UTFEditor
 
             UpdateDisplayVars();
 
-            this.Cursor = Cursors.Cross;
-
-            events.Add(new Event(new float[] { 0.1f }));
-            events.Add(new Event(new float[] { 0.5f }));
-            events.Add(new Event(new float[] { 0.9f }));
-            events.Add(new Event(new float[] { 0.675f }));
+            events.Add(new Event(null, "ABC", 0.1f));
+            events.Add(new Event(null, 0.5f));
+            events.Add(new Event(null, 0.8f));
+            events.Add(new Event(null, 0.675f, 0.25f));
         }
 
         int eventCursorHeight, measureDistance, smallMeasureHeight, medMeasureHeight, largeMeasureHeight, leftMargin, effectiveWidth;
@@ -138,6 +171,12 @@ namespace UTFEditor
         {
             int w = this.Width;
             int h = this.Height;
+
+            if (w < h)
+            {
+                w = this.Height;
+                h = this.Width;
+            }
 
             eventCursorHeight = (int)Math.Round(h * 0.6);
 
@@ -152,34 +191,63 @@ namespace UTFEditor
             leftMargin = (w - effectiveWidth) / 2;
         }
 
+        private Point MakePoint(int x, int y)
+        {
+            if (this.Width > this.Height)
+                return new Point(x, y);
+            else
+                return new Point(y, x);
+        }
+
+        private PointF MakePoint(float x, float y)
+        {
+            if (this.Width > this.Height)
+                return new PointF(x, y);
+            else
+                return new PointF(y, x);
+        }
+
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
 
             e.Graphics.Clear(this.BackColor);
+
+            int w = this.Width;
+            int h = this.Height;
+
+            if (w < h)
+            {
+                w = this.Height;
+                h = this.Width;
+            }
             
 
             foreach (Event ev in events)
             {
                 Pen evp = selected == ev ? selectedPen : eventPen;
-                foreach(float f in ev.At)
-                    e.Graphics.DrawLine(evp, new Point((int)Math.Round(f * effectiveWidth + leftMargin), this.Height), new Point((int)Math.Round(f * effectiveWidth + leftMargin), largeMeasureHeight));
+                foreach (float f in ev.At)
+                {
+                    e.Graphics.DrawLine(evp, MakePoint((int)Math.Round(f * effectiveWidth + leftMargin), h), MakePoint((int)Math.Round(f * effectiveWidth + leftMargin), eventCursorHeight));
+                    if (ev.Text != null)
+                        e.Graphics.DrawString(ev.Text, font, selected == ev ? selectedBrush : eventBrush, MakePoint(f * effectiveWidth + leftMargin, eventCursorHeight));
+                }
             }
 
             for (int a = leftMargin; a <= effectiveWidth + leftMargin; a += measureDistance)
             {
                 bool bigline = (a - leftMargin) % (measureDistance * 10) == 0;
                 bool medline = (a - leftMargin) % (measureDistance * 2) == 0;
-                Point pt = new Point(a, bigline ? largeMeasureHeight : (medline ? medMeasureHeight : smallMeasureHeight));
-                e.Graphics.DrawLine(bigline? primaryPen : secondaryPen, new Point(a, 0), pt);
+                Point pt = MakePoint(a, bigline ? largeMeasureHeight : (medline ? medMeasureHeight : smallMeasureHeight));
+                e.Graphics.DrawLine(bigline ? primaryPen : secondaryPen, MakePoint(a, 0), pt);
                 if (bigline)
-                    e.Graphics.DrawString((((float)a - leftMargin) / effectiveWidth).ToString("0.###"), font, primaryBrush, new PointF(pt.X, pt.Y * 1.05f), drawFormat);
+                    e.Graphics.DrawString((((float)a - leftMargin) / effectiveWidth).ToString("0.###"), font, primaryBrush, new PointF((float)pt.X, pt.Y * 1.05f), drawFormat);
                 else if(medline)
-                    e.Graphics.DrawString((((float)a - leftMargin) / effectiveWidth * 100 % 10).ToString("#"), fontSmall, primaryBrush, new PointF(pt.X, pt.Y * 1.05f), drawFormat);
+                    e.Graphics.DrawString((((float)a - leftMargin) / effectiveWidth * 100 % 10).ToString("#"), fontSmall, primaryBrush, new PointF((float)pt.X, pt.Y * 1.05f), drawFormat);
             }
 
-            if (mouseX != Int32.MinValue)
-                e.Graphics.DrawLine(highlightPen, new Point(mouseX, 0), new Point(mouseX, this.Height));
+            if (cursor && mouseLoc != Int32.MinValue)
+                e.Graphics.DrawLine(highlightPen, MakePoint(mouseLoc, 0), MakePoint(mouseLoc, h));
         }
 
         protected override void OnResize(EventArgs eventargs)
@@ -191,22 +259,22 @@ namespace UTFEditor
             Invalidate();
         }
 
-        int mouseX = Int32.MinValue;
+        int mouseLoc = Int32.MinValue;
 
         protected override void OnMouseMove(MouseEventArgs e)
         {
             base.OnMouseMove(e);
 
-            mouseX = e.X;
+            int loc = mouseLoc = this.Width > this.Height ? e.X : e.Y;
 
-            if ((ModifierKeys & Keys.Control) == Keys.None)
+            if ((ModifierKeys & Keys.Shift) == Keys.None)
             {
-                if (mouseX >= leftMargin - measureDistance / 2 && mouseX <= effectiveWidth + leftMargin + measureDistance / 2)
+                if (mouseLoc >= leftMargin - measureDistance / 2 && mouseLoc <= effectiveWidth + leftMargin + measureDistance / 2)
                 {
-                    int diff = (e.X - leftMargin) % measureDistance;
+                    int diff = (loc - leftMargin) % measureDistance;
                     if (diff > measureDistance / 2) diff -= measureDistance;
 
-                    if (Math.Abs(diff) <= 0.2 * measureDistance) mouseX -= diff;
+                    if (Math.Abs(diff) <= 0.2 * measureDistance) mouseLoc -= diff;
                 }
             }
 
@@ -216,9 +284,21 @@ namespace UTFEditor
 
                 if (timespan > 200)
                 {
-                    held.At[heldAt] = ((float)mouseX - leftMargin) / effectiveWidth;
+                    held.At[heldAt] = ((float)mouseLoc - leftMargin) / effectiveWidth;
                 }
             }
+
+            Invalidate();
+        }
+
+        bool cursor;
+
+        protected override void OnMouseEnter(EventArgs e)
+        {
+            base.OnMouseEnter(e);
+            cursor = true;
+
+            Cursor.Hide();
 
             Invalidate();
         }
@@ -226,9 +306,14 @@ namespace UTFEditor
         protected override void OnMouseLeave(EventArgs e)
         {
             base.OnMouseLeave(e);
+            cursor = false;
 
-            mouseX = Int32.MinValue;
+            mouseLoc = Int32.MinValue;
             held = null;
+
+            Cursor.Show();
+
+            Invalidate();
         }
 
         DateTime holdTime;
@@ -241,6 +326,8 @@ namespace UTFEditor
 
             holdTime = DateTime.Now;
 
+            int loc = this.Width > this.Height ? e.X : e.Y;
+
             float mindist = Single.MaxValue;
             selected = null;
             held = null;
@@ -250,7 +337,7 @@ namespace UTFEditor
                 int t = 0;
                 foreach (float f in ev.At)
                 {
-                    float testdist = Math.Abs(((float)e.X - leftMargin) / effectiveWidth - f);
+                    float testdist = Math.Abs(((float)loc - leftMargin) / effectiveWidth - f);
                     if (testdist < mindist && testdist <= 0.005f)
                     {
                         held = ev;
@@ -272,12 +359,40 @@ namespace UTFEditor
 
             if (timespan <= 200)
             {
-                selected = held;
+                if ((ModifierKeys & Keys.Control) != Keys.None)
+                {
+                    float loc = ((float)mouseLoc - leftMargin) / effectiveWidth;
+                    Event newEv = new Event(loc);
+
+                    OnItemAdded(new ItemAddEventArgs(newEv));
+                }
+                else
+                    selected = held;
             }
 
             held = null;
 
             OnMouseMove(e);
         }
+
+        public class ItemAddEventArgs : EventArgs
+        {
+            public Event Item;
+
+            public ItemAddEventArgs(Event i)
+            {
+                Item = i;
+            }
+        }
+
+        protected void OnItemAdded(ItemAddEventArgs e)
+        {
+            ItemAdded(this, e);
+        }
+
+        public delegate void ItemAddedEventHandler(object sender, ItemAddEventArgs e);
+
+        public event ItemAddedEventHandler ItemAdded;
+
     }
 }
