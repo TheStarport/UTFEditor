@@ -41,14 +41,16 @@
             this.timeline1.Location = new System.Drawing.Point(12, 12);
             this.timeline1.Name = "timeline1";
             this.timeline1.SecondaryForeColor = System.Drawing.SystemColors.Control;
-            this.timeline1.Size = new System.Drawing.Size(1784, 126);
+            this.timeline1.SelectedColor = System.Drawing.SystemColors.HotTrack;
+            this.timeline1.SelectedEvent = null;
+            this.timeline1.Size = new System.Drawing.Size(148, 792);
             this.timeline1.TabIndex = 0;
             // 
             // FuseEditor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1808, 150);
+            this.ClientSize = new System.Drawing.Size(172, 816);
             this.Controls.Add(this.timeline1);
             this.Name = "FuseEditor";
             this.Text = "FuseEditor";
