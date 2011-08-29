@@ -7,35 +7,19 @@ using System.Drawing;
 
 namespace UTFEditor
 {
-    class Timeline : Control
+    class Timeline : ScrollableControl
     {
-        public class Event
+        public interface IEvent
         {
-            public List<float> At = new List<float>();
-            public object Data;
-            public string Text;
-
-            public Event(params float[] ats)
+            List<float> At
             {
-                At = ats.ToList<float>();
-            }
-
-            public Event(object data, params float[] ats)
-            {
-                At = ats.ToList<float>();
-                Data = data;
-            }
-
-            public Event(object data, string text, params float[] ats)
-            {
-                At = ats.ToList<float>();
-                Data = data;
-                Text = text;
+                get;
+                set;
             }
         }
 
-        List<Event> events = new List<Event>();
-        Event selected = null;
+        List<IEvent> events = new List<IEvent>();
+        IEvent selected = null;
 
         SolidBrush primaryBrush;
         SolidBrush secondaryBrush;
@@ -133,7 +117,7 @@ namespace UTFEditor
             }
         }
 
-        public Event SelectedEvent
+        public IEvent SelectedEvent
         {
             get
             {
@@ -142,10 +126,12 @@ namespace UTFEditor
             set
             {
                 selected = value;
+                held = null;
+                heldAt = -1;
             }
         }
 
-        public List<Event> Items
+        public List<IEvent> Items
         {
             get
             {
@@ -153,9 +139,23 @@ namespace UTFEditor
             }
         }
 
+        float zoom = 1.0f;
+        public float Zoom
+        {
+            get
+            {
+                return zoom;
+            }
+            set
+            {
+                zoom = Math.Max(1, value);
+            }
+        }
+
         public Timeline()
         {
             SetStyle(ControlStyles.UserPaint | ControlStyles.DoubleBuffer | ControlStyles.AllPaintingInWmPaint, true);
+            this.AutoScroll = true;
 
             primaryBrush = new SolidBrush(SystemColors.ControlText);
             secondaryBrush = new SolidBrush(SystemColors.ControlText);
@@ -171,24 +171,28 @@ namespace UTFEditor
             selectedPen = new Pen(selectedBrush, 2.0f);
 
             UpdateDisplayVars();
-
-            events.Add(new Event(null, "ABC", 0.1f));
-            events.Add(new Event(null, 0.5f));
-            events.Add(new Event(null, 0.8f));
-            events.Add(new Event(null, 0.675f, 0.25f));
         }
 
-        /*protected override void OnMouseWheel(MouseEventArgs e)
+        protected override void OnMouseWheel(MouseEventArgs e)
         {
             base.OnMouseWheel(e);
             if ((ModifierKeys & Keys.Control) != Keys.None)
             {
                 zoom += e.Delta / 200.0f;
+                zoom = Math.Max(1, zoom);
 
                 UpdateDisplayVars();
                 Invalidate();
             }
-        }*/
+        }
+
+        protected override void OnScroll(ScrollEventArgs se)
+        {
+            base.OnScroll(se);
+
+            UpdateDisplayVars();
+            Invalidate();
+        }
 
         int eventCursorHeight, backgroundCursorHeight, measureDistance, smallMeasureHeight, medMeasureHeight, largeMeasureHeight, leftMargin, effectiveWidth;
 
@@ -196,11 +200,13 @@ namespace UTFEditor
         {
             int w = this.Width;
             int h = this.Height;
+            int dw = this.AutoScrollPosition.X;
 
             if (w < h)
             {
                 w = this.Height;
                 h = this.Width;
+                dw = this.AutoScrollPosition.Y;
                 drawFormat.Alignment = StringAlignment.Near;
                 drawFormat.LineAlignment = StringAlignment.Center;
             }
@@ -209,6 +215,7 @@ namespace UTFEditor
                 drawFormat.Alignment = StringAlignment.Center;
                 drawFormat.LineAlignment = StringAlignment.Near;
             }
+            w = (int)Math.Round(w * zoom);
 
             if (w == 0) w = 1;
             if (h == 0) h = 1;
@@ -224,7 +231,12 @@ namespace UTFEditor
 
             effectiveWidth = measureDistance * 100;
 
-            leftMargin = (w - effectiveWidth) / 2;
+            leftMargin = (w - effectiveWidth) / 2 + dw;
+
+            if (w < h)
+                this.AutoScrollMinSize = new Size((int)w, 0);
+            else
+                this.AutoScrollMinSize = new Size(0, (int)w);
         }
 
         private Point MakePoint(int x, int y)
@@ -260,16 +272,17 @@ namespace UTFEditor
             }
             else
                 e.Graphics.FillRectangle(backgroundBrush, new Rectangle(leftMargin, backgroundCursorHeight, effectiveWidth, h));
+
+            w = (int)Math.Round(w * zoom);
             
 
-            foreach (Event ev in events)
+            foreach (IEvent ev in events)
             {
                 Pen evp = selected == ev ? selectedPen : eventPen;
                 foreach (float f in ev.At)
                 {
                     e.Graphics.DrawLine(evp, MakePoint((int)Math.Round(f * effectiveWidth + leftMargin), h), MakePoint((int)Math.Round(f * effectiveWidth + leftMargin), eventCursorHeight));
-                    if (ev.Text != null)
-                        e.Graphics.DrawString(ev.Text, font, selected == ev ? selectedBrush : eventBrush, MakePoint(f * effectiveWidth + leftMargin, eventCursorHeight));
+                     e.Graphics.DrawString(ev.ToString(), font, selected == ev ? selectedBrush : eventBrush, MakePoint(f * effectiveWidth + leftMargin, eventCursorHeight));
                 }
             }
 
@@ -357,8 +370,8 @@ namespace UTFEditor
         }
 
         DateTime holdTime;
-        Event held;
-        int heldAt;
+        IEvent held;
+        int heldAt = -1;
 
         protected override void OnMouseDown(MouseEventArgs e)
         {
@@ -372,7 +385,7 @@ namespace UTFEditor
             selected = null;
             held = null;
 
-            foreach (Event ev in events)
+            foreach (IEvent ev in events)
             {
                 int t = 0;
                 foreach (float f in ev.At)
@@ -402,13 +415,14 @@ namespace UTFEditor
                 if ((ModifierKeys & Keys.Control) != Keys.None)
                 {
                     float loc = ((float)mouseLoc - leftMargin) / effectiveWidth;
-                    Event newEv = new Event(loc);
 
-                    OnItemAdded(new ItemAddEventArgs(newEv));
+                    OnItemAdd(new ItemAddEventArgs(loc));
                 }
                 else
                     selected = held;
             }
+            else
+                selected = held;
 
             held = null;
 
@@ -417,22 +431,76 @@ namespace UTFEditor
 
         public class ItemAddEventArgs : EventArgs
         {
-            public Event Item;
+            public float At;
 
-            public ItemAddEventArgs(Event i)
+            public ItemAddEventArgs(float at)
             {
-                Item = i;
+                At = at;
             }
         }
 
-        protected void OnItemAdded(ItemAddEventArgs e)
+        protected void OnItemAdd(ItemAddEventArgs e)
         {
-            ItemAdded(this, e);
+            ItemAdd(this, e);
         }
 
-        public delegate void ItemAddedEventHandler(object sender, ItemAddEventArgs e);
+        public delegate void ItemAddEventHandler(object sender, ItemAddEventArgs e);
 
-        public event ItemAddedEventHandler ItemAdded;
+        public event ItemAddEventHandler ItemAdd;
 
+        private float CurrentAt()
+        {
+            float t = 0;
+            if (selected != null && heldAt >= 0 && heldAt < selected.At.Count)
+                t = selected.At[heldAt];
+            else if (selected != null)
+                t = selected.At[0];
+
+            return t;
+        }
+
+        public void SelectNext()
+        {
+            float t = CurrentAt();
+            float dist = Single.MaxValue;
+            IEvent n = null;
+
+            foreach (IEvent ev in this.events)
+            {
+                foreach (float f in ev.At)
+                {
+                    if (f > t && f - t < dist)
+                    {
+                        dist = f - t;
+                        n = ev;
+                    }
+                }
+            }
+
+            if(n != null)
+                selected = n;
+        }
+
+        public void SelectPrevious()
+        {
+            float t = CurrentAt();
+            float dist = Single.MaxValue;
+            IEvent n = null;
+
+            foreach (IEvent ev in this.events)
+            {
+                foreach (float f in ev.At)
+                {
+                    if (f < t && t - f < dist)
+                    {
+                        dist = t - f;
+                        n = ev;
+                    }
+                }
+            }
+
+            if (n != null)
+                selected = n;
+        }
     }
 }
