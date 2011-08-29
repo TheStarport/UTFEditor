@@ -184,6 +184,7 @@
     <Compile Include="ModelViewForm.Designer.cs">
       <DependentUpon>ModelViewForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="MultimediaTimer.cs" />
     <Compile Include="RenameNodeForm.cs">
       <SubType>Form</SubType>
     </Compile>

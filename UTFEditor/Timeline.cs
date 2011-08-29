@@ -27,12 +27,14 @@ namespace UTFEditor
         SolidBrush highlightBrush;
         SolidBrush selectedBrush;
         SolidBrush backgroundBrush;
+        SolidBrush playBrush;
 
         Pen primaryPen;
         Pen secondaryPen;
         Pen eventPen;
         Pen highlightPen;
         Pen selectedPen;
+        Pen playPen;
 
         Font font = new Font("Arial", 8);
         Font fontSmall = new Font("Arial", 7);
@@ -117,6 +119,19 @@ namespace UTFEditor
             }
         }
 
+        public Color PlayColor
+        {
+            get
+            {
+                return playBrush.Color;
+            }
+            set
+            {
+                if (value == null) return;
+                playBrush.Color = value;
+            }
+        }
+
         public IEvent SelectedEvent
         {
             get
@@ -152,6 +167,8 @@ namespace UTFEditor
             }
         }
 
+        public float Timespan = 5.0f;
+
         public new bool CanFocus
         {
             get
@@ -171,12 +188,16 @@ namespace UTFEditor
             highlightBrush = new SolidBrush(SystemColors.Highlight);
             selectedBrush = new SolidBrush(SystemColors.HotTrack);
             backgroundBrush = new SolidBrush(SystemColors.ControlDark);
+            playBrush = new SolidBrush(Color.Green);
 
             primaryPen = new Pen(primaryBrush, 1.5f);
             secondaryPen = new Pen(secondaryBrush, 1.0f);
             eventPen = new Pen(eventBrush, 1.5f);
             highlightPen = new Pen(highlightBrush, 2.0f);
             selectedPen = new Pen(selectedBrush, 2.0f);
+            playPen = new Pen(playBrush, 2.0f);
+
+            playback.Tick += new EventHandler(playback_Tick);
 
             UpdateDisplayVars();
         }
@@ -309,6 +330,9 @@ namespace UTFEditor
 
             if (cursor && mouseLoc != Int32.MinValue)
                 e.Graphics.DrawLine(highlightPen, MakePoint(mouseLoc, 0), MakePoint(mouseLoc, h));
+
+            if (playback.Enabled)
+                e.Graphics.DrawLine(playPen, MakePoint((int)Math.Round(PlaybackTime / 1000.0f / Timespan * effectiveWidth) + leftMargin, 0), MakePoint((int)Math.Round(PlaybackTime / 1000.0f / Timespan * effectiveWidth) + leftMargin, h));
         }
 
         protected override void OnResize(EventArgs eventargs)
@@ -341,7 +365,7 @@ namespace UTFEditor
 
             if (held != null)
             {
-                int timespan = DateTime.Now.Subtract(holdTime).Milliseconds;
+                double timespan = DateTime.Now.Subtract(holdTime).TotalMilliseconds;
 
                 if (timespan > 200)
                 {
@@ -417,7 +441,7 @@ namespace UTFEditor
         protected override void OnMouseUp(MouseEventArgs e)
         {
             base.OnMouseUp(e);
-            int timespan = DateTime.Now.Subtract(holdTime).Milliseconds;
+            double timespan = DateTime.Now.Subtract(holdTime).TotalMilliseconds;
 
             if (timespan <= 200)
             {
@@ -528,10 +552,42 @@ namespace UTFEditor
                 case Keys.Left:
                     SelectPrevious();
                     break;
+                case Keys.Space:
+                    PlayPause();
+                    break;
                 default:
                     e.SuppressKeyPress = false;
                     break;
             }
+        }
+
+        public int PlaybackTime = 0;
+        private MultimediaTimer playback = new MultimediaTimer();
+        DateTime startTime;
+
+        public void PlayPause()
+        {
+            if (playback.Enabled)
+            {
+                playback.Stop();
+            }
+            else
+            {
+                PlaybackTime = 0;
+                playback.Start();
+                startTime = DateTime.Now;
+            }
+        }
+
+        private void playback_Tick(object sender, EventArgs e)
+        {
+            PlaybackTime += 10;
+            if (PlaybackTime >= Timespan * 1000)
+            {
+                System.Diagnostics.Debug.WriteLine(DateTime.Now.Subtract(startTime).TotalMilliseconds);
+                playback.Stop();
+            }
+            Invalidate();
         }
     }
 }
