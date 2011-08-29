@@ -33,24 +33,23 @@
             // 
             // timeline1
             // 
-            this.timeline1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.timeline1.EventColor = System.Drawing.SystemColors.Control;
+            this.timeline1.EventColor = System.Drawing.SystemColors.ControlText;
             this.timeline1.HighlightColor = System.Drawing.SystemColors.Highlight;
             this.timeline1.Location = new System.Drawing.Point(12, 12);
             this.timeline1.Name = "timeline1";
-            this.timeline1.SecondaryForeColor = System.Drawing.SystemColors.Control;
+            this.timeline1.SecondaryBackColor = System.Drawing.SystemColors.ControlDark;
+            this.timeline1.SecondaryForeColor = System.Drawing.SystemColors.ControlText;
             this.timeline1.SelectedColor = System.Drawing.SystemColors.HotTrack;
             this.timeline1.SelectedEvent = null;
-            this.timeline1.Size = new System.Drawing.Size(148, 792);
+            this.timeline1.Size = new System.Drawing.Size(210, 759);
             this.timeline1.TabIndex = 0;
+            this.timeline1.Text = "timeline1";
             // 
             // FuseEditor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(172, 816);
+            this.ClientSize = new System.Drawing.Size(234, 783);
             this.Controls.Add(this.timeline1);
             this.Name = "FuseEditor";
             this.Text = "FuseEditor";
@@ -62,5 +61,7 @@
         #endregion
 
         private Timeline timeline1;
+
+
     }
 }

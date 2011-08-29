@@ -7,7 +7,7 @@ using System.Drawing;
 
 namespace UTFEditor
 {
-    class Timeline : Panel
+    class Timeline : Control
     {
         public class Event
         {
@@ -42,6 +42,7 @@ namespace UTFEditor
         SolidBrush eventBrush;
         SolidBrush highlightBrush;
         SolidBrush selectedBrush;
+        SolidBrush backgroundBrush;
 
         Pen primaryPen;
         Pen secondaryPen;
@@ -77,6 +78,19 @@ namespace UTFEditor
             {
                 if (value == null) return;
                 secondaryBrush.Color = value;
+            }
+        }
+
+        public Color SecondaryBackColor
+        {
+            get
+            {
+                return backgroundBrush.Color;
+            }
+            set
+            {
+                if (value == null) return;
+                backgroundBrush.Color = value;
             }
         }
 
@@ -143,13 +157,12 @@ namespace UTFEditor
         {
             SetStyle(ControlStyles.UserPaint | ControlStyles.DoubleBuffer | ControlStyles.AllPaintingInWmPaint, true);
 
-            drawFormat.Alignment = StringAlignment.Center;
-
             primaryBrush = new SolidBrush(SystemColors.ControlText);
             secondaryBrush = new SolidBrush(SystemColors.ControlText);
             eventBrush = new SolidBrush(SystemColors.ControlText);
             highlightBrush = new SolidBrush(SystemColors.Highlight);
             selectedBrush = new SolidBrush(SystemColors.HotTrack);
+            backgroundBrush = new SolidBrush(SystemColors.ControlDark);
 
             primaryPen = new Pen(primaryBrush, 1.5f);
             secondaryPen = new Pen(secondaryBrush, 1.0f);
@@ -165,7 +178,19 @@ namespace UTFEditor
             events.Add(new Event(null, 0.675f, 0.25f));
         }
 
-        int eventCursorHeight, measureDistance, smallMeasureHeight, medMeasureHeight, largeMeasureHeight, leftMargin, effectiveWidth;
+        /*protected override void OnMouseWheel(MouseEventArgs e)
+        {
+            base.OnMouseWheel(e);
+            if ((ModifierKeys & Keys.Control) != Keys.None)
+            {
+                zoom += e.Delta / 200.0f;
+
+                UpdateDisplayVars();
+                Invalidate();
+            }
+        }*/
+
+        int eventCursorHeight, backgroundCursorHeight, measureDistance, smallMeasureHeight, medMeasureHeight, largeMeasureHeight, leftMargin, effectiveWidth;
 
         private void UpdateDisplayVars()
         {
@@ -176,15 +201,26 @@ namespace UTFEditor
             {
                 w = this.Height;
                 h = this.Width;
+                drawFormat.Alignment = StringAlignment.Near;
+                drawFormat.LineAlignment = StringAlignment.Center;
+            }
+            else
+            {
+                drawFormat.Alignment = StringAlignment.Center;
+                drawFormat.LineAlignment = StringAlignment.Near;
             }
 
-            eventCursorHeight = (int)Math.Round(h * 0.6);
+            if (w == 0) w = 1;
+            if (h == 0) h = 1;
+
+            eventCursorHeight = (int)Math.Round(h * 0.4);
+            backgroundCursorHeight = (int)Math.Round(h * 0.38);
 
             measureDistance = (int)Math.Floor(((float)w) / 100);
 
-            smallMeasureHeight = (int)Math.Round(h * 0.2);
-            medMeasureHeight = (int)Math.Round(h * 0.25);
-            largeMeasureHeight = (int)Math.Round(h * 0.4);
+            smallMeasureHeight = (int)Math.Round(h * 0.05);
+            medMeasureHeight = (int)Math.Round(h * 0.1);
+            largeMeasureHeight = (int)Math.Round(h * 0.2);
 
             effectiveWidth = measureDistance * 100;
 
@@ -218,9 +254,12 @@ namespace UTFEditor
 
             if (w < h)
             {
+                e.Graphics.FillRectangle(backgroundBrush, new Rectangle(backgroundCursorHeight, leftMargin, h, effectiveWidth));
                 w = this.Height;
                 h = this.Width;
             }
+            else
+                e.Graphics.FillRectangle(backgroundBrush, new Rectangle(leftMargin, backgroundCursorHeight, effectiveWidth, h));
             
 
             foreach (Event ev in events)
@@ -239,11 +278,12 @@ namespace UTFEditor
                 bool bigline = (a - leftMargin) % (measureDistance * 10) == 0;
                 bool medline = (a - leftMargin) % (measureDistance * 2) == 0;
                 Point pt = MakePoint(a, bigline ? largeMeasureHeight : (medline ? medMeasureHeight : smallMeasureHeight));
+                PointF ptxt = MakePoint((float)a, 3 + (bigline ? largeMeasureHeight : (medline ? medMeasureHeight : smallMeasureHeight)));
                 e.Graphics.DrawLine(bigline ? primaryPen : secondaryPen, MakePoint(a, 0), pt);
                 if (bigline)
-                    e.Graphics.DrawString((((float)a - leftMargin) / effectiveWidth).ToString("0.###"), font, primaryBrush, new PointF((float)pt.X, pt.Y * 1.05f), drawFormat);
+                    e.Graphics.DrawString((((float)a - leftMargin) / effectiveWidth).ToString("0.###"), font, primaryBrush, ptxt, drawFormat);
                 else if(medline)
-                    e.Graphics.DrawString((((float)a - leftMargin) / effectiveWidth * 100 % 10).ToString("#"), fontSmall, primaryBrush, new PointF((float)pt.X, pt.Y * 1.05f), drawFormat);
+                    e.Graphics.DrawString((((float)a - leftMargin) / effectiveWidth * 100 % 10).ToString("#"), fontSmall, primaryBrush, ptxt, drawFormat);
             }
 
             if (cursor && mouseLoc != Int32.MinValue)
