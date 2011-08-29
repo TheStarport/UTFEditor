@@ -152,6 +152,14 @@ namespace UTFEditor
             }
         }
 
+        public new bool CanFocus
+        {
+            get
+            {
+                return true;
+            }
+        }
+
         public Timeline()
         {
             SetStyle(ControlStyles.UserPaint | ControlStyles.DoubleBuffer | ControlStyles.AllPaintingInWmPaint, true);
@@ -376,6 +384,7 @@ namespace UTFEditor
         protected override void OnMouseDown(MouseEventArgs e)
         {
             base.OnMouseDown(e);
+            this.Focus();
 
             holdTime = DateTime.Now;
 
@@ -441,7 +450,8 @@ namespace UTFEditor
 
         protected void OnItemAdd(ItemAddEventArgs e)
         {
-            ItemAdd(this, e);
+            if (ItemAdd != null)
+                ItemAdd(this, e);
         }
 
         public delegate void ItemAddEventHandler(object sender, ItemAddEventArgs e);
@@ -501,6 +511,27 @@ namespace UTFEditor
 
             if (n != null)
                 selected = n;
+        }
+
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            base.OnKeyDown(e);
+
+            e.SuppressKeyPress = true;
+            switch (e.KeyCode)
+            {
+                case Keys.Down:
+                case Keys.Right:
+                    SelectNext();
+                    break;
+                case Keys.Up:
+                case Keys.Left:
+                    SelectPrevious();
+                    break;
+                default:
+                    e.SuppressKeyPress = false;
+                    break;
+            }
         }
     }
 }

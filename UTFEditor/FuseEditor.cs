@@ -23,5 +23,35 @@ namespace UTFEditor
             else
                 splitFuseEditor.Orientation = Orientation.Vertical;
         }
+
+        private void splitFuseEditor_SplitterMoved(object sender, SplitterEventArgs e)
+        {
+            timeline1.Focus();
+        }
+
+        private void FuseEditor_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Control)
+            {
+                e.SuppressKeyPress = true;
+                switch (e.KeyCode)
+                {
+                    case Keys.Space:
+                        timeline1.Focus();
+                        break;
+                    case Keys.Down:
+                    case Keys.Right:
+                        timeline1.SelectNext();
+                        break;
+                    case Keys.Up:
+                    case Keys.Left:
+                        timeline1.SelectPrevious();
+                        break;
+                    default:
+                        e.SuppressKeyPress = false;
+                        break;
+                }
+            }
+        }
     }
 }
