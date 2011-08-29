@@ -16,9 +16,12 @@ namespace UTFEditor
             InitializeComponent();
         }
 
-        private void FuseEditor_Load(object sender, EventArgs e)
+        private void btnFlip_Click(object sender, EventArgs e)
         {
-
+            if (splitFuseEditor.Orientation == Orientation.Vertical)
+                splitFuseEditor.Orientation = Orientation.Horizontal;
+            else
+                splitFuseEditor.Orientation = Orientation.Vertical;
         }
     }
 }
