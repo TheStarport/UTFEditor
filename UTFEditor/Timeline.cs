@@ -9,17 +9,9 @@ namespace UTFEditor
 {
     class Timeline : ScrollableControl
     {
-        public interface IEvent
-        {
-            List<float> At
-            {
-                get;
-                set;
-            }
-        }
-
-        List<IEvent> events = new List<IEvent>();
-        IEvent selected = null;
+        int interval = 20;
+        TimelineData events;
+        object selected = null;
 
         SolidBrush primaryBrush;
         SolidBrush secondaryBrush;
@@ -132,7 +124,7 @@ namespace UTFEditor
             }
         }
 
-        public IEvent SelectedEvent
+        public object SelectedEvent
         {
             get
             {
@@ -143,14 +135,6 @@ namespace UTFEditor
                 selected = value;
                 held = null;
                 heldAt = -1;
-            }
-        }
-
-        public List<IEvent> Items
-        {
-            get
-            {
-                return events;
             }
         }
 
@@ -167,7 +151,20 @@ namespace UTFEditor
             }
         }
 
-        public float Timespan = 5.0f;
+        private float timespan = 1.0f;
+
+        public float Timespan
+        {
+            get
+            {
+                return timespan;
+            }
+            set
+            {
+                timespan = Math.Max(0, value);
+                events.Interval = interval / 1000.0f / timespan;
+            }
+        }
 
         public new bool CanFocus
         {
@@ -197,7 +194,10 @@ namespace UTFEditor
             selectedPen = new Pen(selectedBrush, 2.0f);
             playPen = new Pen(playBrush, 2.0f);
 
+            playback = new MultimediaTimer(interval);
             playback.Tick += new EventHandler(playback_Tick);
+
+            events = new TimelineData(interval / 1000.0f / timespan);
 
             UpdateDisplayVars();
         }
@@ -305,14 +305,14 @@ namespace UTFEditor
             w = (int)Math.Round(w * zoom);
             
 
-            foreach (IEvent ev in events)
+            foreach (KeyValuePair<float, object> evts in events)
             {
+                float f = evts.Key;
+                object ev = evts.Value;
+
                 Pen evp = selected == ev ? selectedPen : eventPen;
-                foreach (float f in ev.At)
-                {
-                    e.Graphics.DrawLine(evp, MakePoint((int)Math.Round(f * effectiveWidth + leftMargin), h), MakePoint((int)Math.Round(f * effectiveWidth + leftMargin), eventCursorHeight));
-                     e.Graphics.DrawString(ev.ToString(), font, selected == ev ? selectedBrush : eventBrush, MakePoint(f * effectiveWidth + leftMargin, eventCursorHeight));
-                }
+                e.Graphics.DrawLine(evp, MakePoint((int)Math.Round(f * effectiveWidth + leftMargin), h), MakePoint((int)Math.Round(f * effectiveWidth + leftMargin), eventCursorHeight));
+                e.Graphics.DrawString(ev.ToString(), font, selected == ev ? selectedBrush : eventBrush, MakePoint(f * effectiveWidth + leftMargin, eventCursorHeight));
             }
 
             for (int a = leftMargin; a <= effectiveWidth + leftMargin; a += measureDistance)
@@ -332,7 +332,7 @@ namespace UTFEditor
                 e.Graphics.DrawLine(highlightPen, MakePoint(mouseLoc, 0), MakePoint(mouseLoc, h));
 
             if (playback.Enabled)
-                e.Graphics.DrawLine(playPen, MakePoint((int)Math.Round(PlaybackTime / 1000.0f / Timespan * effectiveWidth) + leftMargin, 0), MakePoint((int)Math.Round(PlaybackTime / 1000.0f / Timespan * effectiveWidth) + leftMargin, h));
+                e.Graphics.DrawLine(playPen, MakePoint((int)Math.Round(PlaybackTime / 1000.0f / timespan * effectiveWidth) + leftMargin, 0), MakePoint((int)Math.Round(PlaybackTime / 1000.0f / timespan * effectiveWidth) + leftMargin, h));
         }
 
         protected override void OnResize(EventArgs eventargs)
@@ -369,7 +369,8 @@ namespace UTFEditor
 
                 if (timespan > 200)
                 {
-                    held.At[heldAt] = ((float)mouseLoc - leftMargin) / effectiveWidth;
+                    events.Remove(heldAt, held);
+                    events.Add(((float)mouseLoc - leftMargin) / effectiveWidth, held);
                 }
             }
 
@@ -402,8 +403,8 @@ namespace UTFEditor
         }
 
         DateTime holdTime;
-        IEvent held;
-        int heldAt = -1;
+        object held;
+        float heldAt = -1;
 
         protected override void OnMouseDown(MouseEventArgs e)
         {
@@ -412,27 +413,22 @@ namespace UTFEditor
 
             holdTime = DateTime.Now;
 
-            int loc = this.Width > this.Height ? e.X : e.Y;
+            float loc = ((this.Width > this.Height ? e.X : e.Y) - leftMargin) / effectiveWidth;
 
-            float mindist = Single.MaxValue;
+            float prev = -1;
             selected = null;
             held = null;
 
-            foreach (IEvent ev in events)
+            foreach (KeyValuePair<float, object> evts in events)
             {
-                int t = 0;
-                foreach (float f in ev.At)
+                if (Math.Abs(evts.Key - loc) >= Math.Abs(evts.Key - prev))
                 {
-                    float testdist = Math.Abs(((float)loc - leftMargin) / effectiveWidth - f);
-                    if (testdist < mindist && testdist <= 0.005f)
-                    {
-                        held = ev;
-                        heldAt = t;
-                        mindist = testdist;
-                    }
-
-                    t++;
+                    held = events[prev][0];
+                    heldAt = prev;
+                    break;
                 }
+
+                prev = evts.Key;
             }
 
             Invalidate();
@@ -482,59 +478,12 @@ namespace UTFEditor
 
         public event ItemAddEventHandler ItemAdd;
 
-        private float CurrentAt()
-        {
-            float t = 0;
-            if (selected != null && heldAt >= 0 && heldAt < selected.At.Count)
-                t = selected.At[heldAt];
-            else if (selected != null)
-                t = selected.At[0];
-
-            return t;
-        }
-
         public void SelectNext()
         {
-            float t = CurrentAt();
-            float dist = Single.MaxValue;
-            IEvent n = null;
-
-            foreach (IEvent ev in this.events)
-            {
-                foreach (float f in ev.At)
-                {
-                    if (f > t && f - t < dist)
-                    {
-                        dist = f - t;
-                        n = ev;
-                    }
-                }
-            }
-
-            if(n != null)
-                selected = n;
         }
 
         public void SelectPrevious()
         {
-            float t = CurrentAt();
-            float dist = Single.MaxValue;
-            IEvent n = null;
-
-            foreach (IEvent ev in this.events)
-            {
-                foreach (float f in ev.At)
-                {
-                    if (f < t && t - f < dist)
-                    {
-                        dist = t - f;
-                        n = ev;
-                    }
-                }
-            }
-
-            if (n != null)
-                selected = n;
         }
 
         protected override void OnKeyDown(KeyEventArgs e)
@@ -562,7 +511,7 @@ namespace UTFEditor
         }
 
         public int PlaybackTime = 0;
-        private MultimediaTimer playback = new MultimediaTimer();
+        private MultimediaTimer playback;
         DateTime startTime;
 
         public void PlayPause()
@@ -570,24 +519,213 @@ namespace UTFEditor
             if (playback.Enabled)
             {
                 playback.Stop();
+                if (Stop != null)
+                    Stop(this, new EventArgs());
             }
             else
             {
                 PlaybackTime = 0;
                 playback.Start();
                 startTime = DateTime.Now;
+                if (Play != null)
+                    Play(this, new EventArgs());
             }
+
+            Invalidate();
         }
+
+        public event EventHandler Play;
+        public event EventHandler Stop;
 
         private void playback_Tick(object sender, EventArgs e)
         {
-            PlaybackTime += 10;
-            if (PlaybackTime >= Timespan * 1000)
+            PlaybackTime += playback.Interval;
+
+            if (PlaybackTime >= timespan * 1000)
             {
-                System.Diagnostics.Debug.WriteLine(DateTime.Now.Subtract(startTime).TotalMilliseconds);
                 playback.Stop();
+
+                if (Stop != null)
+                    Stop(this, new EventArgs());
             }
+
             Invalidate();
+        }
+
+        public bool Playing
+        {
+            get
+            {
+                return playback.Enabled;
+            }
+        }
+    }
+
+    class TimelineData : ICollection<KeyValuePair<float, object>>
+    {
+        private LinkedList<KeyValuePair<float, object>> lst = new LinkedList<KeyValuePair<float, object>>();
+
+        private float interval;
+
+        public float Interval
+        {
+            get
+            {
+                return interval;
+            }
+            set
+            {
+                interval = Math.Max(0, value);
+            }
+        }
+
+        public TimelineData(float i)
+        {
+            Interval = i;
+        }
+
+        public void Add(KeyValuePair<float, object> item)
+        {
+            LinkedListNode<KeyValuePair<float, object>> n = lst.First;
+            while (n != null)
+            {
+                if (n.Value.Key > item.Key)
+                {
+                    lst.AddBefore(n, item);
+                    return;
+                }
+                n = n.Next;
+            }
+        }
+
+        public void Add(float key, object value)
+        {
+            Add(new KeyValuePair<float, object>(key, value));
+        }
+
+        public bool Remove(float key)
+        {
+            bool r = false;
+            LinkedListNode<KeyValuePair<float, object>> n = lst.First;
+            while (n != null)
+            {
+                LinkedListNode<KeyValuePair<float, object>> next = n.Next;
+
+                if (key >= n.Value.Key && key <= n.Value.Key + interval)
+                {
+                    r = true;
+                    lst.Remove(n);
+                }
+
+                n = next;
+            }
+
+            return r;
+        }
+
+        public bool Remove(float key, object value)
+        {
+            return Remove(new KeyValuePair<float, object>(key, value));
+        }
+
+        public bool Remove(KeyValuePair<float, object> item)
+        {
+            LinkedListNode<KeyValuePair<float, object>> n = lst.First;
+            while (n != null)
+            {
+                LinkedListNode<KeyValuePair<float, object>> next = n.Next;
+
+                if (item.Value == n.Value.Value && item.Key >= n.Value.Key && item.Key <= n.Value.Key + interval)
+                {
+                    lst.Remove(n);
+                    return true;
+                }
+
+                n = next;
+            }
+
+            return false;
+        }
+
+        public void Clear()
+        {
+            lst.Clear();
+        }
+
+        public bool Contains(KeyValuePair<float, object> item)
+        {
+            foreach (KeyValuePair<float, object> k in lst)
+            {
+                if (k.Key == item.Key && k.Value == item.Value)
+                    return true;
+            }
+
+            return false;
+        }
+
+        public void CopyTo(KeyValuePair<float, object>[] array, int arrayIndex)
+        {
+            int a = arrayIndex;
+            foreach (KeyValuePair<float, object> k in lst)
+            {
+                array[a] = k;
+
+                a++;
+                if (a == array.Length) return;
+            }
+        }
+
+        public int Count
+        {
+            get { return lst.Count; }
+        }
+
+        public bool IsReadOnly
+        {
+            get { return false; }
+        }
+
+        public IEnumerator<KeyValuePair<float, object>> GetEnumerator()
+        {
+            return lst.GetEnumerator();
+        }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        {
+            return lst.GetEnumerator();
+        }
+
+        public List<KeyValuePair<float, object>> this[float key]
+        {
+            get
+            {
+                List<KeyValuePair<float, object>> o = new List<KeyValuePair<float,object>>();
+
+                LinkedListNode<KeyValuePair<float, object>> n = lst.First;
+                while (n != null)
+                {
+                    if (key >= n.Value.Key && key <= n.Value.Key + interval)
+                        o.Add(n.Value);
+
+                    n = n.Next;
+                }
+
+                return o;
+            }
+        }
+
+        public LinkedListNode<KeyValuePair<float, object>> GetNode(float key, object value)
+        {
+            LinkedListNode<KeyValuePair<float, object>> n = lst.First;
+            while (n != null)
+            {
+                if (key >= n.Value.Key && key <= n.Value.Key + interval && value == n.Value.Value)
+                    return n;
+
+                n = n.Next;
+            }
+
+            return null;
         }
     }
 }

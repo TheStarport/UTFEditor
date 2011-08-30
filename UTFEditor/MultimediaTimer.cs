@@ -17,7 +17,7 @@ namespace UTFEditor
         public event EventHandler Tick;
 
         private const int TIME_PERIODIC = 1;
-        private const int EVENT_TYPE = TIME_PERIODIC;// + 0x100;
+        private const int EVENT_TYPE = TIME_PERIODIC;
 
         [DllImport("winmm.dll")]
         private static extern int timeSetEvent(int delay, int resolution, TimerEventHandler handler, IntPtr user, int eventType);
@@ -31,7 +31,7 @@ namespace UTFEditor
         [DllImport("winmm.dll")]
         private static extern int timeEndPeriod(int msec);
 
-        private int interval = 10;
+        private int interval = 1;
         public int Interval
         {
             get
@@ -48,8 +48,9 @@ namespace UTFEditor
 
         private int timerID = 0;
 
-        public MultimediaTimer()
+        public MultimediaTimer(int i)
         {
+            Interval = i;
         }
 
         public void Start()
