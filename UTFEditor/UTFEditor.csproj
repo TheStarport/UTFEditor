@@ -316,7 +316,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="flutf.ico" />
+    <None Include="PlayHS.png" />
+    <None Include="PauseHS.png" />
     <Content Include="Readme.txt" />
+    <None Include="StopHS.png" />
     <None Include="Resources\ModelViewHelp.txt" />
     <None Include="Resources\backgroundpattern.bmp" />
   </ItemGroup>

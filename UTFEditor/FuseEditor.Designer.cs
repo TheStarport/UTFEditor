@@ -30,6 +30,7 @@
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FuseEditor));
             this.splitFuseEditor = new System.Windows.Forms.SplitContainer();
+            this.btnPlayPause = new System.Windows.Forms.Button();
             this.btnFlip = new System.Windows.Forms.Button();
             this.comboEvents = new System.Windows.Forms.ComboBox();
             this.btnNext = new System.Windows.Forms.Button();
@@ -48,23 +49,37 @@
             // 
             // splitFuseEditor.Panel1
             // 
+            this.splitFuseEditor.Panel1.Controls.Add(this.btnPlayPause);
             this.splitFuseEditor.Panel1.Controls.Add(this.btnFlip);
             this.splitFuseEditor.Panel1.Controls.Add(this.comboEvents);
             this.splitFuseEditor.Panel1.Controls.Add(this.btnNext);
             this.splitFuseEditor.Panel1.Controls.Add(this.btnPrev);
             this.splitFuseEditor.Panel1.Controls.Add(this.timeline1);
             this.splitFuseEditor.Panel1MinSize = 150;
-            this.splitFuseEditor.Size = new System.Drawing.Size(697, 783);
+            this.splitFuseEditor.Size = new System.Drawing.Size(697, 706);
             this.splitFuseEditor.SplitterDistance = 200;
             this.splitFuseEditor.TabIndex = 0;
             this.splitFuseEditor.SplitterMoved += new System.Windows.Forms.SplitterEventHandler(this.splitFuseEditor_SplitterMoved);
+            // 
+            // btnPlayPause
+            // 
+            this.btnPlayPause.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btnPlayPause.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnPlayPause.Image = global::UTFEditor.Properties.Resources.PlayHS;
+            this.btnPlayPause.Location = new System.Drawing.Point(42, 630);
+            this.btnPlayPause.Name = "btnPlayPause";
+            this.btnPlayPause.Size = new System.Drawing.Size(24, 28);
+            this.btnPlayPause.TabIndex = 9;
+            this.btnPlayPause.TextAlign = System.Drawing.ContentAlignment.TopCenter;
+            this.btnPlayPause.UseVisualStyleBackColor = true;
+            this.btnPlayPause.Click += new System.EventHandler(this.btnPlayPause_Click);
             // 
             // btnFlip
             // 
             this.btnFlip.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnFlip.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.btnFlip.Image = ((System.Drawing.Image)(resources.GetObject("btnFlip.Image")));
-            this.btnFlip.Location = new System.Drawing.Point(12, 737);
+            this.btnFlip.Location = new System.Drawing.Point(12, 630);
             this.btnFlip.Name = "btnFlip";
             this.btnFlip.Size = new System.Drawing.Size(24, 28);
             this.btnFlip.TabIndex = 8;
@@ -79,9 +94,9 @@
             this.comboEvents.AutoCompleteMode = System.Windows.Forms.AutoCompleteMode.Suggest;
             this.comboEvents.AutoCompleteSource = System.Windows.Forms.AutoCompleteSource.ListItems;
             this.comboEvents.FormattingEnabled = true;
-            this.comboEvents.Location = new System.Drawing.Point(72, 744);
+            this.comboEvents.Location = new System.Drawing.Point(42, 667);
             this.comboEvents.Name = "comboEvents";
-            this.comboEvents.Size = new System.Drawing.Size(93, 21);
+            this.comboEvents.Size = new System.Drawing.Size(123, 21);
             this.comboEvents.Sorted = true;
             this.comboEvents.TabIndex = 7;
             // 
@@ -89,7 +104,7 @@
             // 
             this.btnNext.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btnNext.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnNext.Location = new System.Drawing.Point(171, 741);
+            this.btnNext.Location = new System.Drawing.Point(171, 664);
             this.btnNext.Name = "btnNext";
             this.btnNext.Size = new System.Drawing.Size(24, 28);
             this.btnNext.TabIndex = 6;
@@ -101,7 +116,7 @@
             // 
             this.btnPrev.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnPrev.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnPrev.Location = new System.Drawing.Point(42, 737);
+            this.btnPrev.Location = new System.Drawing.Point(12, 664);
             this.btnPrev.Name = "btnPrev";
             this.btnPrev.Size = new System.Drawing.Size(24, 28);
             this.btnPrev.TabIndex = 5;
@@ -115,25 +130,29 @@
                         | System.Windows.Forms.AnchorStyles.Left)
                         | System.Windows.Forms.AnchorStyles.Right)));
             this.timeline1.AutoScroll = true;
-            this.timeline1.AutoScrollMinSize = new System.Drawing.Size(0, 723);
+            this.timeline1.AutoScrollMinSize = new System.Drawing.Size(0, 612);
             this.timeline1.EventColor = System.Drawing.SystemColors.ControlText;
             this.timeline1.HighlightColor = System.Drawing.SystemColors.Highlight;
             this.timeline1.Location = new System.Drawing.Point(12, 12);
             this.timeline1.Name = "timeline1";
+            this.timeline1.PlayColor = System.Drawing.Color.Green;
             this.timeline1.SecondaryBackColor = System.Drawing.SystemColors.ControlDark;
             this.timeline1.SecondaryForeColor = System.Drawing.SystemColors.ControlText;
             this.timeline1.SelectedColor = System.Drawing.Color.Red;
             this.timeline1.SelectedEvent = null;
-            this.timeline1.Size = new System.Drawing.Size(183, 723);
+            this.timeline1.Size = new System.Drawing.Size(183, 612);
             this.timeline1.TabIndex = 4;
             this.timeline1.Text = "timeline1";
+            this.timeline1.Timespan = 1F;
             this.timeline1.Zoom = 1F;
+            this.timeline1.Stop += new System.EventHandler(this.timeline1_Stop);
+            this.timeline1.Play += new System.EventHandler(this.timeline1_Play);
             // 
             // FuseEditor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(697, 783);
+            this.ClientSize = new System.Drawing.Size(697, 706);
             this.Controls.Add(this.splitFuseEditor);
             this.KeyPreview = true;
             this.Name = "FuseEditor";
@@ -153,6 +172,7 @@
         private System.Windows.Forms.Button btnPrev;
         private Timeline timeline1;
         private System.Windows.Forms.Button btnFlip;
+        private System.Windows.Forms.Button btnPlayPause;
 
 
 

@@ -53,5 +53,20 @@ namespace UTFEditor
                 }
             }
         }
+
+        private void btnPlayPause_Click(object sender, EventArgs e)
+        {
+            timeline1.PlayPause();
+        }
+
+        private void timeline1_Play(object sender, EventArgs e)
+        {
+            btnPlayPause.Image = global::UTFEditor.Properties.Resources.StopHS;
+        }
+
+        private void timeline1_Stop(object sender, EventArgs e)
+        {
+            btnPlayPause.Image = global::UTFEditor.Properties.Resources.PlayHS;
+        }
     }
 }
