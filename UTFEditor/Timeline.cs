@@ -536,6 +536,7 @@ namespace UTFEditor
 
         public event EventHandler Play;
         public event EventHandler Stop;
+        public event PlayEventEventHandler PlayEvent;
 
         private void playback_Tick(object sender, EventArgs e)
         {
@@ -549,6 +550,13 @@ namespace UTFEditor
                     Stop(this, new EventArgs());
             }
 
+            if (PlayEvent != null)
+            {
+                List<KeyValuePair<float, object>> plevs = events[PlaybackTime];
+                foreach (KeyValuePair<float, object> evt in plevs)
+                    PlayEvent(this, new PlayEventEventArgs(evt.Value));
+            }
+
             Invalidate();
         }
 
@@ -557,6 +565,18 @@ namespace UTFEditor
             get
             {
                 return playback.Enabled;
+            }
+        }
+
+        public delegate void PlayEventEventHandler(object sender, PlayEventEventArgs e);
+
+        public class PlayEventEventArgs : EventArgs
+        {
+            public object Event;
+
+            public PlayEventEventArgs(object ev)
+            {
+                Event = ev;
             }
         }
     }
