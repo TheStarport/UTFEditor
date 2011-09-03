@@ -36,8 +36,31 @@
             this.btnNext = new System.Windows.Forms.Button();
             this.btnPrev = new System.Windows.Forms.Button();
             this.timeline1 = new UTFEditor.Timeline();
+            this.label1 = new System.Windows.Forms.Label();
+            this.comboType = new System.Windows.Forms.ComboBox();
+            this.panelEffect = new System.Windows.Forms.FlowLayoutPanel();
+            this.label4 = new System.Windows.Forms.Label();
+            this.comboEffect = new System.Windows.Forms.ComboBox();
+            this.chkEffectAttached = new System.Windows.Forms.CheckBox();
+            this.grpEffectTimings = new System.Windows.Forms.GroupBox();
+            this.txtEffectAddTiming = new System.Windows.Forms.TextBox();
+            this.btnEffectRemoveTiming = new System.Windows.Forms.Button();
+            this.btnEffectAddTiming = new System.Windows.Forms.Button();
+            this.lstEffectTimings = new System.Windows.Forms.ListBox();
+            this.grpEffectHardpoints = new System.Windows.Forms.GroupBox();
+            this.dataGridView1 = new System.Windows.Forms.DataGridView();
+            this.colEffectHardpoint = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colEffectHardpointOri = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colEffectHardpointPos = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.btnEffectRemoveHardpoint = new System.Windows.Forms.Button();
+            this.btnEffectAddHardpoint = new System.Windows.Forms.Button();
             this.splitFuseEditor.Panel1.SuspendLayout();
+            this.splitFuseEditor.Panel2.SuspendLayout();
             this.splitFuseEditor.SuspendLayout();
+            this.panelEffect.SuspendLayout();
+            this.grpEffectTimings.SuspendLayout();
+            this.grpEffectHardpoints.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
             // splitFuseEditor
@@ -56,6 +79,12 @@
             this.splitFuseEditor.Panel1.Controls.Add(this.btnPrev);
             this.splitFuseEditor.Panel1.Controls.Add(this.timeline1);
             this.splitFuseEditor.Panel1MinSize = 150;
+            // 
+            // splitFuseEditor.Panel2
+            // 
+            this.splitFuseEditor.Panel2.Controls.Add(this.panelEffect);
+            this.splitFuseEditor.Panel2.Controls.Add(this.comboType);
+            this.splitFuseEditor.Panel2.Controls.Add(this.label1);
             this.splitFuseEditor.Size = new System.Drawing.Size(697, 706);
             this.splitFuseEditor.SplitterDistance = 200;
             this.splitFuseEditor.TabIndex = 0;
@@ -148,6 +177,201 @@
             this.timeline1.Stop += new System.EventHandler(this.timeline1_Stop);
             this.timeline1.Play += new System.EventHandler(this.timeline1_Play);
             // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label1.Location = new System.Drawing.Point(3, 8);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(84, 17);
+            this.label1.TabIndex = 0;
+            this.label1.Text = "Event Type:";
+            // 
+            // comboType
+            // 
+            this.comboType.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.comboType.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.comboType.FormattingEnabled = true;
+            this.comboType.Location = new System.Drawing.Point(93, 5);
+            this.comboType.Name = "comboType";
+            this.comboType.Size = new System.Drawing.Size(387, 24);
+            this.comboType.TabIndex = 1;
+            // 
+            // panelEffect
+            // 
+            this.panelEffect.AutoScroll = true;
+            this.panelEffect.Controls.Add(this.label4);
+            this.panelEffect.Controls.Add(this.comboEffect);
+            this.panelEffect.Controls.Add(this.chkEffectAttached);
+            this.panelEffect.Controls.Add(this.grpEffectTimings);
+            this.panelEffect.Controls.Add(this.grpEffectHardpoints);
+            this.panelEffect.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
+            this.panelEffect.Location = new System.Drawing.Point(6, 35);
+            this.panelEffect.Name = "panelEffect";
+            this.panelEffect.Size = new System.Drawing.Size(474, 658);
+            this.panelEffect.TabIndex = 2;
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(3, 0);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(35, 13);
+            this.label4.TabIndex = 5;
+            this.label4.Text = "Effect";
+            // 
+            // comboEffect
+            // 
+            this.comboEffect.FormattingEnabled = true;
+            this.comboEffect.Location = new System.Drawing.Point(3, 16);
+            this.comboEffect.Name = "comboEffect";
+            this.comboEffect.Size = new System.Drawing.Size(121, 21);
+            this.comboEffect.TabIndex = 6;
+            // 
+            // chkEffectAttached
+            // 
+            this.chkEffectAttached.AutoSize = true;
+            this.chkEffectAttached.Location = new System.Drawing.Point(3, 43);
+            this.chkEffectAttached.Name = "chkEffectAttached";
+            this.chkEffectAttached.Size = new System.Drawing.Size(69, 17);
+            this.chkEffectAttached.TabIndex = 7;
+            this.chkEffectAttached.Text = "Attached";
+            this.chkEffectAttached.UseVisualStyleBackColor = true;
+            // 
+            // grpEffectTimings
+            // 
+            this.grpEffectTimings.Controls.Add(this.txtEffectAddTiming);
+            this.grpEffectTimings.Controls.Add(this.btnEffectRemoveTiming);
+            this.grpEffectTimings.Controls.Add(this.btnEffectAddTiming);
+            this.grpEffectTimings.Controls.Add(this.lstEffectTimings);
+            this.grpEffectTimings.Location = new System.Drawing.Point(3, 66);
+            this.grpEffectTimings.Name = "grpEffectTimings";
+            this.grpEffectTimings.Size = new System.Drawing.Size(191, 254);
+            this.grpEffectTimings.TabIndex = 8;
+            this.grpEffectTimings.TabStop = false;
+            this.grpEffectTimings.Text = "Timings";
+            // 
+            // txtEffectAddTiming
+            // 
+            this.txtEffectAddTiming.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtEffectAddTiming.Location = new System.Drawing.Point(6, 219);
+            this.txtEffectAddTiming.Name = "txtEffectAddTiming";
+            this.txtEffectAddTiming.Size = new System.Drawing.Size(54, 20);
+            this.txtEffectAddTiming.TabIndex = 12;
+            // 
+            // btnEffectRemoveTiming
+            // 
+            this.btnEffectRemoveTiming.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnEffectRemoveTiming.Location = new System.Drawing.Point(123, 217);
+            this.btnEffectRemoveTiming.Name = "btnEffectRemoveTiming";
+            this.btnEffectRemoveTiming.Size = new System.Drawing.Size(62, 23);
+            this.btnEffectRemoveTiming.TabIndex = 11;
+            this.btnEffectRemoveTiming.Text = "Remove";
+            this.btnEffectRemoveTiming.UseVisualStyleBackColor = true;
+            // 
+            // btnEffectAddTiming
+            // 
+            this.btnEffectAddTiming.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnEffectAddTiming.Location = new System.Drawing.Point(66, 216);
+            this.btnEffectAddTiming.Name = "btnEffectAddTiming";
+            this.btnEffectAddTiming.Size = new System.Drawing.Size(51, 23);
+            this.btnEffectAddTiming.TabIndex = 10;
+            this.btnEffectAddTiming.Text = "Add";
+            this.btnEffectAddTiming.UseVisualStyleBackColor = true;
+            // 
+            // lstEffectTimings
+            // 
+            this.lstEffectTimings.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.lstEffectTimings.FormattingEnabled = true;
+            this.lstEffectTimings.Location = new System.Drawing.Point(6, 14);
+            this.lstEffectTimings.Name = "lstEffectTimings";
+            this.lstEffectTimings.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
+            this.lstEffectTimings.Size = new System.Drawing.Size(179, 199);
+            this.lstEffectTimings.TabIndex = 9;
+            // 
+            // grpEffectHardpoints
+            // 
+            this.grpEffectHardpoints.Controls.Add(this.dataGridView1);
+            this.grpEffectHardpoints.Controls.Add(this.btnEffectRemoveHardpoint);
+            this.grpEffectHardpoints.Controls.Add(this.btnEffectAddHardpoint);
+            this.grpEffectHardpoints.Location = new System.Drawing.Point(3, 326);
+            this.grpEffectHardpoints.Name = "grpEffectHardpoints";
+            this.grpEffectHardpoints.Size = new System.Drawing.Size(448, 309);
+            this.grpEffectHardpoints.TabIndex = 9;
+            this.grpEffectHardpoints.TabStop = false;
+            this.grpEffectHardpoints.Text = "Hardpoints";
+            // 
+            // dataGridView1
+            // 
+            this.dataGridView1.AllowUserToAddRows = false;
+            this.dataGridView1.AllowUserToDeleteRows = false;
+            this.dataGridView1.AllowUserToResizeRows = false;
+            this.dataGridView1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.dataGridView1.ClipboardCopyMode = System.Windows.Forms.DataGridViewClipboardCopyMode.Disable;
+            this.dataGridView1.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dataGridView1.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.colEffectHardpoint,
+            this.colEffectHardpointOri,
+            this.colEffectHardpointPos});
+            this.dataGridView1.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnEnter;
+            this.dataGridView1.Location = new System.Drawing.Point(6, 19);
+            this.dataGridView1.Name = "dataGridView1";
+            this.dataGridView1.RowHeadersVisible = false;
+            this.dataGridView1.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.dataGridView1.ShowCellErrors = false;
+            this.dataGridView1.ShowCellToolTips = false;
+            this.dataGridView1.ShowEditingIcon = false;
+            this.dataGridView1.ShowRowErrors = false;
+            this.dataGridView1.Size = new System.Drawing.Size(436, 255);
+            this.dataGridView1.TabIndex = 7;
+            // 
+            // colEffectHardpoint
+            // 
+            this.colEffectHardpoint.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.colEffectHardpoint.HeaderText = "Hardpoint";
+            this.colEffectHardpoint.Name = "colEffectHardpoint";
+            this.colEffectHardpoint.ReadOnly = true;
+            // 
+            // colEffectHardpointOri
+            // 
+            this.colEffectHardpointOri.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            this.colEffectHardpointOri.HeaderText = "Orientation Offset";
+            this.colEffectHardpointOri.Name = "colEffectHardpointOri";
+            this.colEffectHardpointOri.Width = 120;
+            // 
+            // colEffectHardpointPos
+            // 
+            this.colEffectHardpointPos.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.None;
+            this.colEffectHardpointPos.HeaderText = "Position Offset";
+            this.colEffectHardpointPos.Name = "colEffectHardpointPos";
+            this.colEffectHardpointPos.Width = 120;
+            // 
+            // btnEffectRemoveHardpoint
+            // 
+            this.btnEffectRemoveHardpoint.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnEffectRemoveHardpoint.Location = new System.Drawing.Point(317, 280);
+            this.btnEffectRemoveHardpoint.Name = "btnEffectRemoveHardpoint";
+            this.btnEffectRemoveHardpoint.Size = new System.Drawing.Size(125, 23);
+            this.btnEffectRemoveHardpoint.TabIndex = 6;
+            this.btnEffectRemoveHardpoint.Text = "Remove";
+            this.btnEffectRemoveHardpoint.UseVisualStyleBackColor = true;
+            // 
+            // btnEffectAddHardpoint
+            // 
+            this.btnEffectAddHardpoint.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btnEffectAddHardpoint.Location = new System.Drawing.Point(6, 280);
+            this.btnEffectAddHardpoint.Name = "btnEffectAddHardpoint";
+            this.btnEffectAddHardpoint.Size = new System.Drawing.Size(125, 23);
+            this.btnEffectAddHardpoint.TabIndex = 5;
+            this.btnEffectAddHardpoint.Text = "Add";
+            this.btnEffectAddHardpoint.UseVisualStyleBackColor = true;
+            // 
             // FuseEditor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -159,7 +383,15 @@
             this.Text = "FuseEditor";
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.FuseEditor_KeyDown);
             this.splitFuseEditor.Panel1.ResumeLayout(false);
+            this.splitFuseEditor.Panel2.ResumeLayout(false);
+            this.splitFuseEditor.Panel2.PerformLayout();
             this.splitFuseEditor.ResumeLayout(false);
+            this.panelEffect.ResumeLayout(false);
+            this.panelEffect.PerformLayout();
+            this.grpEffectTimings.ResumeLayout(false);
+            this.grpEffectTimings.PerformLayout();
+            this.grpEffectHardpoints.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -173,6 +405,24 @@
         private Timeline timeline1;
         private System.Windows.Forms.Button btnFlip;
         private System.Windows.Forms.Button btnPlayPause;
+        private System.Windows.Forms.ComboBox comboType;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.FlowLayoutPanel panelEffect;
+        private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.ComboBox comboEffect;
+        private System.Windows.Forms.CheckBox chkEffectAttached;
+        private System.Windows.Forms.GroupBox grpEffectTimings;
+        private System.Windows.Forms.TextBox txtEffectAddTiming;
+        private System.Windows.Forms.Button btnEffectRemoveTiming;
+        private System.Windows.Forms.Button btnEffectAddTiming;
+        private System.Windows.Forms.ListBox lstEffectTimings;
+        private System.Windows.Forms.GroupBox grpEffectHardpoints;
+        private System.Windows.Forms.DataGridView dataGridView1;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colEffectHardpoint;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colEffectHardpointOri;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colEffectHardpointPos;
+        private System.Windows.Forms.Button btnEffectRemoveHardpoint;
+        private System.Windows.Forms.Button btnEffectAddHardpoint;
 
 
 

@@ -22,6 +22,8 @@ namespace UTFEditor
                 splitFuseEditor.Orientation = Orientation.Horizontal;
             else
                 splitFuseEditor.Orientation = Orientation.Vertical;
+
+            timeline1.Zoom = 1;
         }
 
         private void splitFuseEditor_SplitterMoved(object sender, SplitterEventArgs e)
