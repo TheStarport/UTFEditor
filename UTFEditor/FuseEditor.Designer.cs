@@ -35,9 +35,6 @@
             this.comboEvents = new System.Windows.Forms.ComboBox();
             this.btnNext = new System.Windows.Forms.Button();
             this.btnPrev = new System.Windows.Forms.Button();
-            this.timeline1 = new UTFEditor.Timeline();
-            this.label1 = new System.Windows.Forms.Label();
-            this.comboType = new System.Windows.Forms.ComboBox();
             this.panelEffect = new System.Windows.Forms.FlowLayoutPanel();
             this.label4 = new System.Windows.Forms.Label();
             this.comboEffect = new System.Windows.Forms.ComboBox();
@@ -54,6 +51,9 @@
             this.colEffectHardpointPos = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.btnEffectRemoveHardpoint = new System.Windows.Forms.Button();
             this.btnEffectAddHardpoint = new System.Windows.Forms.Button();
+            this.comboType = new System.Windows.Forms.ComboBox();
+            this.label1 = new System.Windows.Forms.Label();
+            this.timeline1 = new UTFEditor.Timeline();
             this.splitFuseEditor.Panel1.SuspendLayout();
             this.splitFuseEditor.Panel2.SuspendLayout();
             this.splitFuseEditor.SuspendLayout();
@@ -153,53 +153,11 @@
             this.btnPrev.TextAlign = System.Drawing.ContentAlignment.TopCenter;
             this.btnPrev.UseVisualStyleBackColor = true;
             // 
-            // timeline1
-            // 
-            this.timeline1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.timeline1.AutoScroll = true;
-            this.timeline1.AutoScrollMinSize = new System.Drawing.Size(0, 612);
-            this.timeline1.EventColor = System.Drawing.SystemColors.ControlText;
-            this.timeline1.HighlightColor = System.Drawing.SystemColors.Highlight;
-            this.timeline1.Location = new System.Drawing.Point(12, 12);
-            this.timeline1.Name = "timeline1";
-            this.timeline1.PlayColor = System.Drawing.Color.Green;
-            this.timeline1.SecondaryBackColor = System.Drawing.SystemColors.ControlDark;
-            this.timeline1.SecondaryForeColor = System.Drawing.SystemColors.ControlText;
-            this.timeline1.SelectedColor = System.Drawing.Color.Red;
-            this.timeline1.SelectedEvent = null;
-            this.timeline1.Size = new System.Drawing.Size(183, 612);
-            this.timeline1.TabIndex = 4;
-            this.timeline1.Text = "timeline1";
-            this.timeline1.Timespan = 1F;
-            this.timeline1.Zoom = 1F;
-            this.timeline1.Stop += new System.EventHandler(this.timeline1_Stop);
-            this.timeline1.Play += new System.EventHandler(this.timeline1_Play);
-            // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(3, 8);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(84, 17);
-            this.label1.TabIndex = 0;
-            this.label1.Text = "Event Type:";
-            // 
-            // comboType
-            // 
-            this.comboType.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.comboType.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.comboType.FormattingEnabled = true;
-            this.comboType.Location = new System.Drawing.Point(93, 5);
-            this.comboType.Name = "comboType";
-            this.comboType.Size = new System.Drawing.Size(387, 24);
-            this.comboType.TabIndex = 1;
-            // 
             // panelEffect
             // 
+            this.panelEffect.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
             this.panelEffect.AutoScroll = true;
             this.panelEffect.Controls.Add(this.label4);
             this.panelEffect.Controls.Add(this.comboEffect);
@@ -225,14 +183,16 @@
             // 
             this.comboEffect.FormattingEnabled = true;
             this.comboEffect.Location = new System.Drawing.Point(3, 16);
+            this.comboEffect.MinimumSize = new System.Drawing.Size(250, 0);
             this.comboEffect.Name = "comboEffect";
-            this.comboEffect.Size = new System.Drawing.Size(121, 21);
+            this.comboEffect.Size = new System.Drawing.Size(250, 21);
             this.comboEffect.TabIndex = 6;
             // 
             // chkEffectAttached
             // 
             this.chkEffectAttached.AutoSize = true;
             this.chkEffectAttached.Location = new System.Drawing.Point(3, 43);
+            this.chkEffectAttached.MinimumSize = new System.Drawing.Size(69, 0);
             this.chkEffectAttached.Name = "chkEffectAttached";
             this.chkEffectAttached.Size = new System.Drawing.Size(69, 17);
             this.chkEffectAttached.TabIndex = 7;
@@ -246,8 +206,9 @@
             this.grpEffectTimings.Controls.Add(this.btnEffectAddTiming);
             this.grpEffectTimings.Controls.Add(this.lstEffectTimings);
             this.grpEffectTimings.Location = new System.Drawing.Point(3, 66);
+            this.grpEffectTimings.MinimumSize = new System.Drawing.Size(190, 0);
             this.grpEffectTimings.Name = "grpEffectTimings";
-            this.grpEffectTimings.Size = new System.Drawing.Size(191, 254);
+            this.grpEffectTimings.Size = new System.Drawing.Size(190, 254);
             this.grpEffectTimings.TabIndex = 8;
             this.grpEffectTimings.TabStop = false;
             this.grpEffectTimings.Text = "Timings";
@@ -258,13 +219,13 @@
                         | System.Windows.Forms.AnchorStyles.Right)));
             this.txtEffectAddTiming.Location = new System.Drawing.Point(6, 219);
             this.txtEffectAddTiming.Name = "txtEffectAddTiming";
-            this.txtEffectAddTiming.Size = new System.Drawing.Size(54, 20);
+            this.txtEffectAddTiming.Size = new System.Drawing.Size(53, 20);
             this.txtEffectAddTiming.TabIndex = 12;
             // 
             // btnEffectRemoveTiming
             // 
             this.btnEffectRemoveTiming.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnEffectRemoveTiming.Location = new System.Drawing.Point(123, 217);
+            this.btnEffectRemoveTiming.Location = new System.Drawing.Point(122, 217);
             this.btnEffectRemoveTiming.Name = "btnEffectRemoveTiming";
             this.btnEffectRemoveTiming.Size = new System.Drawing.Size(62, 23);
             this.btnEffectRemoveTiming.TabIndex = 11;
@@ -274,7 +235,7 @@
             // btnEffectAddTiming
             // 
             this.btnEffectAddTiming.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnEffectAddTiming.Location = new System.Drawing.Point(66, 216);
+            this.btnEffectAddTiming.Location = new System.Drawing.Point(65, 216);
             this.btnEffectAddTiming.Name = "btnEffectAddTiming";
             this.btnEffectAddTiming.Size = new System.Drawing.Size(51, 23);
             this.btnEffectAddTiming.TabIndex = 10;
@@ -290,7 +251,7 @@
             this.lstEffectTimings.Location = new System.Drawing.Point(6, 14);
             this.lstEffectTimings.Name = "lstEffectTimings";
             this.lstEffectTimings.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
-            this.lstEffectTimings.Size = new System.Drawing.Size(179, 199);
+            this.lstEffectTimings.Size = new System.Drawing.Size(178, 199);
             this.lstEffectTimings.TabIndex = 9;
             // 
             // grpEffectHardpoints
@@ -299,8 +260,9 @@
             this.grpEffectHardpoints.Controls.Add(this.btnEffectRemoveHardpoint);
             this.grpEffectHardpoints.Controls.Add(this.btnEffectAddHardpoint);
             this.grpEffectHardpoints.Location = new System.Drawing.Point(3, 326);
+            this.grpEffectHardpoints.MinimumSize = new System.Drawing.Size(337, 0);
             this.grpEffectHardpoints.Name = "grpEffectHardpoints";
-            this.grpEffectHardpoints.Size = new System.Drawing.Size(448, 309);
+            this.grpEffectHardpoints.Size = new System.Drawing.Size(337, 309);
             this.grpEffectHardpoints.TabIndex = 9;
             this.grpEffectHardpoints.TabStop = false;
             this.grpEffectHardpoints.Text = "Hardpoints";
@@ -328,7 +290,7 @@
             this.dataGridView1.ShowCellToolTips = false;
             this.dataGridView1.ShowEditingIcon = false;
             this.dataGridView1.ShowRowErrors = false;
-            this.dataGridView1.Size = new System.Drawing.Size(436, 255);
+            this.dataGridView1.Size = new System.Drawing.Size(325, 255);
             this.dataGridView1.TabIndex = 7;
             // 
             // colEffectHardpoint
@@ -355,7 +317,7 @@
             // btnEffectRemoveHardpoint
             // 
             this.btnEffectRemoveHardpoint.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnEffectRemoveHardpoint.Location = new System.Drawing.Point(317, 280);
+            this.btnEffectRemoveHardpoint.Location = new System.Drawing.Point(206, 280);
             this.btnEffectRemoveHardpoint.Name = "btnEffectRemoveHardpoint";
             this.btnEffectRemoveHardpoint.Size = new System.Drawing.Size(125, 23);
             this.btnEffectRemoveHardpoint.TabIndex = 6;
@@ -371,6 +333,51 @@
             this.btnEffectAddHardpoint.TabIndex = 5;
             this.btnEffectAddHardpoint.Text = "Add";
             this.btnEffectAddHardpoint.UseVisualStyleBackColor = true;
+            // 
+            // comboType
+            // 
+            this.comboType.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.comboType.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.comboType.FormattingEnabled = true;
+            this.comboType.Location = new System.Drawing.Point(93, 5);
+            this.comboType.Name = "comboType";
+            this.comboType.Size = new System.Drawing.Size(387, 24);
+            this.comboType.TabIndex = 1;
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.label1.Location = new System.Drawing.Point(3, 8);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(84, 17);
+            this.label1.TabIndex = 0;
+            this.label1.Text = "Event Type:";
+            // 
+            // timeline1
+            // 
+            this.timeline1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.timeline1.AutoScroll = true;
+            this.timeline1.AutoScrollMinSize = new System.Drawing.Size(0, 612);
+            this.timeline1.EventColor = System.Drawing.SystemColors.ControlText;
+            this.timeline1.HighlightColor = System.Drawing.SystemColors.Highlight;
+            this.timeline1.Location = new System.Drawing.Point(12, 12);
+            this.timeline1.Name = "timeline1";
+            this.timeline1.PlayColor = System.Drawing.Color.Green;
+            this.timeline1.SecondaryBackColor = System.Drawing.SystemColors.ControlDark;
+            this.timeline1.SecondaryForeColor = System.Drawing.SystemColors.ControlText;
+            this.timeline1.SelectedColor = System.Drawing.Color.Red;
+            this.timeline1.SelectedEvent = null;
+            this.timeline1.Size = new System.Drawing.Size(183, 612);
+            this.timeline1.TabIndex = 4;
+            this.timeline1.Text = "timeline1";
+            this.timeline1.Timespan = 1F;
+            this.timeline1.Zoom = 1F;
+            this.timeline1.Stop += new System.EventHandler(this.timeline1_Stop);
+            this.timeline1.Play += new System.EventHandler(this.timeline1_Play);
             // 
             // FuseEditor
             // 
