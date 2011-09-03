@@ -148,6 +148,9 @@ namespace UTFEditor
             set
             {
                 zoom = Math.Max(1, value);
+
+                UpdateDisplayVars();
+                Invalidate();
             }
         }
 
@@ -230,11 +233,13 @@ namespace UTFEditor
             int w = this.Width;
             int h = this.Height;
             int dw = this.AutoScrollPosition.X;
+            bool rev = false;
 
             if (w < h)
             {
                 w = this.Height;
                 h = this.Width;
+                rev = true;
                 dw = this.AutoScrollPosition.Y;
                 drawFormat.Alignment = StringAlignment.Near;
                 drawFormat.LineAlignment = StringAlignment.Center;
@@ -262,10 +267,10 @@ namespace UTFEditor
 
             leftMargin = (w - effectiveWidth) / 2 + dw;
 
-            if (w < h)
-                this.AutoScrollMinSize = new Size((int)w, 0);
+            if (rev)
+                this.AutoScrollMinSize = new Size(0, w);
             else
-                this.AutoScrollMinSize = new Size(0, (int)w);
+                this.AutoScrollMinSize = new Size(w, 0);
         }
 
         private Point MakePoint(int x, int y)
