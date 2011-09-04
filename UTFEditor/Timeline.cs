@@ -124,7 +124,7 @@ namespace UTFEditor
             }
         }
 
-        public object SelectedEvent
+        public object SelectedItem
         {
             get
             {
@@ -135,6 +135,14 @@ namespace UTFEditor
                 selected = value;
                 held = null;
                 heldAt = -1;
+            }
+        }
+
+        public TimelineData Items
+        {
+            get
+            {
+                return events;
             }
         }
 
@@ -518,6 +526,8 @@ namespace UTFEditor
         public int PlaybackTime = 0;
         private MultimediaTimer playback;
         DateTime startTime;
+        Dictionary<object, List<float>> playElems;
+        Random rand = new Random();
 
         public void PlayPause()
         {
@@ -530,6 +540,14 @@ namespace UTFEditor
             else
             {
                 PlaybackTime = 0;
+                playElems = events.GetObjectsTimes();
+                foreach (KeyValuePair<object, List<float>> k in playElems)
+                {
+                    if (k.Value.Count <= 1) continue;
+                    float sel = k.Value[rand.Next(k.Value.Count - 1)];
+                    k.Value.Clear();
+                    k.Value.Add(sel);
+                }
                 playback.Start();
                 startTime = DateTime.Now;
                 if (Play != null)
@@ -559,7 +577,10 @@ namespace UTFEditor
             {
                 List<KeyValuePair<float, object>> plevs = events[PlaybackTime];
                 foreach (KeyValuePair<float, object> evt in plevs)
-                    PlayEvent(this, new PlayEventEventArgs(evt.Value));
+                {
+                    if(playElems[evt.Value][0] == evt.Key)
+                        PlayEvent(this, new PlayEventEventArgs(evt.Value));
+                }
             }
 
             Invalidate();
@@ -751,6 +772,36 @@ namespace UTFEditor
             }
 
             return null;
+        }
+
+        public List<object> GetObjects()
+        {
+            List<object> o = new List<object>();
+            foreach (KeyValuePair<float, object> k in lst)
+            {
+                if (!o.Contains(k.Value))
+                    o.Add(k.Value);
+            }
+
+            return o;
+        }
+
+        public Dictionary<object, List<float>> GetObjectsTimes()
+        {
+            Dictionary<object, List<float>> o = new Dictionary<object, List<float>>();
+            foreach (KeyValuePair<float, object> k in lst)
+            {
+                if (!o.ContainsKey(k.Value))
+                {
+                    o.Add(k.Value, (new float[] {k.Key}).ToList<float>() );
+                }
+                else
+                {
+                    o[k.Value].Add(k.Key);
+                }
+            }
+
+            return o;
         }
     }
 }

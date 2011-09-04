@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+using System.Reflection;
 
 namespace UTFEditor
 {
@@ -15,6 +16,12 @@ namespace UTFEditor
         {
             InitializeComponent();
             panelEffect.Visible = false;
+
+            comboType.Items.Clear();
+
+            IEnumerable<TimelineEvent.EType> eTypes = EnumExtend.EnumToList<TimelineEvent.EType>();
+            foreach (TimelineEvent.EType t in eTypes)
+                comboType.Items.Add(t.DescString());
         }
 
         private void btnFlip_Click(object sender, EventArgs e)
@@ -78,7 +85,7 @@ namespace UTFEditor
 
             switch (comboType.SelectedItem.ToString())
             {
-                case "Effect":
+                case "start_effect":
                     panelEffect.Visible = true;
                     break;
             }
@@ -88,7 +95,27 @@ namespace UTFEditor
 
         private void timeline1_ItemAdd(object sender, Timeline.ItemAddEventArgs e)
         {
+            current = new TimelineEvent();
 
+            current.Timings.Add(e.At);
+            timeline1.Items.Add(e.At, current);
+
+            RefreshUI();
+        }
+
+        private void btnNew_Click(object sender, EventArgs e)
+        {
+            current = new TimelineEvent();
+
+            RefreshUI();
+        }
+
+        private void RefreshUI()
+        {
+            bool e = current != null;
+
+            comboType.Enabled = e;
+            if(e) comboType.SelectedIndex = comboType.Items.IndexOf(current.Type.DescString());
         }
     }
 
@@ -96,6 +123,7 @@ namespace UTFEditor
     {
         public enum EType
         {
+            [Description("start_effect")]
             EFFECT
         }
 
@@ -106,11 +134,11 @@ namespace UTFEditor
             public float RotX, RotY, RotZ;
         }
 
-        public EType Type;
+        public EType Type = EType.EFFECT;
 
         // Type EFFECT
         public EffectData Effect;
-        public bool Attached;
+        public bool Attached = false;
         public List<float> Timings = new List<float>();
         public List<HardpointData> Hardpoints = new List<HardpointData>();
     }
@@ -132,5 +160,40 @@ namespace UTFEditor
         public float X, Y, Z;
         public float RotX, RotY, RotZ;
         public float StretchX, StretchY, StretchZ;
+    }
+
+    // Largely based from code by Luke Foust
+    // http://blog.spontaneouspublicity.com/post/2008/01/17/Associating-Strings-with-enums-in-C.aspx
+
+    public static class EnumExtend
+    {
+        public static string DescString(this Enum e)
+        {
+            FieldInfo fi = e.GetType().GetField(e.ToString());
+
+            DescriptionAttribute[] attributes = (DescriptionAttribute[])fi.GetCustomAttributes(typeof(DescriptionAttribute), false);
+            if (attributes != null && attributes.Length > 0)
+                return attributes[0].Description;
+            else
+                return e.ToString();
+        }
+
+        public static IEnumerable<T> EnumToList<T>()
+        {
+            Type enumType = typeof(T);
+
+            if (enumType.BaseType != typeof(Enum))
+                throw new ArgumentException("T must be of type System.Enum");
+
+            Array enumValArray = Enum.GetValues(enumType);
+            List<T> enumValList = new List<T>(enumValArray.Length);
+
+            foreach (int val in enumValArray)
+            {
+                enumValList.Add((T)Enum.Parse(enumType, val.ToString()));
+            }
+
+            return enumValList;
+        }
     }
 }

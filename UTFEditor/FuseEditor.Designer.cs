@@ -106,6 +106,7 @@
             this.btnNew.TextAlign = System.Drawing.ContentAlignment.TopCenter;
             this.btnNew.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
             this.btnNew.UseVisualStyleBackColor = true;
+            this.btnNew.Click += new System.EventHandler(this.btnNew_Click);
             // 
             // comboEvents
             // 
@@ -185,7 +186,6 @@
             this.timeline1.SecondaryBackColor = System.Drawing.SystemColors.ControlDark;
             this.timeline1.SecondaryForeColor = System.Drawing.SystemColors.ControlText;
             this.timeline1.SelectedColor = System.Drawing.Color.Red;
-            this.timeline1.SelectedEvent = null;
             this.timeline1.Size = new System.Drawing.Size(183, 612);
             this.timeline1.TabIndex = 4;
             this.timeline1.Text = "timeline1";
@@ -385,8 +385,6 @@
             this.comboType.Enabled = false;
             this.comboType.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.comboType.FormattingEnabled = true;
-            this.comboType.Items.AddRange(new object[] {
-            "Effect"});
             this.comboType.Location = new System.Drawing.Point(93, 5);
             this.comboType.Name = "comboType";
             this.comboType.Size = new System.Drawing.Size(387, 24);
