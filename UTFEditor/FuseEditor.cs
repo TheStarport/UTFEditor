@@ -14,6 +14,7 @@ namespace UTFEditor
         public FuseEditor()
         {
             InitializeComponent();
+            panelEffect.Visible = false;
         }
 
         private void btnFlip_Click(object sender, EventArgs e)
@@ -70,5 +71,66 @@ namespace UTFEditor
         {
             btnPlayPause.Image = global::UTFEditor.Properties.Resources.PlayHS;
         }
+
+        private void comboType_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            panelEffect.Visible = false;
+
+            switch (comboType.SelectedItem.ToString())
+            {
+                case "Effect":
+                    panelEffect.Visible = true;
+                    break;
+            }
+        }
+
+        private TimelineEvent current = null;
+
+        private void timeline1_ItemAdd(object sender, Timeline.ItemAddEventArgs e)
+        {
+
+        }
+    }
+
+    public class TimelineEvent
+    {
+        public enum EType
+        {
+            EFFECT
+        }
+
+        public struct HardpointData
+        {
+            public string Name;
+            public float X, Y, Z;
+            public float RotX, RotY, RotZ;
+        }
+
+        public EType Type;
+
+        // Type EFFECT
+        public EffectData Effect;
+        public bool Attached;
+        public List<float> Timings = new List<float>();
+        public List<HardpointData> Hardpoints = new List<HardpointData>();
+    }
+
+    public class EffectData
+    {
+        public enum EShape
+        {
+            SPHERE,
+            CYLINDER,
+            CONE,
+            CUBE
+        }
+
+        public string Name;
+
+        public EShape Shape;
+
+        public float X, Y, Z;
+        public float RotX, RotY, RotZ;
+        public float StretchX, StretchY, StretchZ;
     }
 }
