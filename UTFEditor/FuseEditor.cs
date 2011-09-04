@@ -153,13 +153,20 @@ namespace UTFEditor
             CUBE
         }
 
+        public struct EffectDataKeyframe
+        {
+            public float Time;
+
+            public float X, Y, Z;
+            public float RotX, RotY, RotZ;
+            public float StretchX, StretchY, StretchZ;
+        }
+
         public string Name;
 
         public EShape Shape;
 
-        public float X, Y, Z;
-        public float RotX, RotY, RotZ;
-        public float StretchX, StretchY, StretchZ;
+        public List<EffectDataKeyframe> Keyframes = new List<EffectDataKeyframe>();
     }
 
     // Largely based from code by Luke Foust
