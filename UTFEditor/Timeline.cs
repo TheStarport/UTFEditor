@@ -323,9 +323,37 @@ namespace UTFEditor
                 float f = evts.Key;
                 object ev = evts.Value;
 
+                string n;
+
+                if (ev is ITimelineElement)
+                {
+                    ITimelineElement t = ev as ITimelineElement;
+                    n = t.Name;
+
+                    if (t.Length > 0)
+                    {
+                        SolidBrush evb = selected == ev ? selectedBrush : eventBrush;
+
+                        Color org = evb.Color;
+                        evb.Color = Color.FromArgb(30, evb.Color);
+
+                        e.Graphics.FillRectangle(evb,
+                            new RectangleF(
+                                MakePoint((int)Math.Round(f * effectiveWidth + leftMargin), h - smallMeasureHeight),
+                                new SizeF(MakePoint(t.Length / Timespan * effectiveWidth, h))
+                            ));
+
+                        evb.Color = org;
+                    }
+                }
+                else
+                    n = ev.ToString();
+
                 Pen evp = selected == ev ? selectedPen : eventPen;
+
                 e.Graphics.DrawLine(evp, MakePoint((int)Math.Round(f * effectiveWidth + leftMargin), h), MakePoint((int)Math.Round(f * effectiveWidth + leftMargin), eventCursorHeight));
-                e.Graphics.DrawString(ev.ToString(), font, selected == ev ? selectedBrush : eventBrush, MakePoint(f * effectiveWidth + leftMargin, eventCursorHeight));
+
+                e.Graphics.DrawString(n, font, selected == ev ? selectedBrush : eventBrush, MakePoint(f * effectiveWidth + leftMargin, eventCursorHeight));
             }
 
             for (int a = leftMargin; a <= effectiveWidth + leftMargin; a += measureDistance)
@@ -642,6 +670,8 @@ namespace UTFEditor
                 }
                 n = n.Next;
             }
+
+            lst.AddLast(item);
         }
 
         public void Add(float key, object value)
@@ -802,6 +832,19 @@ namespace UTFEditor
             }
 
             return o;
+        }
+    }
+
+    public interface ITimelineElement
+    {
+        string Name
+        {
+            get;
+        }
+
+        float Length
+        {
+            get;
         }
     }
 }
