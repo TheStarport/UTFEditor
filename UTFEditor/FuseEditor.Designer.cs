@@ -42,10 +42,10 @@
             this.comboEffect = new System.Windows.Forms.ComboBox();
             this.chkEffectAttached = new System.Windows.Forms.CheckBox();
             this.grpEffectTimings = new System.Windows.Forms.GroupBox();
-            this.txtEffectAddTiming = new System.Windows.Forms.TextBox();
             this.btnEffectRemoveTiming = new System.Windows.Forms.Button();
             this.btnEffectAddTiming = new System.Windows.Forms.Button();
             this.lstEffectTimings = new System.Windows.Forms.ListBox();
+            this.txtEffectAddTiming = new System.Windows.Forms.NumericUpDown();
             this.grpEffectHardpoints = new System.Windows.Forms.GroupBox();
             this.dataEffectHardpoints = new System.Windows.Forms.DataGridView();
             this.colEffectHardpoint = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -60,6 +60,7 @@
             this.splitFuseEditor.SuspendLayout();
             this.panelEffect.SuspendLayout();
             this.grpEffectTimings.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.txtEffectAddTiming)).BeginInit();
             this.grpEffectHardpoints.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataEffectHardpoints)).BeginInit();
             this.SuspendLayout();
@@ -186,6 +187,7 @@
             this.timeline1.SecondaryBackColor = System.Drawing.SystemColors.ControlDark;
             this.timeline1.SecondaryForeColor = System.Drawing.SystemColors.ControlText;
             this.timeline1.SelectedColor = System.Drawing.Color.Red;
+            this.timeline1.SelectedItem = null;
             this.timeline1.Size = new System.Drawing.Size(183, 612);
             this.timeline1.TabIndex = 4;
             this.timeline1.Text = "timeline1";
@@ -229,6 +231,8 @@
             this.comboEffect.Name = "comboEffect";
             this.comboEffect.Size = new System.Drawing.Size(250, 21);
             this.comboEffect.TabIndex = 6;
+            this.comboEffect.SelectedIndexChanged += new System.EventHandler(this.comboEffect_SelectedIndexChanged);
+            this.comboEffect.TextUpdate += new System.EventHandler(this.comboEffect_TextUpdate);
             // 
             // chkEffectAttached
             // 
@@ -243,10 +247,10 @@
             // 
             // grpEffectTimings
             // 
-            this.grpEffectTimings.Controls.Add(this.txtEffectAddTiming);
             this.grpEffectTimings.Controls.Add(this.btnEffectRemoveTiming);
             this.grpEffectTimings.Controls.Add(this.btnEffectAddTiming);
             this.grpEffectTimings.Controls.Add(this.lstEffectTimings);
+            this.grpEffectTimings.Controls.Add(this.txtEffectAddTiming);
             this.grpEffectTimings.Location = new System.Drawing.Point(3, 66);
             this.grpEffectTimings.MinimumSize = new System.Drawing.Size(190, 0);
             this.grpEffectTimings.Name = "grpEffectTimings";
@@ -254,15 +258,6 @@
             this.grpEffectTimings.TabIndex = 8;
             this.grpEffectTimings.TabStop = false;
             this.grpEffectTimings.Text = "Timings";
-            // 
-            // txtEffectAddTiming
-            // 
-            this.txtEffectAddTiming.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtEffectAddTiming.Location = new System.Drawing.Point(6, 219);
-            this.txtEffectAddTiming.Name = "txtEffectAddTiming";
-            this.txtEffectAddTiming.Size = new System.Drawing.Size(53, 20);
-            this.txtEffectAddTiming.TabIndex = 12;
             // 
             // btnEffectRemoveTiming
             // 
@@ -273,6 +268,7 @@
             this.btnEffectRemoveTiming.TabIndex = 11;
             this.btnEffectRemoveTiming.Text = "Remove";
             this.btnEffectRemoveTiming.UseVisualStyleBackColor = true;
+            this.btnEffectRemoveTiming.Click += new System.EventHandler(this.btnEffectRemoveTiming_Click);
             // 
             // btnEffectAddTiming
             // 
@@ -283,6 +279,7 @@
             this.btnEffectAddTiming.TabIndex = 10;
             this.btnEffectAddTiming.Text = "Add";
             this.btnEffectAddTiming.UseVisualStyleBackColor = true;
+            this.btnEffectAddTiming.Click += new System.EventHandler(this.btnEffectAddTiming_Click);
             // 
             // lstEffectTimings
             // 
@@ -294,7 +291,28 @@
             this.lstEffectTimings.Name = "lstEffectTimings";
             this.lstEffectTimings.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
             this.lstEffectTimings.Size = new System.Drawing.Size(178, 199);
+            this.lstEffectTimings.Sorted = true;
             this.lstEffectTimings.TabIndex = 9;
+            this.lstEffectTimings.KeyDown += new System.Windows.Forms.KeyEventHandler(this.lstEffectTimings_KeyDown);
+            // 
+            // txtEffectAddTiming
+            // 
+            this.txtEffectAddTiming.DecimalPlaces = 2;
+            this.txtEffectAddTiming.Increment = new decimal(new int[] {
+            1,
+            0,
+            0,
+            65536});
+            this.txtEffectAddTiming.Location = new System.Drawing.Point(6, 219);
+            this.txtEffectAddTiming.Maximum = new decimal(new int[] {
+            2,
+            0,
+            0,
+            0});
+            this.txtEffectAddTiming.Name = "txtEffectAddTiming";
+            this.txtEffectAddTiming.Size = new System.Drawing.Size(53, 20);
+            this.txtEffectAddTiming.TabIndex = 12;
+            this.txtEffectAddTiming.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txtEffectAddTiming_KeyDown);
             // 
             // grpEffectHardpoints
             // 
@@ -418,7 +436,7 @@
             this.panelEffect.ResumeLayout(false);
             this.panelEffect.PerformLayout();
             this.grpEffectTimings.ResumeLayout(false);
-            this.grpEffectTimings.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.txtEffectAddTiming)).EndInit();
             this.grpEffectHardpoints.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dataEffectHardpoints)).EndInit();
             this.ResumeLayout(false);
@@ -438,7 +456,6 @@
         private System.Windows.Forms.ComboBox comboEffect;
         private System.Windows.Forms.CheckBox chkEffectAttached;
         private System.Windows.Forms.GroupBox grpEffectTimings;
-        private System.Windows.Forms.TextBox txtEffectAddTiming;
         private System.Windows.Forms.Button btnEffectRemoveTiming;
         private System.Windows.Forms.Button btnEffectAddTiming;
         private System.Windows.Forms.ListBox lstEffectTimings;
@@ -453,6 +470,7 @@
         private System.Windows.Forms.Button btnNext;
         private System.Windows.Forms.Button btnPrev;
         private System.Windows.Forms.Button btnNew;
+        private System.Windows.Forms.NumericUpDown txtEffectAddTiming;
 
 
 
