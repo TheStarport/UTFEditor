@@ -189,19 +189,17 @@ namespace UTFEditor
 
         private void timeline1_ItemAdd(object sender, Timeline.ItemAddEventArgs e)
         {
-            current = new TimelineEvent();
+            TimelineEvent te = new TimelineEvent();
 
-            current.Timings.Add(e.At);
-            timeline1.Items.Add(e.At, current);
+            te.Timings.Add(e.At);
+            timeline1.Items.Add(e.At, te);
 
-            RefreshUI();
+            SelectEvent(te);
         }
 
         private void btnNew_Click(object sender, EventArgs e)
         {
-            current = new TimelineEvent();
-
-            RefreshUI();
+            SelectEvent(new TimelineEvent());
         }
 
         private void RefreshUI()
@@ -227,6 +225,7 @@ namespace UTFEditor
             current.Timings.Add(v);
             lstEffectTimings.Items.Add(v);
             timeline1.Items.Add(v, current);
+            comboEvents.Items.Add(new EventListEvent(current, v));
 
             RefreshUI();
         }
@@ -244,6 +243,16 @@ namespace UTFEditor
                 current.Timings.Remove(v);
                 lstEffectTimings.Items.Remove(v);
                 timeline1.Items.Remove(v);
+
+                foreach (object o in comboEvents.Items)
+                {
+                    EventListEvent e = o as EventListEvent;
+                    if (e.Event == current && e.Time == v)
+                    {
+                        comboEvents.Items.Remove(e);
+                        break;
+                    }
+                }
 
                 RefreshUI();
             }
@@ -288,6 +297,114 @@ namespace UTFEditor
                 RefreshUI();
             }
         }
+
+        private void timeline1_SelectionChanged(object sender, Timeline.SelectionChangedEventArgs e)
+        {
+            SelectEvent(e.Selection.Value as TimelineEvent, e.Selection.Key);
+        }
+
+        private void SelectEvent(TimelineEvent ev)
+        {
+            float at = ev.Timings.Count > 0 ? ev.Timings[0] : -1;
+            SelectEvent(ev, at);
+        }
+
+        private void SelectEvent(TimelineEvent ev, float at)
+        {
+            current = ev;
+
+            comboType.SelectedItem = current.Type;
+
+            lstEffectTimings.Items.Clear();
+            foreach (float f in current.Timings)
+                lstEffectTimings.Items.Add(f);
+
+            comboEffect.SelectedItem = current.Effect;
+
+            if (at >= 0)
+            {
+                foreach (object o in comboEvents.Items)
+                {
+                    EventListEvent e = o as EventListEvent;
+                    if (e.Event == current && e.Time == at)
+                    {
+                        comboEvents.SelectedItem = e;
+                        break;
+                    }
+                }
+            }
+
+            // TODO: Hardpoints
+
+            RefreshUI();
+        }
+
+        private void btnNext_Click(object sender, EventArgs e)
+        {
+            if (comboEvents.Items.Count == 0) return;
+
+            if (comboEvents.SelectedIndex > 0)
+            {
+                comboEvents.SelectedIndex--;
+                SelectEvent((comboEvents.SelectedItem as EventListEvent).Event);
+            }
+        }
+
+        private void btnPrev_Click(object sender, EventArgs e)
+        {
+            if (comboEvents.Items.Count == 0) return;
+
+            if (comboEvents.SelectedIndex < comboEvents.Items.Count)
+            {
+                comboEvents.SelectedIndex++;
+                SelectEvent((comboEvents.SelectedItem as EventListEvent).Event);
+            }
+        }
+    }
+
+    public class EventListEvent : IEquatable<EventListEvent>
+    {
+        private float time;
+        private TimelineEvent ev;
+
+        public TimelineEvent Event
+        {
+            get
+            {
+                return ev;
+            }
+        }
+
+        public float Time
+        {
+            get
+            {
+                return time;
+            }
+        }
+
+        public EventListEvent(TimelineEvent e, float t)
+        {
+            time = t;
+            ev = e;
+        }
+
+        public override string ToString()
+        {
+            return time + " - " + ev.Name;
+        }
+
+        #region IEquatable<EventListEvent> Members
+
+        public bool Equals(EventListEvent other)
+        {
+            if (other.Time == time && other.Event == ev)
+                return true;
+            else
+                return false;
+        }
+
+        #endregion
     }
 
     public class TimelineEvent : ITimelineElement
