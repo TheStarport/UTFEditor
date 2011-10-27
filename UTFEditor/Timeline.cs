@@ -11,7 +11,7 @@ namespace UTFEditor
     {
         int interval = 20;
         TimelineData events;
-        object selected = null;
+        KeyValuePair<float, object> selected = new KeyValuePair<float,object>(0, null);
 
         SolidBrush primaryBrush;
         SolidBrush secondaryBrush;
@@ -124,7 +124,7 @@ namespace UTFEditor
             }
         }
 
-        public object SelectedItem
+        public KeyValuePair<float, object> SelectedItem
         {
             get
             {
@@ -133,7 +133,7 @@ namespace UTFEditor
             set
             {
                 selected = value;
-                held = null;
+                held = new KeyValuePair<float, object>(0, null);
                 heldAt = -1;
             }
         }
@@ -332,7 +332,7 @@ namespace UTFEditor
 
                     if (t.Length > 0)
                     {
-                        SolidBrush evb = selected == ev ? selectedBrush : eventBrush;
+                        SolidBrush evb = selected.Value == ev ? selectedBrush : eventBrush;
 
                         Color org = evb.Color;
                         evb.Color = Color.FromArgb(30, evb.Color);
@@ -349,11 +349,11 @@ namespace UTFEditor
                 else
                     n = ev.ToString();
 
-                Pen evp = selected == ev ? selectedPen : eventPen;
+                Pen evp = selected.Value == ev ? selectedPen : eventPen;
 
                 e.Graphics.DrawLine(evp, MakePoint((int)Math.Round(f * effectiveWidth + leftMargin), h), MakePoint((int)Math.Round(f * effectiveWidth + leftMargin), eventCursorHeight));
 
-                e.Graphics.DrawString(n, font, selected == ev ? selectedBrush : eventBrush, MakePoint(f * effectiveWidth + leftMargin, eventCursorHeight));
+                e.Graphics.DrawString(n, font, selected.Value == ev ? selectedBrush : eventBrush, MakePoint(f * effectiveWidth + leftMargin, eventCursorHeight));
             }
 
             for (int a = leftMargin; a <= effectiveWidth + leftMargin; a += measureDistance)
@@ -404,7 +404,7 @@ namespace UTFEditor
                 }
             }
 
-            if (held != null)
+            if (held.Value != null)
             {
                 double timespan = DateTime.Now.Subtract(holdTime).TotalMilliseconds;
 
@@ -436,7 +436,7 @@ namespace UTFEditor
             cursor = false;
 
             mouseLoc = Int32.MinValue;
-            held = null;
+            held = new KeyValuePair<float,object>(0, null);
 
             Cursor.Show();
 
@@ -444,7 +444,7 @@ namespace UTFEditor
         }
 
         DateTime holdTime;
-        object held;
+        KeyValuePair<float, object> held;
         float heldAt = -1;
 
         protected override void OnMouseDown(MouseEventArgs e)
@@ -457,8 +457,8 @@ namespace UTFEditor
             float loc = ((this.Width > this.Height ? e.X : e.Y) - leftMargin) / effectiveWidth;
 
             float prev = -1;
-            selected = null;
-            held = null;
+            selected = new KeyValuePair<float,object>(0, null);
+            held = new KeyValuePair<float, object>(0, null);
 
             foreach (KeyValuePair<float, object> evts in events)
             {
@@ -480,6 +480,8 @@ namespace UTFEditor
             base.OnMouseUp(e);
             double timespan = DateTime.Now.Subtract(holdTime).TotalMilliseconds;
 
+            KeyValuePair<float, object> lastSel = selected;
+
             if (timespan <= 200)
             {
                 if ((ModifierKeys & Keys.Control) != Keys.None)
@@ -494,10 +496,33 @@ namespace UTFEditor
             else
                 selected = held;
 
-            held = null;
+            if (lastSel.Value != selected.Value || lastSel.Key != selected.Key)
+                OnSelectionChanged();
+
+            held = new KeyValuePair<float,object>(0, null);
 
             OnMouseMove(e);
         }
+
+        public class SelectionChangedEventArgs : EventArgs
+        {
+            public KeyValuePair<float, object> Selection;
+
+            public SelectionChangedEventArgs(KeyValuePair<float, object> sel)
+            {
+                Selection = sel;
+            }
+        }
+
+        protected void OnSelectionChanged()
+        {
+            if (SelectionChanged != null)
+                SelectionChanged(this, new SelectionChangedEventArgs(selected));
+        }
+
+        public delegate void SelectionChangedEventHandler(object sender, SelectionChangedEventArgs e);
+
+        public event SelectionChangedEventHandler SelectionChanged;
 
         public class ItemAddEventArgs : EventArgs
         {
@@ -681,7 +706,6 @@ namespace UTFEditor
 
         public bool Remove(float key)
         {
-            bool r = false;
             LinkedListNode<KeyValuePair<float, object>> n = lst.First;
             while (n != null)
             {
@@ -689,14 +713,14 @@ namespace UTFEditor
 
                 if (key >= n.Value.Key && key <= n.Value.Key + interval)
                 {
-                    r = true;
                     lst.Remove(n);
+                    return true;
                 }
 
                 n = next;
             }
 
-            return r;
+            return false;
         }
 
         public bool Remove(float key, object value)
