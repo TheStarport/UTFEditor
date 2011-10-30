@@ -36,6 +36,7 @@
             this.btnPrev = new System.Windows.Forms.Button();
             this.btnPlayPause = new System.Windows.Forms.Button();
             this.btnFlip = new System.Windows.Forms.Button();
+            this.timeline1 = new UTFEditor.Timeline();
             this.panelEffect = new System.Windows.Forms.FlowLayoutPanel();
             this.label4 = new System.Windows.Forms.Label();
             this.comboEffect = new System.Windows.Forms.ComboBox();
@@ -54,7 +55,6 @@
             this.btnEffectAddHardpoint = new System.Windows.Forms.Button();
             this.comboType = new System.Windows.Forms.ComboBox();
             this.label1 = new System.Windows.Forms.Label();
-            this.timeline1 = new UTFEditor.Timeline();
             this.splitFuseEditor.Panel1.SuspendLayout();
             this.splitFuseEditor.Panel2.SuspendLayout();
             this.splitFuseEditor.SuspendLayout();
@@ -173,6 +173,33 @@
             this.btnFlip.TextAlign = System.Drawing.ContentAlignment.TopCenter;
             this.btnFlip.UseVisualStyleBackColor = true;
             this.btnFlip.Click += new System.EventHandler(this.btnFlip_Click);
+            // 
+            // timeline1
+            // 
+            this.timeline1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+                        | System.Windows.Forms.AnchorStyles.Left)
+                        | System.Windows.Forms.AnchorStyles.Right)));
+            this.timeline1.AutoScroll = true;
+            this.timeline1.AutoScrollMinSize = new System.Drawing.Size(0, 612);
+            this.timeline1.EventColor = System.Drawing.SystemColors.ControlText;
+            this.timeline1.HighlightColor = System.Drawing.SystemColors.Highlight;
+            this.timeline1.Location = new System.Drawing.Point(11, 47);
+            this.timeline1.Name = "timeline1";
+            this.timeline1.PlayColor = System.Drawing.Color.Green;
+            this.timeline1.SecondaryBackColor = System.Drawing.SystemColors.ControlDark;
+            this.timeline1.SecondaryForeColor = System.Drawing.SystemColors.ControlText;
+            this.timeline1.SelectedColor = System.Drawing.Color.DarkRed;
+            this.timeline1.SelectedItem = ((System.Collections.Generic.KeyValuePair<float, object>)(resources.GetObject("timeline1.SelectedItem")));
+            this.timeline1.Size = new System.Drawing.Size(183, 612);
+            this.timeline1.TabIndex = 4;
+            this.timeline1.Text = "timeline1";
+            this.timeline1.Timespan = 1F;
+            this.timeline1.Zoom = 1F;
+            this.timeline1.Stop += new System.EventHandler(this.timeline1_Stop);
+            this.timeline1.ItemAdd += new UTFEditor.Timeline.ItemAddEventHandler(this.timeline1_ItemAdd);
+            this.timeline1.SelectionChanged += new UTFEditor.Timeline.SelectionChangedEventHandler(this.timeline1_SelectionChanged);
+            this.timeline1.Play += new System.EventHandler(this.timeline1_Play);
+            this.timeline1.TimeAdd += new UTFEditor.Timeline.TimeAddEventHandler(this.timeline1_TimeAdd);
             // 
             // panelEffect
             // 
@@ -395,32 +422,6 @@
             this.label1.Size = new System.Drawing.Size(84, 17);
             this.label1.TabIndex = 0;
             this.label1.Text = "Event Type:";
-            // 
-            // timeline1
-            // 
-            this.timeline1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
-                        | System.Windows.Forms.AnchorStyles.Left)
-                        | System.Windows.Forms.AnchorStyles.Right)));
-            this.timeline1.AutoScroll = true;
-            this.timeline1.AutoScrollMinSize = new System.Drawing.Size(0, 612);
-            this.timeline1.EventColor = System.Drawing.SystemColors.ControlText;
-            this.timeline1.HighlightColor = System.Drawing.SystemColors.Highlight;
-            this.timeline1.Location = new System.Drawing.Point(11, 47);
-            this.timeline1.Name = "timeline1";
-            this.timeline1.PlayColor = System.Drawing.Color.Green;
-            this.timeline1.SecondaryBackColor = System.Drawing.SystemColors.ControlDark;
-            this.timeline1.SecondaryForeColor = System.Drawing.SystemColors.ControlText;
-            this.timeline1.SelectedColor = System.Drawing.Color.Red;
-            this.timeline1.SelectedItem = new System.Collections.Generic.KeyValuePair<float,object>(0, null);
-            this.timeline1.Size = new System.Drawing.Size(183, 612);
-            this.timeline1.TabIndex = 4;
-            this.timeline1.Text = "timeline1";
-            this.timeline1.Timespan = 1F;
-            this.timeline1.Zoom = 1F;
-            this.timeline1.Stop += new System.EventHandler(this.timeline1_Stop);
-            this.timeline1.ItemAdd += new UTFEditor.Timeline.ItemAddEventHandler(this.timeline1_ItemAdd);
-            this.timeline1.SelectionChanged += new UTFEditor.Timeline.SelectionChangedEventHandler(this.timeline1_SelectionChanged);
-            this.timeline1.Play += new System.EventHandler(this.timeline1_Play);
             // 
             // FuseEditor
             // 

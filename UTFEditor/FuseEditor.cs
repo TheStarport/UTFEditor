@@ -214,18 +214,21 @@ namespace UTFEditor
 
         private void btnEffectAddTiming_Click(object sender, EventArgs e)
         {
-            AddTiming();
-        }
-
-        private void AddTiming()
-        {
             float v;
             if (!Single.TryParse(txtEffectAddTiming.Text, out v)) return;
+            AddTiming(v);
+        }
 
+        private void AddTiming(float v)
+        {
             current.Timings.Add(v);
             lstEffectTimings.Items.Add(v);
             timeline1.Items.Add(v, current);
-            comboEvents.Items.Add(new EventListEvent(current, v));
+            EventListEvent ele = new EventListEvent(current, v);
+            comboEvents.Items.Add(ele);
+
+            timeline1.SelectedItem = new KeyValuePair<float, object>(v, current);
+            comboEvents.SelectedItem = ele;
 
             RefreshUI();
         }
@@ -242,7 +245,7 @@ namespace UTFEditor
                 float v = (float)lstEffectTimings.SelectedItem;
                 current.Timings.Remove(v);
                 lstEffectTimings.Items.Remove(v);
-                timeline1.Items.Remove(v);
+                timeline1.Items.Remove(v, current);
 
                 foreach (object o in comboEvents.Items)
                 {
@@ -262,7 +265,9 @@ namespace UTFEditor
         {
             if (e.KeyCode == Keys.Enter)
             {
-                AddTiming();
+                float v;
+                if (!Single.TryParse(txtEffectAddTiming.Text, out v)) return;
+                AddTiming(v);
                 e.SuppressKeyPress = true;
             }
         }
@@ -312,34 +317,57 @@ namespace UTFEditor
         private void SelectEvent(TimelineEvent ev, float at)
         {
             current = ev;
-
-            comboType.SelectedItem = current.Type;
-
             lstEffectTimings.Items.Clear();
-            foreach (float f in current.Timings)
-                lstEffectTimings.Items.Add(f);
 
-            comboEffect.SelectedItem = current.Effect;
-
-            if (at >= 0)
+            if (current != null)
             {
-                foreach (object o in comboEvents.Items)
+                comboType.SelectedItem = current.Type;
+
+                foreach (float f in current.Timings)
+                    lstEffectTimings.Items.Add(f);
+
+                comboEffect.SelectedItem = current.Effect;
+
+                if (at >= 0)
                 {
-                    EventListEvent e = o as EventListEvent;
-                    if (e.Event == current && e.Time == at)
+                    timeline1.SelectedItem = new KeyValuePair<float, object>(at, current);
+
+                    EventListEvent currele = comboEvents.SelectedItem as EventListEvent;
+                    if (currele == null || currele.Event != ev || currele.Time != at)
                     {
-                        comboEvents.SelectedItem = e;
-                        break;
+                        foreach (object o in comboEvents.Items)
+                        {
+                            EventListEvent e = o as EventListEvent;
+                            if (e.Event == current && e.Time == at)
+                            {
+                                comboEvents.SelectedItem = e;
+                                break;
+                            }
+                        }
                     }
                 }
-            }
+                else
+                    timeline1.SelectedItem = new KeyValuePair<float, object>(0, null);
 
-            // TODO: Hardpoints
+                // TODO: Hardpoints
+            }
 
             RefreshUI();
         }
 
         private void btnNext_Click(object sender, EventArgs e)
+        {
+            if (comboEvents.Items.Count == 0) return;
+
+            if (comboEvents.SelectedIndex < comboEvents.Items.Count-1)
+            {
+                comboEvents.SelectedIndex++;
+                EventListEvent ele = comboEvents.SelectedItem as EventListEvent;
+                SelectEvent(ele.Event, ele.Time);
+            }
+        }
+
+        private void btnPrev_Click(object sender, EventArgs e)
         {
             if (comboEvents.Items.Count == 0) return;
 
@@ -350,14 +378,17 @@ namespace UTFEditor
             }
         }
 
-        private void btnPrev_Click(object sender, EventArgs e)
+        private void timeline1_TimeAdd(object sender, Timeline.TimeAddEventArgs e)
         {
-            if (comboEvents.Items.Count == 0) return;
+            AddTiming(e.At);
+        }
 
-            if (comboEvents.SelectedIndex < comboEvents.Items.Count)
+        private void comboEvents_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (comboEvents.SelectedIndex < comboEvents.Items.Count && comboEvents.SelectedIndex >= 0)
             {
-                comboEvents.SelectedIndex++;
-                SelectEvent((comboEvents.SelectedItem as EventListEvent).Event);
+                EventListEvent ele = comboEvents.SelectedItem as EventListEvent;
+                SelectEvent(ele.Event, ele.Time);
             }
         }
     }
