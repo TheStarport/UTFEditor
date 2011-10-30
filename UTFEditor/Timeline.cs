@@ -43,6 +43,7 @@ namespace UTFEditor
             {
                 if (value == null) return;
                 primaryBrush.Color = value;
+                primaryPen.Brush = primaryBrush;
             }
         }
 
@@ -56,6 +57,7 @@ namespace UTFEditor
             {
                 if (value == null) return;
                 secondaryBrush.Color = value;
+                secondaryPen.Brush = secondaryBrush;
             }
         }
 
@@ -82,6 +84,7 @@ namespace UTFEditor
             {
                 if (value == null) return;
                 eventBrush.Color = value;
+                eventPen.Brush = eventBrush;
             }
         }
 
@@ -95,6 +98,7 @@ namespace UTFEditor
             {
                 if (value == null) return;
                 highlightBrush.Color = value;
+                highlightPen.Brush = highlightBrush;
             }
         }
 
@@ -108,6 +112,7 @@ namespace UTFEditor
             {
                 if (value == null) return;
                 selectedBrush.Color = value;
+                selectedPen.Brush = selectedBrush;
             }
         }
 
@@ -121,6 +126,7 @@ namespace UTFEditor
             {
                 if (value == null) return;
                 playBrush.Color = value;
+                playPen.Brush = playBrush;
             }
         }
 
@@ -134,7 +140,6 @@ namespace UTFEditor
             {
                 selected = value;
                 held = new KeyValuePair<float, object>(0, null);
-                heldAt = -1;
             }
         }
 
@@ -410,8 +415,9 @@ namespace UTFEditor
 
                 if (timespan > 200)
                 {
-                    events.Remove(heldAt, held);
-                    events.Add(((float)mouseLoc - leftMargin) / effectiveWidth, held);
+                    events.Remove(held);
+                    held = new KeyValuePair<float, object>(((float)mouseLoc - leftMargin) / effectiveWidth, held.Value);
+                    events.Add(held);
                 }
             }
 
@@ -445,7 +451,6 @@ namespace UTFEditor
 
         DateTime holdTime;
         KeyValuePair<float, object> held;
-        float heldAt = -1;
 
         protected override void OnMouseDown(MouseEventArgs e)
         {
@@ -454,22 +459,17 @@ namespace UTFEditor
 
             holdTime = DateTime.Now;
 
-            float loc = ((this.Width > this.Height ? e.X : e.Y) - leftMargin) / effectiveWidth;
+            float loc = ((this.Width > this.Height ? e.X : e.Y) - leftMargin) / (float)effectiveWidth;
 
-            float prev = -1;
-            selected = new KeyValuePair<float,object>(0, null);
             held = new KeyValuePair<float, object>(0, null);
 
             foreach (KeyValuePair<float, object> evts in events)
             {
-                if (Math.Abs(evts.Key - loc) >= Math.Abs(evts.Key - prev))
+                if ((held.Value == null || Math.Abs(evts.Key - loc) < Math.Abs(evts.Key - held.Key)) && Math.Abs(evts.Key - loc) * effectiveWidth <= 10)
                 {
-                    held = events[prev][0];
-                    heldAt = prev;
+                    held = evts;
                     break;
                 }
-
-                prev = evts.Key;
             }
 
             Invalidate();
@@ -488,7 +488,10 @@ namespace UTFEditor
                 {
                     float loc = ((float)mouseLoc - leftMargin) / effectiveWidth;
 
-                    OnItemAdd(new ItemAddEventArgs(loc));
+                    if ((ModifierKeys & Keys.Shift) != Keys.None)
+                        OnTimeAdd(new TimeAddEventArgs(loc, selected.Value));
+                    else
+                        OnItemAdd(new ItemAddEventArgs(loc));
                 }
                 else
                     selected = held;
@@ -543,6 +546,28 @@ namespace UTFEditor
         public delegate void ItemAddEventHandler(object sender, ItemAddEventArgs e);
 
         public event ItemAddEventHandler ItemAdd;
+
+        public class TimeAddEventArgs : EventArgs
+        {
+            public float At;
+            public object Object;
+
+            public TimeAddEventArgs(float at, object obj)
+            {
+                At = at;
+                Object = obj;
+            }
+        }
+
+        protected void OnTimeAdd(TimeAddEventArgs e)
+        {
+            if (TimeAdd != null)
+                TimeAdd(this, e);
+        }
+
+        public delegate void TimeAddEventHandler(object sender, TimeAddEventArgs e);
+
+        public event TimeAddEventHandler TimeAdd;
 
         public void SelectNext()
         {
