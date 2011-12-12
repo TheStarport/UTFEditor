@@ -688,7 +688,13 @@ namespace UTFEditor
 					hi.Name = node.Name;
 					hi.Node = node;
 					hi.Min = hi.Max = 0;
-					hi.MeshGroup = MeshGroups[mapFileToMesh[hi.Node.Parent.Parent.Parent.Name]];
+
+                    try
+                    {
+                        hi.MeshGroup = MeshGroups[mapFileToMesh[hi.Node.Parent.Parent.Parent.Name]];
+                    }
+                    catch { hi.MeshGroup = MeshGroups[0]; }
+
 					hi.Revolute = false;
 					hi.Color = UTFEditorMain.FindHpColor(node.Name);
 					hi.Display = true;
@@ -1625,7 +1631,9 @@ namespace UTFEditor
             try
             {
                 if (node.Parent.Text == "Hardpoints")
+                {
                     node = rootNode.Nodes.Find(node.Name, true)[0];
+                }
                 else if (!Utilities.StrIEq(node.Parent.Name, "Fixed", "Revolute"))
                 {
                     node = node.Parent;
@@ -1638,13 +1646,23 @@ namespace UTFEditor
                 orgX = Utilities.GetFloat(data, ref pos);
                 orgY = Utilities.GetFloat(data, ref pos);
                 orgZ = Utilities.GetFloat(data, ref pos);
-                Matrix m = Matrix.Multiply(MeshGroups[mapFileToMesh[node.Parent.Parent.Parent.Parent.Name]].Transform, Matrix.Translation(orgX, orgY, orgZ));
+                
+                MeshGroup mg;
+                if (node.Parent.Parent.Parent.Parent.Name=="THN")
+                    mg = MeshGroups[0];
+                else
+                    mg = MeshGroups[mapFileToMesh[node.Parent.Parent.Parent.Parent.Name]];
+                
+                Matrix m = Matrix.Multiply(mg.Transform, Matrix.Translation(orgX, orgY, orgZ));
                 orgX = -m.M41;
                 orgY = -m.M42;
                 orgZ = -m.M43;
                 Invalidate();
             }
-            catch { }
+            catch
+            {
+                
+            }
         }
 
 		private TreeNode GetHardpointNode()
@@ -1928,7 +1946,11 @@ namespace UTFEditor
 			OnHardpointMoved();
             HardpointDisplayInfo hi = GetHardpointFromName(hpNew.Name);
             hi.Matrix = GetHardpointMatrix(hpNew);
-			hi.MeshGroup = MeshGroups[mapFileToMesh[hi.Node.Parent.Parent.Parent.Name]];
+            try
+            {
+                hi.MeshGroup = MeshGroups[mapFileToMesh[hi.Node.Parent.Parent.Parent.Name]];
+            }
+            catch { hi.MeshGroup = MeshGroups[0]; }
 			Invalidate();
 
             return true;
@@ -1952,9 +1974,15 @@ namespace UTFEditor
         private bool LinkHardpoint(TreeNode node, string name, bool revolute)
         {
             TreeNode cmpnd = rootNode.Nodes["Cmpnd"];
-			if (cmpnd == null)
-				return false;
-            
+            if (cmpnd == null)
+            {
+                cmpnd = rootNode.Nodes["THN"];
+                if (cmpnd == null)
+                {
+                    return false;
+                }
+            }
+
 			string fileName = null;
             foreach (TreeNode n in cmpnd.Nodes)
             {

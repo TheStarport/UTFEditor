@@ -28,6 +28,9 @@ namespace UTFEditor
                                  "VMesh Files (*.vms)|*.vms|" +
                                  "All Files|*";
 
+        const string THNfilter = "FL THN Files|*.thn|" +
+                         "All Files|*";
+
         private int childFormNumber = 0;
 
         public UTFEditorMain(string[] args)
@@ -450,6 +453,7 @@ namespace UTFEditor
             Viewable view = childForm.IsViewable(node);
 
             byte[] data = node.Tag as byte[];
+            if (data == null) data = new byte[0];
 			int row = dataView.Rows.Add();
 			dataView[0, row].ValueType = typeof(string);
             dataView[0, row].Value = node.Name;
@@ -830,16 +834,16 @@ namespace UTFEditor
 				TreeNode hp = childForm.FindHardpoint(node);
 				HardpointData hpdata = new HardpointData(hp);
 				
-				hpdata.PosX = (float) dataView[1, 0].Value;
-				hpdata.PosY = (float)dataView[1, 1].Value;
-				hpdata.PosZ = (float)dataView[1, 2].Value;
+				hpdata.PosX = (float)dataView[1, 1].Value;
+				hpdata.PosY = (float)dataView[1, 2].Value;
+				hpdata.PosZ = (float)dataView[1, 3].Value;
 				
 				float[] rot = new float[9];
 				
 				Utilities.RotationToOrientation(
-					(float)dataView[1, 3].Value,
 					(float)dataView[1, 4].Value,
 					(float)dataView[1, 5].Value,
+					(float)dataView[1, 6].Value,
 					out rot[0],
 					out rot[1],
 					out rot[2],
@@ -862,8 +866,8 @@ namespace UTFEditor
 
 				if (Utilities.StrIEq(hp.Parent.Name, "Revolute"))
 				{
-					hpdata.Min = (float)dataView[1, 6].Value;
-					hpdata.Max = (float)dataView[1, 7].Value;
+					hpdata.Min = (float)dataView[1, 7].Value;
+					hpdata.Max = (float)dataView[1, 8].Value;
 				}
 				
 				hpdata.Write();
@@ -1157,6 +1161,34 @@ namespace UTFEditor
             {
                 UTFForm childForm = this.ActiveMdiChild as UTFForm;
                 childForm.PasteBefore();
+            }
+        }
+
+        private void toolStripMenuItem5_Click(object sender, EventArgs e)
+        {
+            if (this.ActiveMdiChild is UTFForm)
+            {
+                UTFForm childForm = this.ActiveMdiChild as UTFForm;
+
+                openFileDialog1.Filter = THNfilter;
+                if (openFileDialog1.ShowDialog(this) == DialogResult.OK)
+                {
+                    childForm.ImportHardpointsFromTHN(openFileDialog1.FileName);
+                }
+            }
+        }
+
+        private void toolStripMenuItem4_Click(object sender, EventArgs e)
+        {
+            if (this.ActiveMdiChild is UTFForm)
+            {
+                UTFForm childForm = this.ActiveMdiChild as UTFForm;
+
+                saveFileDialog1.Filter = THNfilter;
+                if (saveFileDialog1.ShowDialog(this) == DialogResult.OK)
+                {
+                    childForm.ExportHardpointsToTHN(saveFileDialog1.FileName);
+                }
             }
         }
     }
