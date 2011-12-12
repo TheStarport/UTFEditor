@@ -523,6 +523,106 @@ namespace UTFEditor
             }
         }
 
+        private void BuildImportedHardpoints(TreeNode parent, THNEditor.ThnParse thn)
+        {
+            foreach (THNEditor.ThnParse.Entity en in thn.entities)
+            {
+                HardpointData hp = new HardpointData(en.entity_name, false);
+
+                hp.PosX = en.pos.x;
+                hp.PosY = en.pos.y;
+                hp.PosZ = en.pos.z;
+
+                hp.RotMatXX = en.rot1.x;
+                hp.RotMatXY = en.rot1.y;
+                hp.RotMatXZ = en.rot1.z;
+                hp.RotMatYX = en.rot2.x;
+                hp.RotMatYY = en.rot2.y;
+                hp.RotMatYZ = en.rot2.z;
+                hp.RotMatZX = en.rot3.x;
+                hp.RotMatZY = en.rot3.y;
+                hp.RotMatZZ = en.rot3.z;
+                hp.Write();
+
+                parent.Nodes.Add(hp.Node);
+            }
+        }
+
+        THNEditor.ThnParse thn;
+            
+        public void ImportHardpointsFromTHN(string path)
+        {
+            thn = new THNEditor.ThnParse();
+            thn.Parse(File.ReadAllText(path));
+
+            TreeNode thnnode = new TreeNode("THN");
+            thnnode.Name = "THN";
+
+            TreeNode fixnode = new TreeNode("Fixed");
+            fixnode.Name = "Fixed";
+
+            TreeNode hpnode = new TreeNode("Hardpoints");
+            hpnode.Name = "Hardpoints";
+
+            hpnode.Nodes.Add(fixnode);
+            thnnode.Nodes.Add(hpnode);
+
+            treeView1.Nodes[0].Nodes.Add(thnnode);
+            BuildImportedHardpoints(fixnode, thn);
+
+            if (treeView1.Nodes[1].Text != "Hardpoints")
+            {
+                treeView1.Nodes.Insert(1, "Hardpoints");
+            }
+            else
+            {
+                treeView1.Nodes[1].Nodes.Clear();
+            }
+
+            foreach (THNEditor.ThnParse.Entity en in thn.entities)
+            {
+                TreeNode hp = new TreeNode(en.entity_name);
+                hp.Name = en.entity_name;
+                treeView1.Nodes[1].Nodes.Add(hp);
+            }
+        }
+
+        public void ExportHardpointsToTHN(string path)
+        {
+            List<THNEditor.ThnParse.Entity> entities = new List<THNEditor.ThnParse.Entity>();
+            foreach (TreeNode n in treeView1.Nodes[0].Nodes["THN"].Nodes["Hardpoints"].Nodes["Fixed"].Nodes)
+            {
+                foreach (THNEditor.ThnParse.Entity e in thn.entities)
+                {
+                    if (n.Name == e.entity_name)
+                    {
+                        HardpointData d = new HardpointData(n);
+                        e.pos.x = d.PosX;
+                        e.pos.y = d.PosY;
+                        e.pos.z = d.PosZ;
+
+                        e.rot1.x = d.RotMatXX;
+                        e.rot1.y = d.RotMatXY;
+                        e.rot1.z = d.RotMatXZ;
+
+                        e.rot2.z = d.RotMatYX;
+                        e.rot2.y = d.RotMatYY;
+                        e.rot2.z = d.RotMatYZ;
+
+                        e.rot3.x = d.RotMatZX;
+                        e.rot3.y = d.RotMatZY;
+                        e.rot3.z = d.RotMatZZ;
+                        entities.Add(e);
+                        break;
+                    }
+                }
+            }
+            thn.entities = entities;
+            if (!File.Exists(path))
+                File.Create(path);
+            File.WriteAllText(path, thn.Write());
+        }
+
         public void MakeAnimFrames()
         {
             TreeNode node = treeView1.SelectedNode;
@@ -1836,7 +1936,8 @@ namespace UTFEditor
 				}
             }
 
-			foreach (UTFFormObserver ob in observers)
+            List<UTFFormObserver> observerscopy = new List<UTFFormObserver>(observers);
+            foreach (UTFFormObserver ob in observerscopy)
 			{
 				ob.Close();
 			}
