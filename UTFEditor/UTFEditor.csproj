@@ -171,6 +171,12 @@
     <Compile Include="FloatBox.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="VMeshDataNodeNameFixer.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="VMeshDataNodeNameFixer.Designer.cs">
+      <DependentUpon>VMeshDataNodeNameFixer.cs</DependentUpon>
+    </Compile>
     <Compile Include="FuseEditor.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -254,6 +260,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="EditAnimChannel.resx">
       <DependentUpon>EditAnimChannel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="VMeshDataNodeNameFixer.resx">
+      <DependentUpon>VMeshDataNodeNameFixer.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FuseEditor.resx">
       <DependentUpon>FuseEditor.cs</DependentUpon>

@@ -48,5 +48,22 @@ namespace UTFEditor
                 Lines.Add(item);
             }
         }
+
+        public byte[] GetBytes()
+        {
+            List<byte> data = new List<byte>();
+            data.AddRange(BitConverter.GetBytes(HeaderSize));
+            data.AddRange(BitConverter.GetBytes(VMeshLibId));
+            data.AddRange(BitConverter.GetBytes(VertexOffset));
+            data.AddRange(BitConverter.GetBytes(NoVertices));
+            data.AddRange(BitConverter.GetBytes(NoRefVertices));
+            data.AddRange(BitConverter.GetBytes(MaxVertNoPlusOne));
+            foreach (Line line in Lines)
+            {
+                data.AddRange(BitConverter.GetBytes(line.Point1));
+                data.AddRange(BitConverter.GetBytes(line.Point2));
+            }
+            return data.ToArray();
+        }
     }
 }

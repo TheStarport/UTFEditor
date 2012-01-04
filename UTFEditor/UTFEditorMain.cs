@@ -54,7 +54,7 @@ namespace UTFEditor
         /// Open and show a UTF file. Throws exception on failure.
         /// </summary>
         /// <param name="name">File to open</param>
-        private void LoadUTFFile(string name)
+        public void LoadUTFFile(string name)
         {
             UTFForm childForm = new UTFForm(this, name);
             childForm.LoadUTFFile(name);
@@ -1190,6 +1190,11 @@ namespace UTFEditor
                     childForm.ExportHardpointsToTHN(saveFileDialog1.FileName);
                 }
             }
+        }
+        
+        private void toolStripMenuOpenVMeshDataNodeNameFixer_Click(object sender, EventArgs e)
+        {
+            new VMeshDataNodeNameFixer(this).Show(this);
         }
     }
 }

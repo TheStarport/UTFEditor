@@ -68,6 +68,9 @@ namespace UTFEditor
         /// The current X/Y/Z origin.
         float orgX = 0, orgY = 0, orgZ = 0;
         
+        /// The thn scene origin if we've imported hardpoints from a thn file.
+        float thnX = -30, thnY = 0, thnZ = -30;
+        
         DateTime lastClickTime;
 
         /// <summary>
@@ -684,7 +687,7 @@ namespace UTFEditor
 					Matrix m = GetHardpointMatrix(node);
 
 					HardpointDisplayInfo hi = new HardpointDisplayInfo();
-					hi.Matrix = m;
+                    hi.Matrix = m;
 					hi.Name = node.Name;
 					hi.Node = node;
 					hi.Min = hi.Max = 0;
@@ -1720,7 +1723,7 @@ namespace UTFEditor
 					if (!isSelectedNode)
 						if (splitViewHardpoint.Panel2Collapsed || !hi.Display) continue;
 					float scale = hp.scale * (isSelectedNode ? 4f : 1f);
-					device.Transform.World = Matrix.Scaling(scale, scale, scale) * hi.Matrix * hi.MeshGroup.Transform * Matrix.Translation(orgX, orgY, orgZ);
+                    device.Transform.World = Matrix.Scaling(scale, scale, scale) * hi.Matrix * hi.MeshGroup.Transform * Matrix.Translation(orgX, orgY, orgZ) * Matrix.Translation(thnX, thnY, thnZ);
 
 					if (isSelectedNode)
 					{
@@ -1827,6 +1830,10 @@ namespace UTFEditor
 			if (minDist == Single.MaxValue) return false;
 			
 			hitLocation = minDist * (farFinal - nearFinal) + nearFinal;
+            hitLocation.X -= thnX;
+            hitLocation.Y -= thnY;
+            hitLocation.Z -= thnZ;
+
 
 			return true;
         }
@@ -2725,7 +2732,7 @@ namespace UTFEditor
 				if (!selected)
 					if (splitViewHardpoint.Panel2Collapsed || !hi.Display) continue;
 				Vector3 hpLoc = new Vector3(hi.Matrix.M41, hi.Matrix.M42, hi.Matrix.M43);
-				hpLoc.TransformCoordinate(hi.MeshGroup.Transform);
+				hpLoc.TransformCoordinate(hi.MeshGroup.Transform * Matrix.Translation(thnX, thnY, thnZ));
 
 				float distanceHardpoint = Vector3.LengthSq(hpLoc - near);
 				/*if(hitMesh)
