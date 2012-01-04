@@ -570,7 +570,7 @@ namespace UTFEditor
             treeView1.Nodes[0].Nodes.Add(thnnode);
             BuildImportedHardpoints(fixnode, thn);
 
-            if (treeView1.Nodes[1].Text != "Hardpoints")
+            if (treeView1.Nodes.Count <= 1 || treeView1.Nodes[1].Text != "Hardpoints")
             {
                 treeView1.Nodes.Insert(1, "Hardpoints");
             }

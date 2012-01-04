@@ -37,6 +37,8 @@
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.saveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem5 = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem4 = new System.Windows.Forms.ToolStripMenuItem();
             this.exportAllTexturesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.toolStripMenuItemRecentFiles = new System.Windows.Forms.ToolStripMenuItem();
@@ -103,8 +105,8 @@
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog1 = new System.Windows.Forms.SaveFileDialog();
             this.folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
-            this.toolStripMenuItem4 = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripMenuItem5 = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem6 = new System.Windows.Forms.ToolStripMenuItem();
+            this.folderBrowserDialog2 = new System.Windows.Forms.FolderBrowserDialog();
             this.menuStrip.SuspendLayout();
             this.toolStrip.SuspendLayout();
             this.toolStripContainer1.ContentPanel.SuspendLayout();
@@ -142,6 +144,7 @@
             this.toolStripMenuItem5,
             this.toolStripMenuItem4,
             this.exportAllTexturesToolStripMenuItem,
+            this.toolStripMenuItem6,
             this.toolStripSeparator4,
             this.toolStripMenuItemRecentFiles,
             this.toolStripSeparator5,
@@ -157,7 +160,7 @@
             this.newToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Black;
             this.newToolStripMenuItem.Name = "newToolStripMenuItem";
             this.newToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.N)));
-            this.newToolStripMenuItem.Size = new System.Drawing.Size(222, 22);
+            this.newToolStripMenuItem.Size = new System.Drawing.Size(241, 22);
             this.newToolStripMenuItem.Text = "&New";
             this.newToolStripMenuItem.Click += new System.EventHandler(this.ShowNewForm);
             // 
@@ -167,14 +170,14 @@
             this.openToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Black;
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
             this.openToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.O)));
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(222, 22);
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(241, 22);
             this.openToolStripMenuItem.Text = "&Open";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.OpenFile);
             // 
             // toolStripSeparator3
             // 
             this.toolStripSeparator3.Name = "toolStripSeparator3";
-            this.toolStripSeparator3.Size = new System.Drawing.Size(219, 6);
+            this.toolStripSeparator3.Size = new System.Drawing.Size(238, 6);
             // 
             // saveToolStripMenuItem
             // 
@@ -182,7 +185,7 @@
             this.saveToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Black;
             this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
             this.saveToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.S)));
-            this.saveToolStripMenuItem.Size = new System.Drawing.Size(222, 22);
+            this.saveToolStripMenuItem.Size = new System.Drawing.Size(241, 22);
             this.saveToolStripMenuItem.Text = "&Save";
             this.saveToolStripMenuItem.Click += new System.EventHandler(this.saveToolStripMenuItem_Click);
             // 
@@ -191,37 +194,51 @@
             this.saveAsToolStripMenuItem.Name = "saveAsToolStripMenuItem";
             this.saveAsToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift)
                         | System.Windows.Forms.Keys.S)));
-            this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(222, 22);
+            this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(241, 22);
             this.saveAsToolStripMenuItem.Text = "Save &As";
             this.saveAsToolStripMenuItem.Click += new System.EventHandler(this.SaveAsToolStripMenuItem_Click);
+            // 
+            // toolStripMenuItem5
+            // 
+            this.toolStripMenuItem5.Name = "toolStripMenuItem5";
+            this.toolStripMenuItem5.Size = new System.Drawing.Size(241, 22);
+            this.toolStripMenuItem5.Text = "Import Hardpoints From THN";
+            this.toolStripMenuItem5.Click += new System.EventHandler(this.toolStripMenuItem5_Click);
+            // 
+            // toolStripMenuItem4
+            // 
+            this.toolStripMenuItem4.Name = "toolStripMenuItem4";
+            this.toolStripMenuItem4.Size = new System.Drawing.Size(241, 22);
+            this.toolStripMenuItem4.Text = "Export Hardpoints To THN";
+            this.toolStripMenuItem4.Click += new System.EventHandler(this.toolStripMenuItem4_Click);
             // 
             // exportAllTexturesToolStripMenuItem
             // 
             this.exportAllTexturesToolStripMenuItem.Name = "exportAllTexturesToolStripMenuItem";
-            this.exportAllTexturesToolStripMenuItem.Size = new System.Drawing.Size(222, 22);
+            this.exportAllTexturesToolStripMenuItem.Size = new System.Drawing.Size(241, 22);
             this.exportAllTexturesToolStripMenuItem.Text = "Export All Textures";
             this.exportAllTexturesToolStripMenuItem.Click += new System.EventHandler(this.exportAllTexturesToolStripMenuItem_Click);
             // 
             // toolStripSeparator4
             // 
             this.toolStripSeparator4.Name = "toolStripSeparator4";
-            this.toolStripSeparator4.Size = new System.Drawing.Size(219, 6);
+            this.toolStripSeparator4.Size = new System.Drawing.Size(238, 6);
             // 
             // toolStripMenuItemRecentFiles
             // 
             this.toolStripMenuItemRecentFiles.Name = "toolStripMenuItemRecentFiles";
-            this.toolStripMenuItemRecentFiles.Size = new System.Drawing.Size(222, 22);
+            this.toolStripMenuItemRecentFiles.Size = new System.Drawing.Size(241, 22);
             this.toolStripMenuItemRecentFiles.Text = "Recent Files";
             // 
             // toolStripSeparator5
             // 
             this.toolStripSeparator5.Name = "toolStripSeparator5";
-            this.toolStripSeparator5.Size = new System.Drawing.Size(219, 6);
+            this.toolStripSeparator5.Size = new System.Drawing.Size(238, 6);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(222, 22);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(241, 22);
             this.exitToolStripMenuItem.Text = "E&xit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.ExitToolsStripMenuItem_Click);
             // 
@@ -322,14 +339,14 @@
             this.toolBarToolStripMenuItem.CheckOnClick = true;
             this.toolBarToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.toolBarToolStripMenuItem.Name = "toolBarToolStripMenuItem";
-            this.toolBarToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.toolBarToolStripMenuItem.Size = new System.Drawing.Size(129, 22);
             this.toolBarToolStripMenuItem.Text = "&Toolbar";
             this.toolBarToolStripMenuItem.Click += new System.EventHandler(this.ToolBarToolStripMenuItem_Click);
             // 
             // calcCRCToolStripMenuItem
             // 
             this.calcCRCToolStripMenuItem.Name = "calcCRCToolStripMenuItem";
-            this.calcCRCToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.calcCRCToolStripMenuItem.Size = new System.Drawing.Size(129, 22);
             this.calcCRCToolStripMenuItem.Text = "Calc CRC";
             this.calcCRCToolStripMenuItem.Click += new System.EventHandler(this.calcCRCToolStripMenuItem_Click);
             // 
@@ -775,19 +792,12 @@
             // 
             this.openFileDialog1.FileName = "openFileDialog1";
             // 
-            // toolStripMenuItem4
+            // toolStripMenuItem6
             // 
-            this.toolStripMenuItem4.Name = "toolStripMenuItem4";
-            this.toolStripMenuItem4.Size = new System.Drawing.Size(222, 22);
-            this.toolStripMenuItem4.Text = "Export Hardpoints To THN";
-            this.toolStripMenuItem4.Click += new System.EventHandler(this.toolStripMenuItem4_Click);
-            // 
-            // toolStripMenuItem5
-            // 
-            this.toolStripMenuItem5.Name = "toolStripMenuItem5";
-            this.toolStripMenuItem5.Size = new System.Drawing.Size(222, 22);
-            this.toolStripMenuItem5.Text = "Import Hardpoints From THN";
-            this.toolStripMenuItem5.Click += new System.EventHandler(this.toolStripMenuItem5_Click);
+            this.toolStripMenuItem6.Name = "toolStripMenuItem6";
+            this.toolStripMenuItem6.Size = new System.Drawing.Size(241, 22);
+            this.toolStripMenuItem6.Text = "Check for Duplicate Mesh Names";
+            this.toolStripMenuItem6.Click += new System.EventHandler(this.toolStripMenuOpenVMeshDataNodeNameFixer_Click);
             // 
             // UTFEditorMain
             // 
@@ -900,6 +910,8 @@
         private System.Windows.Forms.ToolStripMenuItem pasteBeforeToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem4;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem5;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem6;
+        private System.Windows.Forms.FolderBrowserDialog folderBrowserDialog2;
     }
 }
 

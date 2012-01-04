@@ -29,7 +29,7 @@ namespace THNEditor
         {
             public string entity_name;
           
-            public int type;
+            public string type;
             public string template_name;
             public int lt_grp;
             public int srt_grp;
@@ -37,7 +37,7 @@ namespace THNEditor
             public int front;
             public int up;
             public Vector ambient;
-            public int flags;
+            public string flags;
 
             // psysprops
             public bool hs_psp = false;
@@ -129,7 +129,7 @@ namespace THNEditor
                     sw.WriteLine(",front={0}", e.front);
                 if (e.ambient!=null)
                     sw.WriteLine(",ambient={{ {0:0},{1:0},{2:0} }}", e.ambient.x, e.ambient.y, e.ambient.z);
-                if (e.flags!=0)
+                if (e.flags!=null)
                     sw.WriteLine(",flags={0}",e.flags);
 
                 if (e.hs_psp)
@@ -281,30 +281,43 @@ namespace THNEditor
             e.has_sp = true;
             if (GetToken() != "{")
                 throw new Exception("expecting '{': tok = " + toks[0]);
-            if (GetToken() != "orient")
-                throw new Exception("expecting 'orient': tok = " + toks[0]);
-            if (GetToken() != "=")
-                throw new Exception("expecting '=': tok = " + toks[0]);
-            if (GetToken() != "{")
-                throw new Exception("expecting '{': tok = " + toks[0]);
-            e.rot1 = ReadVectorBlock();
-            if (GetToken() != ",")
-                throw new Exception("expecting ',': tok = " + toks[0]);
-            e.rot2 = ReadVectorBlock();
-            if (GetToken() != ",")
-                throw new Exception("expecting ',': tok = " + toks[0]);
-            e.rot3 = ReadVectorBlock();
-            if (GetToken() != "}")
-                throw new Exception("expecting '}': tok = " + toks[0]);
-            if (GetToken() != ",")
-                throw new Exception("expecting ',': tok = " + toks[0]);
-            if (GetToken() != "pos")
-                throw new Exception("expecting 'pos': tok = " + toks[0]);
-            if (GetToken() != "=")
-                throw new Exception("expecting '=': tok = " + toks[0]);
-            e.pos = ReadVectorBlock();
-            if (GetToken() != "}")
-                throw new Exception("expecting '}': tok = " + toks[0]);
+
+            //NextToken();
+            while (!IsToken("}"))
+            {
+                if (IsToken("orient"))
+                {
+                    NextToken();
+                    if (GetToken() != "=")
+                        throw new Exception("expecting '=': tok = " + toks[0]);
+                    if (GetToken() != "{")
+                        throw new Exception("expecting '{': tok = " + toks[0]);
+                    e.rot1 = ReadVectorBlock();
+                    if (GetToken() != ",")
+                        throw new Exception("expecting ',': tok = " + toks[0]);
+                    e.rot2 = ReadVectorBlock();
+                    if (GetToken() != ",")
+                        throw new Exception("expecting ',': tok = " + toks[0]);
+                    e.rot3 = ReadVectorBlock();
+                    if (GetToken() != "}")
+                        throw new Exception("expecting '}': tok = " + toks[0]);
+                }
+                else if (IsToken("pos"))
+                {
+                    NextToken();
+                    if (GetToken() != "=")
+                        throw new Exception("expecting '=': tok = " + toks[0]);
+                    e.pos = ReadVectorBlock();
+                }
+                else
+                {
+                    throw new Exception("expecting 'orient,pos': tok = " + toks[0]);
+                }
+
+                if (IsToken(","))
+                    NextToken();
+            }
+            NextToken();
         }
 
         void ReadLightProps(Entity e)
@@ -627,7 +640,7 @@ namespace THNEditor
                     NextToken();
                     if (GetToken() != "=")
                         throw new Exception("expecting '=': tok = " + toks[0]);
-                    e.type = GetNumber();
+                    e.type = GetNumberConstant();
                 }
                 else if (IsToken("srt_grp"))
                 {
@@ -669,7 +682,7 @@ namespace THNEditor
                     NextToken();
                     if (GetToken() != "=")
                         throw new Exception("expecting '=': tok = " + toks[0]);
-                    e.flags = GetNumber();
+                    e.flags = GetNumberConstant();
                 }
                 else if (IsToken("psysprops"))
                 {
@@ -772,6 +785,12 @@ namespace THNEditor
             }
         }
         protected string GetToken()
+        {
+            string v = toks[0];
+            toks.RemoveAt(0);
+            return v;
+        }
+        protected string GetNumberConstant()
         {
             string v = toks[0];
             toks.RemoveAt(0);
