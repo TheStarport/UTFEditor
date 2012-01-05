@@ -57,7 +57,7 @@ namespace UTFEditor
         /// A delegate that always runs in the UI thread. This updates the database
         /// which in turn updates the log table.
         /// </summary>
-        /// <param name="details"></param>
+        /// <param name="details"></parfam>
         /// <param name="dirPath"></param>
         delegate void UpdateUIAddLogDelegate(string details);
         protected void UpdateUIAddLog(string details)
@@ -96,6 +96,88 @@ namespace UTFEditor
             bgScanMeshNodesWkr = null;
         }
 
+
+        class MaterialInfo
+        {
+            public string matName;
+            public uint matID;
+            public string texFileName;
+            public uint texCRC;
+            public List<string> fileRefs = new List<string>();
+        }
+        Dictionary<uint, MaterialInfo> matList = new Dictionary<uint, MaterialInfo>();
+
+        uint GetTextureCRC(string file, TreeNode root, string texFileName)
+        {
+            foreach (TreeNode texLibNode in root.Nodes.Find("texture library", true))
+            {
+                foreach (TreeNode node in texLibNode.Nodes)
+                {
+                    if (node.Name == texFileName)
+                    {
+                        TreeNode mipNode = node.Nodes["MIPS"];
+                        if (mipNode == null)
+                            mipNode = node.Nodes["MIP0"];
+                        if (mipNode != null)
+                        {
+                            byte[] texture = mipNode.Tag as byte[];
+                            return Utilities.FLModelCRC(texture);
+                        }
+                    }
+                }
+            }
+            return 0;
+        }
+
+        void LoadMaterials(string file, TreeNode root)
+        {
+            foreach (TreeNode matLibNode in root.Nodes.Find("material library", true))
+            {
+                foreach (TreeNode node in matLibNode.Nodes)
+                {
+                    TreeNode[] dtName = node.Nodes.Find("Dt_name", true);
+                    if (dtName.Length > 0)
+                    {
+                        MaterialInfo mi = new MaterialInfo();
+                        mi.matName = node.Name;
+                        mi.matID = Utilities.FLModelCRC(mi.matName);
+                        mi.texFileName = Utilities.GetString(node.Nodes["Dt_name"]);
+                        mi.texCRC = GetTextureCRC(file, root, mi.texFileName);
+
+                        // If this texture is already present then check it
+                        if (matList.ContainsKey(mi.matID))
+                        {
+                            MaterialInfo mi2 = matList[mi.matID];
+
+                            if (mi2 != null)
+                            {
+                                mi2.fileRefs.Add(file);
+                                if (mi2.texFileName != mi.texFileName)
+                                {
+                                    AddLog("\nError material referencing different texture names matName=" + mi2.matName + " matID=" + mi2.matID);
+                                    foreach (string f2 in mi2.fileRefs)
+                                        AddLog(" file=" + mi2.fileRefs);
+                                }
+                                if (mi2.texCRC != mi.texCRC)
+                                {
+                                    AddLog("\nError material referencing different textures matName=" + mi2.matName + " matID=" + mi2.matID);
+                                    foreach (string f2 in mi2.fileRefs)
+                                        AddLog(" file=" + mi2.fileRefs);
+                                }
+                            }
+                            else
+                            {
+                                mi.fileRefs.Add(file);
+                                matList[mi.matID] = mi;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Dictionary<uint, VMeshNodeInfo> nodelist = new Dictionary<uint, VMeshNodeInfo>();
+
         /// <summary>
         /// Build the update package in the background.
         /// </summary>
@@ -103,7 +185,8 @@ namespace UTFEditor
         /// <param name="e"></param>
         private void ScanForNonUniqueMeshNodes(object sender, DoWorkEventArgs e)
         {
-            Dictionary<uint, VMeshNodeInfo> nodelist = new Dictionary<uint, VMeshNodeInfo>();
+            matList.Clear();
+            nodelist.Clear();
             string folderpath = (string)e.Argument;
             string[] files = System.IO.Directory.GetFiles(folderpath, "*.*", System.IO.SearchOption.AllDirectories);
 
@@ -117,13 +200,21 @@ namespace UTFEditor
                 if ((++curr % 100) == 0)
                     AddLog(String.Format("\nProcessing {0}/{1}", curr, max));
 
-                if (file.EndsWith(".3db") || file.EndsWith(".cmp"))
+                if (file.EndsWith(".mat"))
+                {
+                    UTFFile utf = new UTFFile();
+                    TreeNode root = utf.LoadUTFFile(file);
+                    LoadMaterials(file, root);
+                }
+                else if (file.EndsWith(".3db") || file.EndsWith(".cmp"))
                 {
                     try
                     {
                         List<string> files_with_duplicates = new List<string>();
                         UTFFile utf = new UTFFile();
                         TreeNode root = utf.LoadUTFFile(file);
+
+                        LoadMaterials(file, root);
 
                         foreach (TreeNode node in root.Nodes.Find("VMeshData", true))
                         {
