@@ -205,16 +205,20 @@ namespace UTFEditor
             0x1C0BBE37, 0x150C8EA1, 0x0E05DF1B, 0x0702EF8D, 
         };
 
+        public static uint FLModelCRC(byte[] data)
+        {
+            uint crc = 0xFFFFFFFF;
+            for (uint i = 0; i < data.Length; i++)
+                crc = (crc >> 8) ^ flcrc32tbl[(byte)crc ^ data[i]];
+            return ~crc;
+        }
+
+
         /// Get a CRC code for a model name. This type of CRC is used in model files.
         /// Many thanks to Anton's CRCTool source for the algorithm and the CRC table!
         public static uint FLModelCRC(string str)
         {
-            byte[] data = Encoding.ASCII.GetBytes(str.ToLowerInvariant());
-
-            uint crc = 0xFFFFFFFF;
-            for (uint i = 0; i < str.Length; i++)
-                crc = (crc >> 8) ^ flcrc32tbl[(byte)crc ^ data[i]];
-            return ~crc;
+            return FLModelCRC(Encoding.ASCII.GetBytes(str.ToLowerInvariant()));
         }
 
         /// <summary>
