@@ -373,6 +373,31 @@ namespace UTFEditor
                     }
                 }
             }
+
+            // Check for same textures, different names.
+            Dictionary<uint, List<MaterialInfo>> textures = new Dictionary<uint, List<MaterialInfo> >();
+            foreach (MaterialInfo mi in matList.Values)
+            {
+                if (!textures.ContainsKey(mi.texCRC))
+                    textures[mi.texCRC] = new List<MaterialInfo>();
+                textures[mi.texCRC].Add(mi);
+            }
+            foreach (List<MaterialInfo> ml in textures.Values)
+            {
+                if (ml.Count > 1)
+                {
+                    AddLog(String.Format("Same texture/different name:"));
+                    foreach (MaterialInfo mi in ml)
+                    {
+                        AddLog(String.Format(" name={0} texture_file_name={1} matid={2}", mi.matName, mi.texFileName, mi.matID));
+                        AddLog(String.Format(" Material found in:"));
+                        foreach (string file in mi.refs.Keys)
+                        {
+                            AddLog("  " + file);
+                        }
+                    }
+                }
+            }
         }
 
         void FixVMeshNodeNames(string file)
