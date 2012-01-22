@@ -101,9 +101,12 @@ namespace UTFEditor
         {
             public string matName;
             public uint matID;
+            public uint matID2;
             public string texFileName;
             public uint texCRC;
-            public List<string> fileRefs = new List<string>();
+            public Dictionary<string, string> refs = new Dictionary<string, string>();
+            public Dictionary<string, string> errors = new Dictionary<string, string>();
+            public Dictionary<string, string> usedBy = new Dictionary<string, string>();
         }
         Dictionary<uint, MaterialInfo> matList = new Dictionary<uint, MaterialInfo>();
 
@@ -113,20 +116,68 @@ namespace UTFEditor
             {
                 foreach (TreeNode node in texLibNode.Nodes)
                 {
-                    if (node.Name == texFileName)
+                    if (node.Name.ToLowerInvariant() == texFileName.ToLowerInvariant())
                     {
                         TreeNode mipNode = node.Nodes["MIPS"];
                         if (mipNode == null)
                             mipNode = node.Nodes["MIP0"];
-                        if (mipNode != null)
+                        if (mipNode == null)
                         {
-                            byte[] texture = mipNode.Tag as byte[];
-                            return Utilities.FLModelCRC(texture);
+                            AddLog("WARNING texture data is not found");
+                            return 0;
                         }
+
+                        byte[] texture = mipNode.Tag as byte[];
+                        return Utilities.FLModelCRC(texture);
                     }
                 }
             }
             return 0;
+        }
+
+        void LoadMaterial(string file, TreeNode root, TreeNode node)
+        {
+            TreeNode[] dtName = node.Nodes.Find("Dt_name", true);
+            if (dtName.Length > 0)
+            {
+                MaterialInfo mi = new MaterialInfo();
+                mi.matName = node.Name;
+                mi.matID = Utilities.FLModelCRC(mi.matName);
+                mi.matID2 = Utilities.FLModelCRC(mi.matName.ToLowerInvariant());
+                mi.texFileName = Utilities.GetString(node.Nodes["Dt_name"]).ToLowerInvariant();
+                mi.texCRC = GetTextureCRC(file, root, mi.texFileName);
+                if (mi.texCRC == 0)
+                    mi.errors[file] = String.Format("Error no texture data found for tex1name={0}", mi.texFileName);
+
+                MaterialInfo mi2 = null;
+                if (matList.ContainsKey(mi.matID))
+                    mi2 = matList[mi.matID];
+                //if (matList.ContainsKey(mi.matID2))
+                //    mi2 = matList[mi.matID2];
+
+                // If this texture is already present then check it
+                if (mi2 != null)
+                {
+                    mi2.refs[file] = file;
+                    if (mi2.texFileName != mi.texFileName)
+                    {
+                        mi2.errors[file] = String.Format("Error texture file name different for same material matName, tex1name={0} tex2name={1}", mi2.texFileName, mi.texFileName);
+                    }
+                    if (mi2.texCRC != mi.texCRC)
+                    {
+                        mi2.errors[file] = String.Format("Error texture file contents different for same texture name, texname={0} tex1crc={1} tex2crc={2}", mi.texFileName, mi.texCRC, mi2.texCRC);
+                    }
+                }
+                else
+                {
+                    mi.refs[file] = file;
+                    matList[mi.matID] = mi;
+                    if (mi.matID != mi.matID2)
+                    {
+                        //matList[mi.matID2] = mi;
+                    }
+                }
+            }
         }
 
         void LoadMaterials(string file, TreeNode root)
@@ -135,43 +186,14 @@ namespace UTFEditor
             {
                 foreach (TreeNode node in matLibNode.Nodes)
                 {
-                    TreeNode[] dtName = node.Nodes.Find("Dt_name", true);
-                    if (dtName.Length > 0)
-                    {
-                        MaterialInfo mi = new MaterialInfo();
-                        mi.matName = node.Name;
-                        mi.matID = Utilities.FLModelCRC(mi.matName);
-                        mi.texFileName = Utilities.GetString(node.Nodes["Dt_name"]);
-                        mi.texCRC = GetTextureCRC(file, root, mi.texFileName);
-
-                        // If this texture is already present then check it
-                        if (matList.ContainsKey(mi.matID))
-                        {
-                            MaterialInfo mi2 = matList[mi.matID];
-
-                            if (mi2 != null)
-                            {
-                                mi2.fileRefs.Add(file);
-                                if (mi2.texFileName != mi.texFileName)
-                                {
-                                    AddLog("\nError material referencing different texture names matName=" + mi2.matName + " matID=" + mi2.matID);
-                                    foreach (string f2 in mi2.fileRefs)
-                                        AddLog(" file=" + mi2.fileRefs);
-                                }
-                                if (mi2.texCRC != mi.texCRC)
-                                {
-                                    AddLog("\nError material referencing different textures matName=" + mi2.matName + " matID=" + mi2.matID);
-                                    foreach (string f2 in mi2.fileRefs)
-                                        AddLog(" file=" + mi2.fileRefs);
-                                }
-                            }
-                            else
-                            {
-                                mi.fileRefs.Add(file);
-                                matList[mi.matID] = mi;
-                            }
-                        }
-                    }
+                    LoadMaterial(file, root, node);
+                }
+            }
+            foreach (TreeNode matLibNode in root.Nodes.Find("Material library", true))
+            {
+                foreach (TreeNode node in matLibNode.Nodes)
+                {
+                    LoadMaterial(file, root, node);
                 }
             }
         }
@@ -191,6 +213,8 @@ namespace UTFEditor
             string[] files = System.IO.Directory.GetFiles(folderpath, "*.*", System.IO.SearchOption.AllDirectories);
 
             int max = files.Length;
+
+            AddLog("Loading mats");
             int curr = 0;
             foreach (string file in files)
             {
@@ -206,7 +230,13 @@ namespace UTFEditor
                     TreeNode root = utf.LoadUTFFile(file);
                     LoadMaterials(file, root);
                 }
-                else if (file.EndsWith(".3db") || file.EndsWith(".cmp"))
+            }
+
+            AddLog("Loading cmp/3db");
+            curr = 0;
+            foreach (string file in files)
+            {
+                if (file.EndsWith(".3db") || file.EndsWith(".cmp"))
                 {
                     try
                     {
@@ -223,9 +253,9 @@ namespace UTFEditor
                             info.name = node.Parent.Name;
                             info.crc = Utilities.FLModelCRC(info.name);
                             if (nodelist.ContainsKey(info.crc))
-                            {   
+                            {
                                 AddLog("\nError duplicate node name=" + info.name);
-                                AddLog(" file1=" + info.file );
+                                AddLog(" file1=" + info.file);
                                 AddLog(" file2=" + nodelist[info.crc].file);
                                 if (!files_with_duplicates.Contains(info.file))
                                     files_with_duplicates.Add(info.file);
@@ -236,9 +266,23 @@ namespace UTFEditor
                             {
                                 nodelist[info.crc] = info;
                             }
+
+                            VMeshData meshData = new VMeshData(node.Tag as byte[]);
+                            foreach (VMeshData.TMeshHeader m in meshData.Meshes)
+                            {
+                                if (matList.ContainsKey(m.MaterialId))
+                                {
+                                    matList[m.MaterialId].usedBy[file] = node.Name;
+                                }
+                                else
+                                {
+                                    AddLog(String.Format("\nError no material entry for name={0} materialID={1}", node.Parent.Parent.Name, m.MaterialId));
+                                    AddLog(" file1=" + file);
+                                }
+                            }
                         }
 
-                        if (root.Nodes.Find("VMeshLibrary",true).Length > 0)
+                        if (root.Nodes.Find("VMeshLibrary", true).Length > 0)
                         {
                             foreach (TreeNode node in root.Nodes.Find("VMeshRef", true))
                             {
@@ -303,6 +347,29 @@ namespace UTFEditor
                     catch
                     {
                         AddLog("Error loading " + file);
+                    }
+                }
+            }
+
+            foreach (MaterialInfo mi in matList.Values)
+            {
+                if (mi.errors.Count > 0 && mi.usedBy.Count > 1)
+                {
+                    AddLog(String.Format("\nError for material={0} id={1} id2={2}", mi.matName, mi.matID, mi.matID2));
+                    AddLog(String.Format("Material found in:"));
+                    foreach (string file in mi.refs.Keys)
+                    {
+                        AddLog(" " + file);
+                    }
+                    AddLog(String.Format("Errors:"));
+                    foreach (KeyValuePair<string, string> item in mi.errors)
+                    {
+                        AddLog(String.Format(" file={0} error={1}", item.Key, item.Value));
+                    }
+                    AddLog(String.Format("Used By:"));
+                    foreach (KeyValuePair<string, string> item in mi.usedBy)
+                    {
+                        AddLog(String.Format(" model={0} mesh={1}", item.Key, item.Value));
                     }
                 }
             }
