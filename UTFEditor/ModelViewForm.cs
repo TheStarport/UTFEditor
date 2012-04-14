@@ -69,7 +69,7 @@ namespace UTFEditor
         float orgX = 0, orgY = 0, orgZ = 0;
         
         /// The thn scene origin if we've imported hardpoints from a thn file.
-        float thnX = -30, thnY = 0, thnZ = -30;
+        float thnX = 0, thnY = 0, thnZ = 0;
         
         DateTime lastClickTime;
 
