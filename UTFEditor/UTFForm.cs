@@ -1972,5 +1972,72 @@ namespace UTFEditor
                 parent.SelectGrid();
             }
         }
+
+        internal void ImportTextures(string[] textures)
+        {
+            bool appendTga = false, overwrite = false;
+            switch (MessageBox.Show("Do you want to include a .tga extension?", "Naming Scheme", MessageBoxButtons.YesNoCancel))
+            {
+                case DialogResult.Yes:
+                    appendTga = true;
+                    break;
+                case DialogResult.No:
+                    appendTga = false;
+                    break;
+                case DialogResult.Cancel:
+                    return;
+            }
+
+            TreeNode rootNode = treeView1.Nodes[0];
+            TreeNode[] tlibs = rootNode.Nodes.Find("Texture library", false);
+
+            TreeNode textureLibrary;
+
+            if (tlibs.Length > 0)
+            {
+                textureLibrary = tlibs[0];
+
+                foreach (string t in textures)
+                {
+                    string n = Path.GetFileNameWithoutExtension(t);
+                    if (appendTga) n += ".tga";
+
+                    TreeNode[] tx = textureLibrary.Nodes.Find(n, false);
+                    if (tx.Length > 0)
+                    {
+                        if (!overwrite)
+                        {
+                            if (MessageBox.Show("WARNING: Some textures already exist. Overwrite?", "Naming Scheme", MessageBoxButtons.YesNo) == DialogResult.Yes)
+                                overwrite = true;
+                            else
+                                return;
+                        }
+
+                        tx[0].Remove();
+                        NodeChanged(tx[0], "", null);
+                    }
+                }
+            }
+            else
+                textureLibrary = rootNode.Nodes.Add("Texture library");
+
+            foreach (string t in textures)
+            {
+                string n = Path.GetFileNameWithoutExtension(t);
+                if (appendTga) n += ".tga";
+
+                string ext = Path.GetExtension(t).ToLower();
+
+                Byte[] contents = File.ReadAllBytes(t);
+
+                TreeNode node = textureLibrary.Nodes.Add(n);
+                node.Name = n;
+                node.Tag = new byte[0];
+                TreeNode texnode = node.Nodes.Add(ext == ".dds" ? "MIPS" : "MIP0");
+                texnode.Name = texnode.Text;
+                texnode.Tag = contents;
+            }
+            NodeChanged(textureLibrary, "", null);
+        }
     }
 }
