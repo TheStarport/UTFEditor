@@ -1196,5 +1196,18 @@ namespace UTFEditor
         {
             new VMeshDataNodeNameFixer(this).Show(this);
         }
+
+        private void importTexturesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (this.ActiveMdiChild is UTFForm)
+            {
+                UTFForm childForm = this.ActiveMdiChild as UTFForm;
+
+                if (openFileDialog2.ShowDialog(this) == DialogResult.OK)
+                {
+                    childForm.ImportTextures(openFileDialog2.FileNames);
+                }
+            }
+        }
     }
 }
