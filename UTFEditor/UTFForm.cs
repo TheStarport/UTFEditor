@@ -2039,5 +2039,39 @@ namespace UTFEditor
             }
             NodeChanged(textureLibrary, "", null);
         }
+
+        internal void ReplaceAll(string find, string replace, bool whole, bool content, bool name)
+        {
+            ReplaceNodeAndChildren(treeView1.Nodes[0], find, replace, whole, content, name);
+
+            Modified();
+        }
+
+        void ReplaceNodeAndChildren(TreeNode n, string find, string replace, bool whole, bool content, bool name)
+        {
+            if (name)
+            {
+                if (whole && n.Name == find)
+                    n.Name = replace;
+                else if (!whole)
+                    n.Name = n.Name.Replace(find, replace);
+            }
+
+            if (content && IsEditable(n) == Editable.String)
+            {
+                byte[] data = n.Tag as byte[];
+                string txt = Encoding.ASCII.GetString(data);
+
+                if (whole && txt == find)
+                    txt = replace;
+                else if(!whole)
+                    txt = txt.Replace(find, replace);
+
+                n.Tag = Encoding.ASCII.GetBytes(txt + "\u0000");
+            }
+
+            foreach (TreeNode node in n.Nodes)
+                ReplaceNodeAndChildren(node, find, replace, whole, content, name);
+        }
     }
 }

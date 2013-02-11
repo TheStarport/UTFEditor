@@ -1209,5 +1209,20 @@ namespace UTFEditor
                 }
             }
         }
+
+        private void replaceAllToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (this.ActiveMdiChild is UTFForm)
+            {
+                UTFForm childForm = this.ActiveMdiChild as UTFForm;
+
+                ReplaceAll ra = new ReplaceAll();
+
+                if (ra.ShowDialog(this) == DialogResult.OK)
+                {
+                    childForm.ReplaceAll(ra.Find, ra.Replace, ra.WholeWord, ra.MatchContent, ra.MatchName);
+                }
+            }
+        }
     }
 }
