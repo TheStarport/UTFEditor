@@ -55,6 +55,7 @@
             this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator7 = new System.Windows.Forms.ToolStripSeparator();
             this.selectAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.replaceAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.viewMenu = new System.Windows.Forms.ToolStripMenuItem();
             this.toolBarToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.calcCRCToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -269,7 +270,8 @@
             this.pasteBeforeToolStripMenuItem,
             this.deleteToolStripMenuItem,
             this.toolStripSeparator7,
-            this.selectAllToolStripMenuItem});
+            this.selectAllToolStripMenuItem,
+            this.replaceAllToolStripMenuItem});
             this.editMenu.Name = "editMenu";
             this.editMenu.Size = new System.Drawing.Size(39, 20);
             this.editMenu.Text = "&Edit";
@@ -340,6 +342,15 @@
             this.selectAllToolStripMenuItem.Size = new System.Drawing.Size(212, 22);
             this.selectAllToolStripMenuItem.Text = "Select &All";
             this.selectAllToolStripMenuItem.Click += new System.EventHandler(this.selectAllToolStripMenuItem_Click);
+            // 
+            // replaceAllToolStripMenuItem
+            // 
+            this.replaceAllToolStripMenuItem.DoubleClickEnabled = true;
+            this.replaceAllToolStripMenuItem.Name = "replaceAllToolStripMenuItem";
+            this.replaceAllToolStripMenuItem.ShortcutKeyDisplayString = "";
+            this.replaceAllToolStripMenuItem.Size = new System.Drawing.Size(212, 22);
+            this.replaceAllToolStripMenuItem.Text = "Replace All";
+            this.replaceAllToolStripMenuItem.Click += new System.EventHandler(this.replaceAllToolStripMenuItem_Click);
             // 
             // viewMenu
             // 
@@ -931,6 +942,7 @@
         private System.Windows.Forms.FolderBrowserDialog folderBrowserDialog2;
         private System.Windows.Forms.ToolStripMenuItem importTexturesToolStripMenuItem;
         private System.Windows.Forms.OpenFileDialog openFileDialog2;
+        private System.Windows.Forms.ToolStripMenuItem replaceAllToolStripMenuItem;
     }
 }
 
