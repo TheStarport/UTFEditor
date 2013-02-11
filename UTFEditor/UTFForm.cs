@@ -2052,9 +2052,9 @@ namespace UTFEditor
             if (name)
             {
                 if (whole && n.Name == find)
-                    n.Name = replace;
+                    n.Text = n.Name = replace;
                 else if (!whole)
-                    n.Name = n.Name.Replace(find, replace);
+                    n.Text = n.Name = n.Name.Replace(find, replace);
             }
 
             if (content && IsEditable(n) == Editable.String)
