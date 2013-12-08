@@ -73,6 +73,119 @@ namespace UTFEditor
         
         DateTime lastClickTime;
 
+        public struct BoundingBox
+        {
+            Vector3 min, max;
+            public BoundingBox(Vector3 mi, Vector3 ma)
+            {
+                min = mi;
+                max = ma;
+            }
+
+            public bool Intersect(Vector3 near, Vector3 far)
+            {
+                Vector3 direction = far - near;
+                direction.Normalize();
+                float distance = 0f;
+                float tmax = float.MaxValue;
+
+                if (Math.Abs(direction.X) < 1e-3f)
+                {
+                    if (near.X < this.min.X || near.X > this.max.X)
+                    {
+                        distance = 0f;
+                        return false;
+                    }
+                }
+                else
+                {
+                    float inverse = 1.0f / direction.X;
+                    float t1 = (this.min.X - near.X) * inverse;
+                    float t2 = (this.max.X - near.X) * inverse;
+
+                    if (t1 > t2)
+                    {
+                        float temp = t1;
+                        t1 = t2;
+                        t2 = temp;
+                    }
+
+                    distance = Math.Max(t1, distance);
+                    tmax = Math.Min(t2, tmax);
+
+                    if (distance > tmax)
+                    {
+                        distance = 0f;
+                        return false;
+                    }
+                }
+
+                if (Math.Abs(direction.Y) < 1e-3f)
+                {
+                    if (near.Y < this.min.Y || near.Y > this.max.Y)
+                    {
+                        distance = 0f;
+                        return false;
+                    }
+                }
+                else
+                {
+                    float inverse = 1.0f / direction.Y;
+                    float t1 = (this.min.Y - near.Y) * inverse;
+                    float t2 = (this.max.Y - near.Y) * inverse;
+
+                    if (t1 > t2)
+                    {
+                        float temp = t1;
+                        t1 = t2;
+                        t2 = temp;
+                    }
+
+                    distance = Math.Max(t1, distance);
+                    tmax = Math.Min(t2, tmax);
+
+                    if (distance > tmax)
+                    {
+                        distance = 0f;
+                        return false;
+                    }
+                }
+
+                if (Math.Abs(direction.Z) < 1e-3f)
+                {
+                    if (near.Z < this.min.Z || near.Z > this.max.Z)
+                    {
+                        distance = 0f;
+                        return false;
+                    }
+                }
+                else
+                {
+                    float inverse = 1.0f / direction.Z;
+                    float t1 = (this.min.Z - near.Z) * inverse;
+                    float t2 = (this.max.Z - near.Z) * inverse;
+
+                    if (t1 > t2)
+                    {
+                        float temp = t1;
+                        t1 = t2;
+                        t2 = temp;
+                    }
+
+                    distance = Math.Max(t1, distance);
+                    tmax = Math.Min(t2, tmax);
+
+                    if (distance > tmax)
+                    {
+                        distance = 0f;
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+        };
+
         /// <summary>
         /// Mesh group data.
         /// </summary>
@@ -85,6 +198,7 @@ namespace UTFEditor
             public Matrix Transform;
             public MeshDataBuffer MeshDataBuffer;
             public Mesh[] M;
+            public BoundingBox[] B;
 		};
 
 		public struct MeshGroupDisplayInfo
@@ -541,6 +655,7 @@ namespace UTFEditor
                         mg.Transform = Matrix.Identity;
                         mg.MeshDataBuffer = FindMatchingMeshData(mg.RefData);
                         mg.M = new Mesh[mg.RefData.NumMeshes];
+                        mg.B = new BoundingBox[mg.RefData.NumMeshes];
                         mapFileToMesh[fileName] = MeshGroups.Count;
 
 						int endMesh = mg.RefData.StartMesh + mg.RefData.NumMeshes;
@@ -558,6 +673,10 @@ namespace UTFEditor
 							for (int a = 0; a < verticesCurrent.Length; a++)
 								verticesCurrent[a] = mg.MeshDataBuffer.V[mesh.StartVertex + mg.RefData.StartVert + a];
 							m.SetVertexBufferData(verticesCurrent, LockFlags.None);
+
+                            Vector3 min, max;
+                            Geometry.ComputeBoundingBox(verticesCurrent, CustomVertex.PositionNormalTextured.StrideSize, out min, out max);
+                            mg.B[mn - mg.RefData.StartMesh] = new BoundingBox(min, max);
 							mg.M[mn - mg.RefData.StartMesh] = m;
 						}
 						
@@ -1795,34 +1914,38 @@ namespace UTFEditor
 				int mn = 0;
 				foreach (Mesh m in mg.M)
 				{
-					IntersectInformation hit;
-					if (m.Intersect(near, far - near, out hit) && hit.Dist < minDist)
-					{
-						minDist = hit.Dist;
-						farFinal = far;
-						nearFinal = near;
-						nameFinal = mg.Name;
+                    BoundingBox b = mg.B[mn];
+                    if (b.Intersect(near, far))
+                    {
+                        IntersectInformation hit;
+                        if (m.Intersect(near, far - near, out hit) && hit.Dist < minDist)
+                        {
+                            minDist = hit.Dist;
+                            farFinal = far;
+                            nearFinal = near;
+                            nameFinal = mg.Name;
 
-						ushort[] intersectedIndices = new ushort[3];
+                            ushort[] intersectedIndices = new ushort[3];
 
-						ushort[] indices = (ushort[])m.LockIndexBuffer(typeof(ushort), LockFlags.ReadOnly, m.NumberFaces * 3);
-						Array.Copy(indices, hit.FaceIndex * 3, intersectedIndices, 0, 3);
-						m.UnlockIndexBuffer();
+                            ushort[] indices = (ushort[])m.LockIndexBuffer(typeof(ushort), LockFlags.ReadOnly, m.NumberFaces * 3);
+                            Array.Copy(indices, hit.FaceIndex * 3, intersectedIndices, 0, 3);
+                            m.UnlockIndexBuffer();
 
-						CustomVertex.PositionNormalTextured[] tempIntersectedVertices = new CustomVertex.PositionNormalTextured[3];
+                            CustomVertex.PositionNormalTextured[] tempIntersectedVertices = new CustomVertex.PositionNormalTextured[3];
 
-						CustomVertex.PositionNormalTextured[] meshVertices =
-							(CustomVertex.PositionNormalTextured[])m.LockVertexBuffer(typeof(CustomVertex.PositionNormalTextured), LockFlags.ReadOnly, m.NumberVertices);
-						tempIntersectedVertices[0] = meshVertices[intersectedIndices[0]];
-						tempIntersectedVertices[1] = meshVertices[intersectedIndices[1]];
-						tempIntersectedVertices[2] = meshVertices[intersectedIndices[2]];
-						m.UnlockVertexBuffer();
+                            CustomVertex.PositionNormalTextured[] meshVertices =
+                                (CustomVertex.PositionNormalTextured[])m.LockVertexBuffer(typeof(CustomVertex.PositionNormalTextured), LockFlags.ReadOnly, m.NumberVertices);
+                            tempIntersectedVertices[0] = meshVertices[intersectedIndices[0]];
+                            tempIntersectedVertices[1] = meshVertices[intersectedIndices[1]];
+                            tempIntersectedVertices[2] = meshVertices[intersectedIndices[2]];
+                            m.UnlockVertexBuffer();
 
-						Vector3 v1 = tempIntersectedVertices[1].Position - tempIntersectedVertices[0].Position;
-						Vector3 v2 = tempIntersectedVertices[2].Position - tempIntersectedVertices[0].Position;
-						faceNormal = Vector3.Cross(v1, v2);
-						faceNormal.Normalize();
-					}
+                            Vector3 v1 = tempIntersectedVertices[1].Position - tempIntersectedVertices[0].Position;
+                            Vector3 v2 = tempIntersectedVertices[2].Position - tempIntersectedVertices[0].Position;
+                            faceNormal = Vector3.Cross(v1, v2);
+                            faceNormal.Normalize();
+                        }
+                    }
 					mn++;
 				}
 			}
