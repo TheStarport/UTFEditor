@@ -55,6 +55,8 @@
             this.btnEffectAddHardpoint = new System.Windows.Forms.Button();
             this.comboType = new System.Windows.Forms.ComboBox();
             this.label1 = new System.Windows.Forms.Label();
+            this.txtTags = new System.Windows.Forms.TextBox();
+            this.label2 = new System.Windows.Forms.Label();
             this.splitFuseEditor.Panel1.SuspendLayout();
             this.splitFuseEditor.Panel2.SuspendLayout();
             this.splitFuseEditor.SuspendLayout();
@@ -210,6 +212,8 @@
             this.panelEffect.Controls.Add(this.label4);
             this.panelEffect.Controls.Add(this.comboEffect);
             this.panelEffect.Controls.Add(this.chkEffectAttached);
+            this.panelEffect.Controls.Add(this.label2);
+            this.panelEffect.Controls.Add(this.txtTags);
             this.panelEffect.Controls.Add(this.grpEffectTimings);
             this.panelEffect.Controls.Add(this.grpEffectHardpoints);
             this.panelEffect.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
@@ -255,7 +259,7 @@
             this.grpEffectTimings.Controls.Add(this.btnEffectAddTiming);
             this.grpEffectTimings.Controls.Add(this.lstEffectTimings);
             this.grpEffectTimings.Controls.Add(this.txtEffectAddTiming);
-            this.grpEffectTimings.Location = new System.Drawing.Point(3, 66);
+            this.grpEffectTimings.Location = new System.Drawing.Point(3, 105);
             this.grpEffectTimings.MinimumSize = new System.Drawing.Size(190, 0);
             this.grpEffectTimings.Name = "grpEffectTimings";
             this.grpEffectTimings.Size = new System.Drawing.Size(190, 254);
@@ -323,7 +327,7 @@
             this.grpEffectHardpoints.Controls.Add(this.dataEffectHardpoints);
             this.grpEffectHardpoints.Controls.Add(this.btnEffectRemoveHardpoint);
             this.grpEffectHardpoints.Controls.Add(this.btnEffectAddHardpoint);
-            this.grpEffectHardpoints.Location = new System.Drawing.Point(3, 326);
+            this.grpEffectHardpoints.Location = new System.Drawing.Point(259, 3);
             this.grpEffectHardpoints.MinimumSize = new System.Drawing.Size(337, 0);
             this.grpEffectHardpoints.Name = "grpEffectHardpoints";
             this.grpEffectHardpoints.Size = new System.Drawing.Size(337, 309);
@@ -423,6 +427,23 @@
             this.label1.TabIndex = 0;
             this.label1.Text = "Event Type:";
             // 
+            // txtTags
+            // 
+            this.txtTags.Location = new System.Drawing.Point(3, 79);
+            this.txtTags.Name = "txtTags";
+            this.txtTags.Size = new System.Drawing.Size(250, 20);
+            this.txtTags.TabIndex = 10;
+            this.txtTags.TextChanged += new System.EventHandler(this.txtTags_TextChanged);
+            // 
+            // label2
+            // 
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(3, 63);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(31, 13);
+            this.label2.TabIndex = 11;
+            this.label2.Text = "Tags";
+            // 
             // FuseEditor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -475,6 +496,8 @@
         private System.Windows.Forms.Button btnPrev;
         private System.Windows.Forms.Button btnNew;
         private System.Windows.Forms.NumericUpDown txtEffectAddTiming;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.TextBox txtTags;
 
 
 

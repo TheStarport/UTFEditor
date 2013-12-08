@@ -391,6 +391,17 @@ namespace UTFEditor
                 SelectEvent(ele.Event, ele.Time);
             }
         }
+
+        private void txtTags_TextChanged(object sender, EventArgs e)
+        {
+            string[] tags = txtTags.Text.Split(',');
+            current.Tags.Clear();
+            foreach (string t in tags)
+            {
+                string t2 = t.Trim().ToLower();
+                current.Tags.Add(t2);
+            }
+        }
     }
 
     public class EventListEvent : IEquatable<EventListEvent>
@@ -480,6 +491,16 @@ namespace UTFEditor
                     return this.Effect.Length;
                 else
                     return 0;
+            }
+        }
+
+        private List<string> tags = new List<string>();
+
+        public List<string> Tags
+        {
+            get
+            {
+                return tags;
             }
         }
     }

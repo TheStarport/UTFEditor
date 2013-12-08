@@ -895,5 +895,10 @@ namespace UTFEditor
         {
             get;
         }
+
+        List<string> Tags
+        {
+            get;
+        }
     }
 }
