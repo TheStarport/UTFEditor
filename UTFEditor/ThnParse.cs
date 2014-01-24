@@ -34,8 +34,8 @@ namespace THNEditor
             public int lt_grp;
             public int srt_grp;
             public int usr_flg;
-            public int front;
-            public int up;
+            public string front;
+            public string up;
             public Vector ambient;
             public string flags;
 
@@ -58,10 +58,10 @@ namespace THNEditor
             public Vector lp_color;
             public Vector lp_specular;
             public Vector lp_diffuse;
-            public int lp_type;
+            public string lp_type;
             public int lp_theta;
             public float lp_cutoff;
-            public int lp_on;
+            public string lp_on;
             public int lp_range;
 
             // user props
@@ -100,32 +100,28 @@ namespace THNEditor
         {
             StringWriter sw = new StringWriter();
 
-            sw.WriteLine("duration=10000");
+            sw.WriteLine("duration=1000");
             sw.WriteLine();
             sw.WriteLine("entities={");
             
-            bool first = true;
             foreach (Entity e in entities)
             {
-                if (first)
-                    first = false;
-                else
+                if (e != entities[0])
                     sw.WriteLine(",");
 
                 sw.WriteLine("{");
 
-                if (e.up != 0)
+                if (e.up != null)
                 {
                     sw.WriteLine("up={0}", e.up);
-                    sw.WriteLine(",type={0}", e.type);
+                    sw.Write(',');
                 }
-                else
-                    sw.WriteLine("type={0}", e.type);
+                sw.WriteLine("type={0}", e.type);
                 sw.WriteLine(",template_name=\"{0}\"",e.template_name);
                 sw.WriteLine(",lt_grp={0}",e.lt_grp);
                 sw.WriteLine(",srt_grp={0}",e.srt_grp);
                 sw.WriteLine(",usr_flg={0}",e.usr_flg);
-                if (e.front != 0)
+                if (e.front != null)
                     sw.WriteLine(",front={0}", e.front);
                 if (e.ambient!=null)
                     sw.WriteLine(",ambient={{ {0:0},{1:0},{2:0} }}", e.ambient.x, e.ambient.y, e.ambient.z);
@@ -216,7 +212,7 @@ namespace THNEditor
             }
             sw.WriteLine("}");
             sw.WriteLine();
-            sw.WriteLine("events={{}}");
+            sw.WriteLine("events={}");
 
             return sw.ToString();
         }
@@ -224,7 +220,7 @@ namespace THNEditor
         public void Parse(string s)
         {
             string qs = string.Format("({0}[^{0}]*{0})", "\"");
-            string[] z = Regex.Split(s, qs + @"|(=)|(,)|(\[)|(\])|(\{)|(\})|(--[^\n\r]*)|(\r\n\r\n)");
+            string[] z = Regex.Split(s, qs + @"|;|(=)|(,)|(\[)|(\])|(\{)|(\})|(--[^\n\r]*)|(\r\n\r\n)");
 
             foreach (string tok in z)
             {
@@ -245,7 +241,7 @@ namespace THNEditor
 
             // Read the entities block
             if (!IsToken("entities"))
-                throw new Exception("expect 'duration'");
+                throw new Exception("expect 'entities'");
             NextToken();
             if (!IsToken("="))
                 throw new Exception("expect '='");
@@ -380,7 +376,7 @@ namespace THNEditor
                     NextToken();
                     if (GetToken() != "=")
                         throw new Exception("expecting '=': tok = " + toks[0]);
-                    e.lp_type = GetNumber();
+                    e.lp_type = GetNumberConstant();
                 }
                 else if (IsToken("cutoff"))
                 {
@@ -394,7 +390,7 @@ namespace THNEditor
                     NextToken();
                     if (GetToken() != "=")
                         throw new Exception("expecting '=': tok = " + toks[0]);
-                    e.lp_on = GetNumber();
+                    e.lp_on = GetNumberConstant();
                 }
                 else if (IsToken("range"))
                 {
@@ -661,14 +657,14 @@ namespace THNEditor
                     NextToken();
                     if (GetToken() != "=")
                         throw new Exception("expecting '=': tok = " + toks[0]);
-                    e.front = GetNumber();
+                    e.front = GetNumberConstant();
                 }
                 else if (IsToken("up"))
                 {
                     NextToken();
                     if (GetToken() != "=")
                         throw new Exception("expecting '=': tok = " + toks[0]);
-                    e.up = GetNumber();
+                    e.up = GetNumberConstant();
                 }
                 else if (IsToken("ambient"))
                 {

@@ -1170,6 +1170,7 @@ namespace UTFEditor
             {
                 UTFForm childForm = this.ActiveMdiChild as UTFForm;
 
+                openFileDialog1.FileName = "";
                 openFileDialog1.Filter = THNfilter;
                 if (openFileDialog1.ShowDialog(this) == DialogResult.OK)
                 {
@@ -1183,7 +1184,8 @@ namespace UTFEditor
             if (this.ActiveMdiChild is UTFForm)
             {
                 UTFForm childForm = this.ActiveMdiChild as UTFForm;
-
+                
+                saveFileDialog1.FileName = childForm.fileName;
                 saveFileDialog1.Filter = THNfilter;
                 if (saveFileDialog1.ShowDialog(this) == DialogResult.OK)
                 {

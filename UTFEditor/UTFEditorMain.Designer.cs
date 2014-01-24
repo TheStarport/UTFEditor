@@ -816,13 +816,8 @@
             this.toolStripMenuItem3.Size = new System.Drawing.Size(111, 22);
             this.toolStripMenuItem3.Text = "Exit";
             // 
-            // openFileDialog1
-            // 
-            this.openFileDialog1.FileName = "openFileDialog1";
-            // 
             // openFileDialog2
             // 
-            this.openFileDialog2.FileName = "openFileDialog2";
             this.openFileDialog2.Filter = "TGA files|*.tga|DDS files|*.dds|All files|*.*";
             this.openFileDialog2.Multiselect = true;
             this.openFileDialog2.Title = "Import Textures";
