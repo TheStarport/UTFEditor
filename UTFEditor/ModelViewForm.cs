@@ -2338,6 +2338,30 @@ namespace UTFEditor
                     MinMaxHardpoint(0, (e.Shift ? 1 : 5) * (e.Control ? -1 : 1));
                     break;
 
+                case Keys.NumPad4:
+                    MoveHardpoint(new Vector3(1, 0, 0), e.Shift);
+                    break;
+
+                case Keys.NumPad6:
+                    MoveHardpoint(new Vector3(-1, 0, 0), e.Shift);
+                    break;
+
+                case Keys.NumPad2:
+                    MoveHardpoint(new Vector3(0, 0, 1), e.Shift);
+                    break;
+
+                case Keys.NumPad8:
+                    MoveHardpoint(new Vector3(0, 0, -1), e.Shift);
+                    break;
+
+                case Keys.NumPad7:
+                    MoveHardpoint(new Vector3(0, -1, 0), e.Shift);
+                    break;
+
+                case Keys.NumPad9:
+                    MoveHardpoint(new Vector3(0, 1, 0), e.Shift);
+                    break;
+
                 // Add mode keys
 
                 case Keys.Enter:
@@ -2355,6 +2379,36 @@ namespace UTFEditor
             }
 			e.IsInputKey = true;
 		}
+
+        private void MoveHardpoint(Vector3 dir, bool fine)
+        {
+            TreeNode node = GetHardpointNode();
+            if (node == null) return;
+            HardpointData hpNew = new HardpointData(node);
+            HardpointDisplayInfo hi = GetHardpointFromName(node.Name);
+
+            Vector3 p1 = new Vector3(0, 0, 0);
+            Vector3 p2 = dir;
+            Matrix m = GetHardpointMatrix(hpNew);
+
+            p1.TransformCoordinate(m);
+            p2.TransformCoordinate(m);
+            dir = p2 - p1;
+            dir.Normalize();
+
+            dir *= fine ? 1 : 10;
+
+            hpNew.PosX += dir.X;
+            hpNew.PosY += dir.Y;
+            hpNew.PosZ += dir.Z;
+
+            hi.Matrix = GetHardpointMatrix(hpNew);
+
+            hpNew.Write();
+            OnHardpointMoved();
+
+            Invalidate();
+        }
 
         private void RotateHardpoint(Viewpoint.Rotate dir, bool clockwise, bool fine)
         {
