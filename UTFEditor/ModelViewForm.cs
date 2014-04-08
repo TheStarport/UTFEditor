@@ -921,15 +921,15 @@ namespace UTFEditor
             m.M44 = 1;
 
             m.M11 = hp.RotMatXX;
-            m.M21 = hp.RotMatXY;
-            m.M31 = hp.RotMatXZ;
+            m.M12 = hp.RotMatXY;
+            m.M13 = hp.RotMatXZ;
 
-            m.M12 = hp.RotMatYX;
+            m.M21 = hp.RotMatYX;
             m.M22 = hp.RotMatYY;
-            m.M32 = hp.RotMatYZ;
+            m.M23 = hp.RotMatYZ;
 
-            m.M13 = hp.RotMatZX;
-            m.M23 = hp.RotMatZY;
+            m.M31 = hp.RotMatZX;
+            m.M32 = hp.RotMatZY;
             m.M33 = hp.RotMatZZ;
 
             m.M14 = m.M24 = m.M34 = 0;
@@ -2074,7 +2074,8 @@ namespace UTFEditor
 
 			hpNew.Write();
 			OnHardpointMoved();
-            HardpointDisplayInfo hi = GetHardpointFromName(hpNew.Name);
+            HardpointDisplayInfo hi = null;
+            GetHardpointFromName(hpNew.Name, ref hi);
             hi.Matrix = GetHardpointMatrix(hpNew);
             try
             {
@@ -2339,11 +2340,11 @@ namespace UTFEditor
                     break;
 
                 case Keys.NumPad4:
-                    MoveHardpoint(new Vector3(1, 0, 0), e.Shift);
+                    MoveHardpoint(new Vector3(-1, 0, 0), e.Shift);
                     break;
 
                 case Keys.NumPad6:
-                    MoveHardpoint(new Vector3(-1, 0, 0), e.Shift);
+                    MoveHardpoint(new Vector3(1, 0, 0), e.Shift);
                     break;
 
                 case Keys.NumPad2:
@@ -2385,11 +2386,12 @@ namespace UTFEditor
             TreeNode node = GetHardpointNode();
             if (node == null) return;
             HardpointData hpNew = new HardpointData(node);
-            HardpointDisplayInfo hi = GetHardpointFromName(node.Name);
+            HardpointDisplayInfo hi = null;
+            GetHardpointFromName(node.Name, ref hi);
 
             Vector3 p1 = new Vector3(0, 0, 0);
             Vector3 p2 = dir;
-            Matrix m = GetHardpointMatrix(hpNew);
+            Matrix m = hi.Matrix;
 
             p1.TransformCoordinate(m);
             p2.TransformCoordinate(m);
@@ -2415,7 +2417,8 @@ namespace UTFEditor
             TreeNode node = GetHardpointNode();
             if (node == null) return;
             HardpointData hpNew = new HardpointData(node);
-            HardpointDisplayInfo hi = GetHardpointFromName(node.Name);
+            HardpointDisplayInfo hi = null;
+            GetHardpointFromName(node.Name, ref hi);
 
             Matrix t = Matrix.Identity;
 
@@ -2458,7 +2461,8 @@ namespace UTFEditor
             if (node == null) return;
             if (node.Parent.Name != "Revolute") return;
             HardpointData hpNew = new HardpointData(node);
-            HardpointDisplayInfo hi = GetHardpointFromName(node.Name);
+            HardpointDisplayInfo hi = null;
+            GetHardpointFromName(node.Name, ref hi);
 
             hpNew.Min = (float)Math.Max(-Math.PI, Math.Min(0, hpNew.Min - min * Math.PI / 180));
             hpNew.Max = (float)Math.Min(Math.PI, Math.Max(0, hpNew.Max + max * Math.PI / 180));
@@ -2995,7 +2999,8 @@ namespace UTFEditor
 			}
 
 
-			HardpointDisplayInfo hi = GetHardpointFromName(hpName);
+            HardpointDisplayInfo hi = null;
+            GetHardpointFromName(hpName, ref hi);
 			if (hi == null) return;
 
 			switch (e.ColumnIndex)
@@ -3011,13 +3016,16 @@ namespace UTFEditor
 			if (!hardpointPanelView.UseWaitCursor) Invalidate();
 		}
 		
-		private HardpointDisplayInfo GetHardpointFromName(string name)
+		private void GetHardpointFromName(string name, ref HardpointDisplayInfo hdi)
 		{
 			foreach(HardpointDisplayInfo hi in otherHardpoints)
 			{
-				if(hi.Name == name) return hi;
+                if (hi.Name == name)
+                {
+                    hdi = hi;
+                    return;
+                }
 			}
-			return null;
 		}
 
 		private void hardpointPanelView_DoubleClick(object sender, EventArgs e)
@@ -3034,7 +3042,8 @@ namespace UTFEditor
 			}
 			else
 			{
-				HardpointDisplayInfo hi = GetHardpointFromName(hardpointPanelView[1, hardpointPanelView.SelectedCells[0].RowIndex].Value as string);
+                HardpointDisplayInfo hi = null;
+                GetHardpointFromName(hardpointPanelView[1, hardpointPanelView.SelectedCells[0].RowIndex].Value as string, ref hi);
 				if(hi != null)
 					utf.SelectedNode = hi.Node;
 			}
