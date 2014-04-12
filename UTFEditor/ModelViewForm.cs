@@ -2404,7 +2404,9 @@ namespace UTFEditor
             hpNew.PosY += dir.Y;
             hpNew.PosZ += dir.Z;
 
-            hi.Matrix = GetHardpointMatrix(hpNew);
+            hi.Matrix.M41 = hpNew.PosX;
+            hi.Matrix.M42 = hpNew.PosY;
+            hi.Matrix.M43 = hpNew.PosZ;
 
             hpNew.Write();
             OnHardpointMoved();
