@@ -2084,6 +2084,16 @@ namespace UTFEditor
             catch { hi.MeshGroup = MeshGroups[0]; }
 			Invalidate();
 
+            utf.SelectedNode = hi.Node;
+            foreach (DataGridViewRow row in hardpointPanelView.Rows)
+            {
+                if ((string)row.Cells[1].Value == hi.Name)
+                {
+                    hardpointPanelView.CurrentCell = row.Cells[0];
+                    break;
+                }
+            }
+
             return true;
 		}
 
@@ -2098,8 +2108,9 @@ namespace UTFEditor
 
         private void RelinkHardpoint(TreeNode node, string name)
         {
-            LinkHardpoint(node, name, node.Parent.Text.Equals("Revolute", StringComparison.InvariantCultureIgnoreCase));
+            bool revolute = node.Parent.Text.Equals("Revolute", StringComparison.InvariantCultureIgnoreCase);
             UnlinkHardpoint(node);
+            LinkHardpoint(node, name, revolute);
         }
 
         private bool LinkHardpoint(TreeNode node, string name, bool revolute)
