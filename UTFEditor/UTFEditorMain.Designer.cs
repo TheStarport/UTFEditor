@@ -51,7 +51,7 @@
             this.cutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.copyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pasteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.pasteBeforeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.pasteChildToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.deleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator7 = new System.Windows.Forms.ToolStripSeparator();
             this.selectAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -196,8 +196,8 @@
             // saveAsToolStripMenuItem
             // 
             this.saveAsToolStripMenuItem.Name = "saveAsToolStripMenuItem";
-            this.saveAsToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift)
-                        | System.Windows.Forms.Keys.S)));
+            this.saveAsToolStripMenuItem.ShortcutKeys = ((System.Windows.Forms.Keys)(((System.Windows.Forms.Keys.Control | System.Windows.Forms.Keys.Shift) 
+            | System.Windows.Forms.Keys.S)));
             this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(231, 22);
             this.saveAsToolStripMenuItem.Text = "Save &As";
             this.saveAsToolStripMenuItem.Click += new System.EventHandler(this.SaveAsToolStripMenuItem_Click);
@@ -267,7 +267,7 @@
             this.cutToolStripMenuItem,
             this.copyToolStripMenuItem,
             this.pasteToolStripMenuItem,
-            this.pasteBeforeToolStripMenuItem,
+            this.pasteChildToolStripMenuItem,
             this.deleteToolStripMenuItem,
             this.toolStripSeparator7,
             this.selectAllToolStripMenuItem,
@@ -279,7 +279,7 @@
             // toolStripSeparator6
             // 
             this.toolStripSeparator6.Name = "toolStripSeparator6";
-            this.toolStripSeparator6.Size = new System.Drawing.Size(209, 6);
+            this.toolStripSeparator6.Size = new System.Drawing.Size(217, 6);
             // 
             // cutToolStripMenuItem
             // 
@@ -287,7 +287,7 @@
             this.cutToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Black;
             this.cutToolStripMenuItem.Name = "cutToolStripMenuItem";
             this.cutToolStripMenuItem.ShortcutKeyDisplayString = "Ctrl+X";
-            this.cutToolStripMenuItem.Size = new System.Drawing.Size(212, 22);
+            this.cutToolStripMenuItem.Size = new System.Drawing.Size(220, 22);
             this.cutToolStripMenuItem.Text = "Cu&t";
             this.cutToolStripMenuItem.Click += new System.EventHandler(this.CutToolStripMenuItem_Click);
             // 
@@ -297,7 +297,7 @@
             this.copyToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Black;
             this.copyToolStripMenuItem.Name = "copyToolStripMenuItem";
             this.copyToolStripMenuItem.ShortcutKeyDisplayString = "Ctrl+C";
-            this.copyToolStripMenuItem.Size = new System.Drawing.Size(212, 22);
+            this.copyToolStripMenuItem.Size = new System.Drawing.Size(220, 22);
             this.copyToolStripMenuItem.Text = "&Copy";
             this.copyToolStripMenuItem.Click += new System.EventHandler(this.CopyToolStripMenuItem_Click);
             // 
@@ -307,39 +307,39 @@
             this.pasteToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Black;
             this.pasteToolStripMenuItem.Name = "pasteToolStripMenuItem";
             this.pasteToolStripMenuItem.ShortcutKeyDisplayString = "Ctrl+V";
-            this.pasteToolStripMenuItem.Size = new System.Drawing.Size(212, 22);
+            this.pasteToolStripMenuItem.Size = new System.Drawing.Size(220, 22);
             this.pasteToolStripMenuItem.Text = "&Paste";
             this.pasteToolStripMenuItem.Click += new System.EventHandler(this.PasteToolStripMenuItem_Click);
             // 
-            // pasteBeforeToolStripMenuItem
+            // pasteChildToolStripMenuItem
             // 
-            this.pasteBeforeToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("pasteBeforeToolStripMenuItem.Image")));
-            this.pasteBeforeToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Black;
-            this.pasteBeforeToolStripMenuItem.Name = "pasteBeforeToolStripMenuItem";
-            this.pasteBeforeToolStripMenuItem.ShortcutKeyDisplayString = "Ctrl+Shift+V";
-            this.pasteBeforeToolStripMenuItem.Size = new System.Drawing.Size(212, 22);
-            this.pasteBeforeToolStripMenuItem.Text = "Paste &Before";
-            this.pasteBeforeToolStripMenuItem.Click += new System.EventHandler(this.pasteBeforeToolStripMenuItem_Click);
+            this.pasteChildToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("pasteChildToolStripMenuItem.Image")));
+            this.pasteChildToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Black;
+            this.pasteChildToolStripMenuItem.Name = "pasteChildToolStripMenuItem";
+            this.pasteChildToolStripMenuItem.ShortcutKeyDisplayString = "Ctrl+Shift+V";
+            this.pasteChildToolStripMenuItem.Size = new System.Drawing.Size(220, 22);
+            this.pasteChildToolStripMenuItem.Text = "Paste as Chil&d";
+            this.pasteChildToolStripMenuItem.Click += new System.EventHandler(this.pasteChildToolStripMenuItem_Click);
             // 
             // deleteToolStripMenuItem
             // 
             this.deleteToolStripMenuItem.Image = ((System.Drawing.Image)(resources.GetObject("deleteToolStripMenuItem.Image")));
             this.deleteToolStripMenuItem.Name = "deleteToolStripMenuItem";
             this.deleteToolStripMenuItem.ShortcutKeyDisplayString = "Del";
-            this.deleteToolStripMenuItem.Size = new System.Drawing.Size(212, 22);
+            this.deleteToolStripMenuItem.Size = new System.Drawing.Size(220, 22);
             this.deleteToolStripMenuItem.Text = "Delete";
             this.deleteToolStripMenuItem.Click += new System.EventHandler(this.deleteToolStripMenuItem_Click);
             // 
             // toolStripSeparator7
             // 
             this.toolStripSeparator7.Name = "toolStripSeparator7";
-            this.toolStripSeparator7.Size = new System.Drawing.Size(209, 6);
+            this.toolStripSeparator7.Size = new System.Drawing.Size(217, 6);
             // 
             // selectAllToolStripMenuItem
             // 
             this.selectAllToolStripMenuItem.Name = "selectAllToolStripMenuItem";
             this.selectAllToolStripMenuItem.ShortcutKeyDisplayString = "Ctrl+A";
-            this.selectAllToolStripMenuItem.Size = new System.Drawing.Size(212, 22);
+            this.selectAllToolStripMenuItem.Size = new System.Drawing.Size(220, 22);
             this.selectAllToolStripMenuItem.Text = "Select &All";
             this.selectAllToolStripMenuItem.Click += new System.EventHandler(this.selectAllToolStripMenuItem_Click);
             // 
@@ -348,7 +348,7 @@
             this.replaceAllToolStripMenuItem.DoubleClickEnabled = true;
             this.replaceAllToolStripMenuItem.Name = "replaceAllToolStripMenuItem";
             this.replaceAllToolStripMenuItem.ShortcutKeyDisplayString = "";
-            this.replaceAllToolStripMenuItem.Size = new System.Drawing.Size(212, 22);
+            this.replaceAllToolStripMenuItem.Size = new System.Drawing.Size(220, 22);
             this.replaceAllToolStripMenuItem.Text = "Replace All";
             this.replaceAllToolStripMenuItem.Click += new System.EventHandler(this.replaceAllToolStripMenuItem_Click);
             // 
@@ -657,8 +657,8 @@
             this.dataView.RowTemplate.ReadOnly = true;
             this.dataView.Size = new System.Drawing.Size(294, 223);
             this.dataView.TabIndex = 0;
-            this.dataView.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataView_CellValueChanged);
             this.dataView.CellValidating += new System.Windows.Forms.DataGridViewCellValidatingEventHandler(this.dataView_CellValidating);
+            this.dataView.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataView_CellValueChanged);
             this.dataView.EditingControlShowing += new System.Windows.Forms.DataGridViewEditingControlShowingEventHandler(this.dataView_EditingControlShowing);
             // 
             // columnName
@@ -836,8 +836,8 @@
             this.MainMenuStrip = this.menuStrip;
             this.Name = "UTFEditorMain";
             this.Text = "UTF Editor";
-            this.DragDrop += new System.Windows.Forms.DragEventHandler(this.UTFEditor_DragDrop);
             this.MdiChildActivate += new System.EventHandler(this.UTFEditor_MdiChildActivate);
+            this.DragDrop += new System.Windows.Forms.DragEventHandler(this.UTFEditor_DragDrop);
             this.DragEnter += new System.Windows.Forms.DragEventHandler(this.UTFEditor_DragEnter);
             this.menuStrip.ResumeLayout(false);
             this.menuStrip.PerformLayout();
@@ -930,7 +930,7 @@
         private System.Windows.Forms.ToolStripMenuItem exportAllTexturesToolStripMenuItem;
         private System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1;
         private System.Windows.Forms.ToolStripMenuItem deleteToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem pasteBeforeToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem pasteChildToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem4;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem5;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem6;

@@ -5,6 +5,7 @@ using System.Text;
 using System.Collections;
 using System.Windows.Forms;
 using System.Drawing;
+using System.Text.RegularExpressions;
 
 // Multiselection code inspired by works from Stephane Rodriguez
 // http://www.arstdesign.com/articles/treeviewms.html
@@ -15,8 +16,7 @@ namespace UTFEditor
     {
         protected ArrayList selectedItems;
         protected TreeNode lastNode, firstNode;
-
-        public bool RenamePaste = false;
+        protected bool preventSelectActions = false;
 
         public TreeViewMultiSelect() : base()
         {
@@ -36,11 +36,12 @@ namespace UTFEditor
             set
             {
                 removePaintFromNodes();
-                selectedItems.Clear();
+
+                if (value.Count == 0) this.SelectedNode = null;
+                else if (!value.Contains(this.SelectedNode))
+                    this.SelectedNode = (TreeNode) value[0];
+
                 selectedItems = value;
-                if (selectedItems.Count == 0) this.SelectedNode = null;
-                else if (!selectedItems.Contains(this.SelectedNode))
-                    this.SelectedNode = (TreeNode) selectedItems[0];
                 paintSelectedNodes();
             }
         }
@@ -68,19 +69,11 @@ namespace UTFEditor
         protected override void OnBeforeSelect(TreeViewCancelEventArgs e)
         {
             base.OnBeforeSelect(e);
+            if (preventSelectActions)
+                return;
 
             bool ctrl = ModifierKeys == Keys.Control;
             bool shift = ModifierKeys == Keys.Shift;
-
-            if(ctrl && selectedItems.Contains(e.Node))
-            {
-                e.Cancel = true;
-
-                removePaintFromNodes();
-                selectedItems.Remove(e.Node);
-                paintSelectedNodes();
-                return;
-            }
 
             lastNode = e.Node;
             if(!shift) firstNode = e.Node;
@@ -91,6 +84,8 @@ namespace UTFEditor
             if(isDragging) return;
 
             base.OnAfterSelect(e);
+            if (preventSelectActions)
+                return;
 
             bool ctrl = ModifierKeys == Keys.Control;
             bool shift = ModifierKeys == Keys.Shift;
@@ -103,6 +98,9 @@ namespace UTFEditor
                 {
                     removePaintFromNodes();
                     selectedItems.Remove(e.Node);
+
+                    if (SelectedNode == e.Node)
+                        SelectedNode = null;
                 }
 
                 paintSelectedNodes();
@@ -312,12 +310,12 @@ namespace UTFEditor
                     if (e.Effect == DragDropEffects.Move)
                     {
                         Cut(nodes, false);
-                        Paste(nodes, targetNode, true);
+                        Paste(nodes, targetNode, true, false);
                     }
                     else if (e.Effect == DragDropEffects.Copy)
                     {
                         Copy(nodes, false);
-                        Paste(nodes, targetNode, false);
+                        Paste(nodes, targetNode, false, false);
                     }
                 }
             }
@@ -359,23 +357,19 @@ namespace UTFEditor
 
         protected override void OnNodeMouseClick(TreeNodeMouseClickEventArgs e)
         {
-            this.SelectedNode = e.Node;
-            base.OnNodeMouseClick(e);
-        }
-
-        /*protected override void OnMouseUp(MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Right && !isRightDragging)
+            if (selectedItems.Contains(e.Node) && ModifierKeys == Keys.Control)
+                SelectedNode = null;
+            else
             {
-                Point tgt = this.PointToClient(new Point(e.X, e.Y));
-                TreeNode s = this.GetNodeAt(tgt);
-                OnBeforeSelect(new TreeViewCancelEventArgs(s, false, TreeViewAction.ByMouse));
-                this.SelectedNode = s;
-                OnAfterSelect(new TreeViewEventArgs(s));
-            }
+                if (ModifierKeys == Keys.None)
+                {
+                    SelectedNodes = new ArrayList();
+                    SelectedNode = e.Node;
+                }
 
-            base.OnMouseUp(e);
-        }*/
+                base.OnNodeMouseClick(e);
+            }
+        }
 
         /***********************
          * CUT/COPY/PASTE CODE *
@@ -426,28 +420,26 @@ namespace UTFEditor
         public void Paste()
         {
             if (Clipboard.ContainsData(CopyNodesObjectName) && this.SelectedNode != null)
-                Paste(((CopyNodesObject)Clipboard.GetData(CopyNodesObjectName)).Nodes, this.SelectedNode, false);
+                Paste(((CopyNodesObject)Clipboard.GetData(CopyNodesObjectName)).Nodes, this.SelectedNode, true, false);
         }
 
-        public void PasteBefore()
+        public void PasteChild()
         {
             TreeNode n = this.SelectedNode;
             if (Clipboard.ContainsData(CopyNodesObjectName) && this.SelectedNode != null && this.SelectedNode.Parent != null)
-                Paste(((CopyNodesObject)Clipboard.GetData(CopyNodesObjectName)).Nodes, this.SelectedNode.Parent, false);
-
-            this.SelectedNode = n;
+                Paste(((CopyNodesObject)Clipboard.GetData(CopyNodesObjectName)).Nodes, this.SelectedNode, true, true);
         }
 
-        public void Paste(ArrayList nodes, TreeNode targetNode, bool pasteAllChildren)
+        public void Paste(ArrayList nodes, TreeNode targetNode, bool pasteAllChildren, bool pasteAsChild)
         {
-            nodes.Reverse();
+            if (targetNode.Parent == null) // Root node must be unique
+                pasteAsChild = true;
 
             ArrayList newSelectedNodes = new ArrayList();
+            int index = pasteAsChild ? targetNode.Nodes.Count : targetNode.Index + 1;
 
             foreach (TreeNode n in nodes)
             {
-                if (n.Parent != null && nodes.Contains(n.Parent)) continue;
-
                 TreeNode newNode = (TreeNode)n.Clone();
                 if (n.IsExpanded) newNode.Expand();
                 newSelectedNodes.Add(newNode);
@@ -469,7 +461,7 @@ namespace UTFEditor
                     n2o = nexto;
                 }
 
-                if (RenamePaste)
+                // Ensure that pasted nodes cannot have the same name as an existing node
                 {
                     string name = newNode.Text;
                     int count = 1;
@@ -478,7 +470,7 @@ namespace UTFEditor
                     do
                     {
                         found = false;
-                        foreach (TreeNode nn in targetNode.Nodes)
+                        foreach (TreeNode nn in pasteAsChild ? targetNode.Nodes : targetNode.Parent.Nodes)
                         {
                             if (nn.Text == newNode.Text)
                             {
@@ -486,26 +478,34 @@ namespace UTFEditor
                                 break;
                             }
                         }
+
                         if (found == true)
                         {
+                            Regex r = new Regex(@"^.+(?<num> \([0-9]+\))$");
+                            Match m = r.Match(name);
+                            if (m.Success)
+                                name = name.Substring(0, m.Groups["num"].Index);
                             newNode.Text = name + " (" + count + ")";
+                            newNode.Name = name + " (" + count + ")";
                             count++;
                         }
 
                     } while (found == true);
                 }
 
-                targetNode.Nodes.Insert(0, newNode);
+                if(pasteAsChild)
+                    targetNode.Nodes.Insert(index, newNode);
+                else
+                    targetNode.Parent.Nodes.Insert(index, newNode);
+
+                index++;
             }
 
-            targetNode.Expand();
-
-            newSelectedNodes.Add(targetNode);
-
-            this.SelectedNode = targetNode;
-            this.SelectedNodes = newSelectedNodes;
-
             OnModified(new EventArgs());
+            
+            preventSelectActions = true;
+            this.SelectedNodes = newSelectedNodes;
+            preventSelectActions = false;
         }
 
         public void Delete()

@@ -81,8 +81,6 @@ namespace UTFEditor
                 this.Text += " - " + path;
             }
             this.parent = parent;
-
-            this.treeView1.RenamePaste = true;
         }
 
         /// <summary>
@@ -272,7 +270,7 @@ namespace UTFEditor
                             break;
                         case Keys.V:
                             if (e.Shift)
-                                e.Handled = PasteBefore();
+                                e.Handled = PasteChild();
                             else
                                 e.Handled = Paste();
                             break;
@@ -1693,11 +1691,11 @@ namespace UTFEditor
             return false;
         }
 
-        public bool PasteBefore()
+        public bool PasteChild()
         {
             if (!treeView1.SelectedNode.IsEditing)
             {
-                treeView1.PasteBefore();
+                treeView1.PasteChild();
 
                 return true;
             }

@@ -1155,12 +1155,12 @@ namespace UTFEditor
             }
         }
 
-        private void pasteBeforeToolStripMenuItem_Click(object sender, EventArgs e)
+        private void pasteChildToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (this.ActiveMdiChild is UTFForm)
             {
                 UTFForm childForm = this.ActiveMdiChild as UTFForm;
-                childForm.PasteBefore();
+                childForm.PasteChild();
             }
         }
 
