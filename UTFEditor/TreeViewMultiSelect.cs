@@ -261,6 +261,10 @@ namespace UTFEditor
          * DRAG-AND-DROP CODE *
          **********************/
 
+        public delegate void TreeNodeEventHandler(object sender, TreeViewEventArgs args);
+
+        public event TreeNodeEventHandler ModifiedNode;
+
         protected bool isDragging = false;
 
         protected override void OnItemDrag(ItemDragEventArgs e)
@@ -432,6 +436,9 @@ namespace UTFEditor
 
         public void Paste(ArrayList nodes, TreeNode targetNode, bool pasteAllChildren, bool pasteAsChild)
         {
+            if (targetNode == null)
+                targetNode = this.Nodes[0];
+
             if (targetNode.Parent == null) // Root node must be unique
                 pasteAsChild = true;
 
@@ -498,6 +505,8 @@ namespace UTFEditor
                 else
                     targetNode.Parent.Nodes.Insert(index, newNode);
 
+                OnModifiedNode(new TreeViewEventArgs(newNode));
+
                 index++;
             }
 
@@ -533,6 +542,12 @@ namespace UTFEditor
                 Modified(this, e);
 
             resetPaintNodes();
+        }
+
+        protected void OnModifiedNode(TreeViewEventArgs e)
+        {
+            if (ModifiedNode != null)
+                ModifiedNode(this, e);
         }
     }
 

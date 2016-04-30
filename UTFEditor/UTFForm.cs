@@ -345,15 +345,7 @@ namespace UTFEditor
         public void RenameNode()
         {
             if (treeView1.SelectedNode != null)
-            {
                 treeView1.SelectedNode.BeginEdit();
-                /*if (new RenameNodeForm(this, treeView1.SelectedNode).ShowDialog(this) == DialogResult.OK)
-                {
-                    parent.SetSelectedNode(treeView1.SelectedNode);
-                    Modified();
-                }
-                treeView1.Select();*/
-            }
         }
 
         private void stringToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1573,10 +1565,10 @@ namespace UTFEditor
                 if (node.Parent == treeView1.Nodes[1])
                     return treeView1.Nodes[0].Nodes.Find(node.Name, true)[0];
                 // On the hardpoint.
-                if (Utilities.StrIEq(node.Parent.Parent.Name, "Hardpoints"))
+                if (Utilities.StrIEq(node.Parent?.Parent?.Name, "Hardpoints"))
                     return node;
                 // In the hardpoint.
-                if (Utilities.StrIEq(node.Parent.Parent.Parent.Name, "Hardpoints"))
+                if (Utilities.StrIEq(node.Parent?.Parent?.Parent?.Name, "Hardpoints"))
                     return node.Parent;
             }
             catch { }
@@ -1744,6 +1736,11 @@ namespace UTFEditor
             object oldData = e.Node.Tag;
             e.Node.Name = e.Label;
             NodeChanged(e.Node, oldName, oldData);
+        }
+
+        private void treeView1_ModifiedNode(object sender, TreeViewEventArgs e)
+        {
+            NodeChanged(e.Node, null, null);
         }
 
         /// <summary>

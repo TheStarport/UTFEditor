@@ -4,7 +4,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using Microsoft.DirectX.Direct3D;
+using SharpDX.Direct3D9;
 
 namespace UTFEditor
 {
@@ -501,19 +501,19 @@ namespace UTFEditor
                 presentParams.BackBufferFormat = Format.Unknown;
                 presentParams.EnableAutoDepthStencil = true;
 
-                DepthFormat[] formats = { DepthFormat.D32, DepthFormat.D24X8, DepthFormat.D16 };
-                foreach (DepthFormat format in formats)
+                Format[] formats = { Format.D32, Format.D24X8, Format.D16 };
+                foreach (var format in formats)
                 {
                     try
                     {
                         presentParams.AutoDepthStencilFormat = format;
-                        device = new Device(0, DeviceType.Hardware, pictureBox1, CreateFlags.SoftwareVertexProcessing, presentParams);
+                        device = new Device(new Direct3D(), 0, DeviceType.Hardware, pictureBox1.Handle, CreateFlags.SoftwareVertexProcessing, presentParams);
                         break;
                     }
                     catch { }
                 }
                 if (device == null)
-                    throw new Exception("Unable to initialise Directx.");
+                    throw new Exception("Unable to initialize DirectX.");
 
                 checkBoxTransparent.Visible = false;
             }
@@ -522,9 +522,9 @@ namespace UTFEditor
 
             using (MemoryStream ms = new MemoryStream(data))
             {
-                tex = TextureLoader.FromStream(device, ms);
+                tex = Texture.FromStream(device, ms);
             }
-            return (Bitmap)Bitmap.FromStream(TextureLoader.SaveToStream(ImageFileFormat.Png, tex));
+            return (Bitmap)Bitmap.FromStream(Texture.ToStream(tex, ImageFileFormat.Png));
         }
     }
 

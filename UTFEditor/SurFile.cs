@@ -240,16 +240,16 @@ namespace UTFEditor
             }
         }
 
-        public void RenderSur(Microsoft.DirectX.Direct3D.Device device)
+        public void RenderSur(SharpDX.Direct3D9.Device device)
         {
-            device.RenderState.CullMode = Microsoft.DirectX.Direct3D.Cull.None;
-            device.RenderState.FillMode = Microsoft.DirectX.Direct3D.FillMode.WireFrame;
+            device.SetRenderState(SharpDX.Direct3D9.RenderState.CullMode, SharpDX.Direct3D9.Cull.None);
+            device.SetRenderState(SharpDX.Direct3D9.RenderState.FillMode, SharpDX.Direct3D9.FillMode.Wireframe);
 
-            List<Microsoft.DirectX.Direct3D.CustomVertex.PositionOnly> tmpVertices
-                = new List<Microsoft.DirectX.Direct3D.CustomVertex.PositionOnly>();
+            List<SharpDX.Vector3> tmpVertices
+                = new List<SharpDX.Vector3>();
             foreach (SurVertex vert in Vertices)
             {
-                tmpVertices.Add(new Microsoft.DirectX.Direct3D.CustomVertex.PositionOnly(vert.X,vert.Y,vert.Z));
+                tmpVertices.Add(new SharpDX.Vector3(vert.X,vert.Y,vert.Z));
             }
 
             List<int> tmpTri = new List<int>();
@@ -259,9 +259,9 @@ namespace UTFEditor
                 tmpTri.Add(tri.Vertex2);
                 tmpTri.Add(tri.Vertex3);
             }
-
-            device.DrawIndexedUserPrimitives(Microsoft.DirectX.Direct3D.PrimitiveType.TriangleList,
-                0, tmpVertices.Count, tmpTri.Count, tmpTri.ToArray(), false, tmpVertices.ToArray());
+            
+            device.DrawIndexedUserPrimitives(SharpDX.Direct3D9.PrimitiveType.TriangleList,
+                0, tmpVertices.Count, tmpTri.Count, tmpTri.ToArray(), SharpDX.Direct3D9.Format.Index32, tmpVertices.ToArray());
         }
     }
 }

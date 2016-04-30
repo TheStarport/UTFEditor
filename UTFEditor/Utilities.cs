@@ -1,15 +1,80 @@
 ﻿using System;
 using System.Drawing;
 using System.Globalization;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
+using SharpDX;
 
 namespace UTFEditor
 {
+    public static class ControlHelper
+    {
+        [DllImport("user32.dll", EntryPoint = "SendMessageA", ExactSpelling = true, CharSet = CharSet.Ansi, SetLastError = true)]
+        private static extern int SendMessage(IntPtr hwnd, int wMsg, int wParam, int lParam);
+        private const int WM_SETREDRAW = 0xB;
+
+        public static void SuspendDrawing(this Control target)
+        {
+            SendMessage(target.Handle, WM_SETREDRAW, 0, 0);
+        }
+
+        public static void ResumeDrawing(this Control target) { ResumeDrawing(target, true); }
+        public static void ResumeDrawing(this Control target, bool redraw)
+        {
+            SendMessage(target.Handle, WM_SETREDRAW, 1, 0);
+
+            if (redraw)
+            {
+                target.Refresh();
+            }
+        }
+    }
+
+    public static class ColorArgb
+    {
+        public static int ToArgb(this SharpDX.Color c)
+        {
+            uint value = c.A;
+            value |= (uint)c.R << 8;
+            value |= (uint)c.G << 16;
+            value |= (uint)c.B << 24;
+
+            return (int)value;
+        }
+    }
+
     class Utilities
     {
+        public static void ComputeBoundingBox<T>(T[] verts, out SharpDX.Vector3 min, out SharpDX.Vector3 max) where T : IVertexFormat
+        {
+            min = new Vector3(float.MaxValue);
+            max = new Vector3(float.MaxValue);
+
+            foreach(var v in verts)
+            {
+                var p = v.GetPosition();
+
+                if (p.X < min.X)
+                    min.X = p.X;
+                else if (p.X > max.X)
+                    max.X = p.X;
+                if (p.Y < min.Y)
+                    min.Y = p.Y;
+                else if (p.Y > max.Y)
+                    max.Y = p.Y;
+                if (p.Z < min.Z)
+                    min.Z = p.Z;
+                else if (p.Z > max.Z)
+                    max.Z = p.Z;
+            }
+        }
+
         public static string GetString(TreeNode node)
         {
+            if (node == null)
+                return "";
+
             byte[] data = node.Tag as byte[];
             if (data == null)
                 return "";
@@ -328,9 +393,10 @@ namespace UTFEditor
         /// </summary>
         public static int StrIEqP(string str, params string[] test)
         {
-            for (int i = 0; i < test.Length; ++i)
-                if (str.Equals(test[i], StringComparison.OrdinalIgnoreCase))
-                    return i + 1;
+            if(str != null)
+                for (int i = 0; i < test.Length; ++i)
+                    if (str.Equals(test[i], StringComparison.OrdinalIgnoreCase))
+                        return i + 1;
             return 0;
         }
 
@@ -411,6 +477,74 @@ namespace UTFEditor
 					ch == 3 ||   // Ctrl+C - Copy
 					ch == 22 ||   // Ctrl+V - Paste
 					ch == 24);      // Ctrl+X - Cut
+        }
+    }
+
+    public interface IVertexFormat
+    {
+        SharpDX.Vector3 GetPosition();
+        int StrideV { get; }
+        SharpDX.Direct3D9.VertexFormat FormatV { get; }
+    }
+
+    public struct VertexPositionColor : IVertexFormat
+    {
+        public SharpDX.Vector3 position;
+        public SharpDX.Color color;
+
+        public static int Stride => 3 * sizeof(float) + sizeof(uint);
+        public int StrideV => Stride;
+
+        public static SharpDX.Direct3D9.VertexFormat Format => SharpDX.Direct3D9.VertexFormat.Position | SharpDX.Direct3D9.VertexFormat.Diffuse;
+        public SharpDX.Direct3D9.VertexFormat FormatV => Format;
+
+        public VertexPositionColor(SharpDX.Vector3 p, SharpDX.Color c)
+        {
+            position = p;
+            color = c;
+        }
+
+        public VertexPositionColor(float x, float y, float z, uint c)
+        {
+            position = new SharpDX.Vector3(x, y, z);
+            color = new SharpDX.Color(c);
+        }
+
+        public Vector3 GetPosition()
+        {
+            return position;
+        }
+    }
+
+    public struct VertexPositionNormalTexture : IVertexFormat
+    {
+        public SharpDX.Vector3 position;
+        public SharpDX.Vector3 normal;
+        public SharpDX.Vector2 uv;
+
+        public static int Stride => 3 * sizeof(float) + 3 * sizeof(float) + 2 * sizeof(float);
+        public int StrideV => Stride;
+
+        public static SharpDX.Direct3D9.VertexFormat Format => SharpDX.Direct3D9.VertexFormat.Position | SharpDX.Direct3D9.VertexFormat.Normal | SharpDX.Direct3D9.VertexFormat.Texture0;
+        public SharpDX.Direct3D9.VertexFormat FormatV => Format;
+
+        public VertexPositionNormalTexture(SharpDX.Vector3 p, SharpDX.Vector3 n, SharpDX.Vector2 t)
+        {
+            position = p;
+            normal = n;
+            uv = t;
+        }
+
+        public VertexPositionNormalTexture(float x, float y, float z, float nx, float ny, float nz, float u, float v)
+        {
+            position = new SharpDX.Vector3(x, y, z);
+            normal = new SharpDX.Vector3(nx, ny, nz);
+            uv = new SharpDX.Vector2(u, v);
+        }
+
+        public Vector3 GetPosition()
+        {
+            return position;
         }
     }
 }
