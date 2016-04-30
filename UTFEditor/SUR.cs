@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Collections;
 using System.Linq;
 using System.Text;
-using Microsoft.DirectX;
-using Microsoft.DirectX.Direct3D;
 
 namespace UTFEditor
 {
@@ -26,9 +24,9 @@ namespace UTFEditor
 		
 		public struct SurfaceSection
 		{
-			public Vector3[] BoundingBox;
-			public Vector3 Center;
-			public Vector3 Inertia;
+			public SharpDX.Vector3[] BoundingBox;
+			public SharpDX.Vector3 Center;
+			public SharpDX.Vector3 Inertia;
 			public float Radius;
 			public ushort Scale;
 			public uint Size;
@@ -92,9 +90,9 @@ namespace UTFEditor
 					FixedFlag = nextType;
 				else if(nextType == "exts")
 				{
-					ss.BoundingBox = new Vector3[2];
+					ss.BoundingBox = new SharpDX.Vector3[2];
 					for (int a = 0; a < 2; a++)
-						ss.BoundingBox[a] = new Vector3(
+						ss.BoundingBox[a] = new SharpDX.Vector3(
 													Utilities.GetFloat(data, ref pos),
 													Utilities.GetFloat(data, ref pos),
 													Utilities.GetFloat(data, ref pos));
@@ -102,11 +100,11 @@ namespace UTFEditor
 				else if(nextType == "surf")
 				{
 					uint unk = Utilities.GetDWord(data, ref pos);
-					ss.Center = new Vector3(
+					ss.Center = new SharpDX.Vector3(
 										Utilities.GetFloat(data, ref pos),
 										Utilities.GetFloat(data, ref pos),
 										Utilities.GetFloat(data, ref pos));
-					ss.Inertia = new Vector3(
+					ss.Inertia = new SharpDX.Vector3(
 										Utilities.GetFloat(data, ref pos),
 										Utilities.GetFloat(data, ref pos),
 										Utilities.GetFloat(data, ref pos));
