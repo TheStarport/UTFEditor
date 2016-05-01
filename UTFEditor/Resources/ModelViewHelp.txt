@@ -1,44 +1,47 @@
 {\rtf1{\b\ul KEYS}\par
 \par
-1            Bottom view\par
-2            Top view\par
-3            Back view\par
-4            Front view\par
-5            Right view\par
-6            Left view\par
+1				Bottom view\par
+2				Top view\par
+3				Back view\par
+4				Front view\par
+5				Right view\par
+6				Left view\par
 \par
-B            Toggle background between white & black\par
-P            Toggle the panel\par
+B				Toggle background between white & black\par
+P				Toggle the panel\par
 \par
-*            Increase size of hardpoint display\par
-/            Decrease size of hardpoint display\par
-+            Zoom in\par
--            Zoom out\par
+*				Increase size of hardpoint display\par
+/				Decrease size of hardpoint display\par
++				Zoom in\par
+-				Zoom out\par
 \par
-Arrows       Move the model (with Shift for finer movement)\par
-Page Up      Rotate 15° (1° with Shift) anticlockwise around the Y axis\par
-Page Down    Rotate 15° (1° with Shift) clockwise around the Y axis\par
-Ctrl+Page    Rotate around the X axis\par
-Home         Move to center, remove rotation\par
+Arrows			Move the model (with Shift for finer movement)\par
+Page Up			Rotate 15° (1° with Shift) anticlockwise around the Y axis\par
+Page Down		Rotate 15° (1° with Shift) clockwise around the Y axis\par
+Ctrl+Page		Rotate around the X axis\par
+Home			Move to center, remove rotation\par
 \par
 {\b\ul EDIT KEYS}\par
-Space		Enter Edit Mode\par
-A, D		Rotate selected hardpoint 15° (1° with Shift) around the Y axis\par
-W, X		Rotate around the X axis\par
-Q, E		Rotate around the Z axis\par
-Z, C		Increase (decrease with Ctrl) min or max by 5° (1° with Shift) for selected revolute hardpoint\par
+Space			Enter Edit Mode\par
+A, D			Rotate selected hardpoint 15° (1° with Shift) around the Y axis\par
+W, X			Rotate around the X axis\par
+Q, E			Rotate around the Z axis\par
+Z, C			Increase (decrease with Ctrl) min or max by 5° (1° with Shift) for selected revolute hardpoint\par
+Ctrl+LMB		Move selected hardpoint to location under the cursor
+Ctrl+Shift+LMB	Likewise, but also reorient hardpoint such that the X axis (red) points away from the surface
+Ctrl+Alt+LMB	Likewise, but for the Y axis (green)
 \par
 {\b\ul ADD KEYS}\par
-Ctrl+Space	Enter Add Mode\par
-Enter		Move to next hardpoint\par
-N		Switch to previous hardpoint type\par
-M		Switch to next hardpoint type\par
+Ctrl+Space		Enter Add Mode\par
+Enter			Move to next hardpoint\par
+N				Switch to previous hardpoint type\par
+M				Switch to next hardpoint type\par
 \par
 {\b\ul MOUSE}\par
 \par
-Left         Rotate around the Y axis (left/right) and X axis (up/down)\par
-Right        Zoom out/in (up/down) or rotate about the Z axis (left/right)\par
-Both         Move the model (or Shift+Left)\par
-Wheel        Zoom out/in (up/down)\par
+Left			Rotate around the Y axis (left/right) and X axis (up/down)\par
+Right			Zoom out/in (up/down) or rotate about the Z axis (left/right)\par
+Both			Move the model (or Shift+Left)\par
+Wheel			Zoom out/in (up/down)\par
 \par
 }

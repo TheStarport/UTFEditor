@@ -31,7 +31,7 @@ namespace UTFEditor
         }
     }
 
-    public static class ColorArgb
+    public static class SharpDXInterop
     {
         public static int ToArgb(this SharpDX.Color c)
         {
@@ -51,6 +51,46 @@ namespace UTFEditor
             value |= (uint)c.A << 24;
 
             return (int)value;
+        }
+
+        public static Matrix ToMatrix(this HardpointData hp)
+        {
+            Matrix m = Matrix.Identity;
+            m.M41 = hp.PosX;
+            m.M42 = hp.PosY;
+            m.M43 = hp.PosZ;
+            m.M44 = 1;
+
+            m.M11 = hp.RotMatXX;
+            m.M12 = hp.RotMatXY;
+            m.M13 = hp.RotMatXZ;
+
+            m.M21 = hp.RotMatYX;
+            m.M22 = hp.RotMatYY;
+            m.M23 = hp.RotMatYZ;
+
+            m.M31 = hp.RotMatZX;
+            m.M32 = hp.RotMatZY;
+            m.M33 = hp.RotMatZZ;
+
+            m.M14 = m.M24 = m.M34 = 0;
+
+            return m;
+        }
+
+        public static void LoadMatrix(this HardpointData hp, Matrix m)
+        {
+            hp.RotMatXX = m.M11;
+            hp.RotMatXY = m.M12;
+            hp.RotMatXZ = m.M13;
+
+            hp.RotMatYX = m.M21;
+            hp.RotMatYY = m.M22;
+            hp.RotMatYZ = m.M23;
+
+            hp.RotMatZX = m.M31;
+            hp.RotMatZY = m.M32;
+            hp.RotMatZZ = m.M33;
         }
     }
 
