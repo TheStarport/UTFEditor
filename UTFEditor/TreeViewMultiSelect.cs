@@ -505,7 +505,7 @@ namespace UTFEditor
                 else
                     targetNode.Parent.Nodes.Insert(index, newNode);
 
-                OnModifiedNode(new TreeViewEventArgs(newNode));
+                OnModifiedNode(new TreeViewEventArgs(targetNode));
 
                 index++;
             }

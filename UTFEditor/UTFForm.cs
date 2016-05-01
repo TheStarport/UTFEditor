@@ -1773,10 +1773,10 @@ namespace UTFEditor
         /// <param name="node"></param>
         public void NodeChanged(TreeNode node, string oldName, object oldData)
         {
+            bool isHardpoint = Utilities.StrIEq(node?.Parent.Text, "Fixed", "Revolute", "Hardpoints") || Utilities.StrIEq(node.Text, "Fixed", "Revolute", "Hardpoints");
+
             foreach (UTFFormObserver ob in observers)
-            {
-                ob.DataChanged(node, oldName, oldData);
-            }
+                ob.DataChanged(isHardpoint ? DataChangedType.Hardpoints : DataChangedType.Mesh);
 
             if (node.Parent != null)
             {

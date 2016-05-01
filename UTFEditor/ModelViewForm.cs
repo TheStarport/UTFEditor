@@ -8,6 +8,8 @@ using System.Windows.Forms;
 using SharpDX.Direct3D9;
 using System.IO;
 using SharpDX;
+using System.Reflection;
+using System.Collections;
 
 namespace UTFEditor
 {
@@ -23,7 +25,8 @@ namespace UTFEditor
         PresentParameters presentParams;
         Surface depthStencil = null;
         Format depthFormat;
-        
+
+        const float relativeHardpointScale = 60;
         float distance;
 
         Color background = Color.Black;
@@ -411,6 +414,19 @@ namespace UTFEditor
             this.Text += " - " + Path.GetFileName(directoryPath);
             this.MouseWheel += new MouseEventHandler(modelView_MouseWheel);
             parent.AddObserver(this);
+
+            if (!System.Windows.Forms.SystemInformation.TerminalServerSession)
+            {
+                Type dgvType = viewPanelView.GetType();
+                PropertyInfo pi = dgvType.GetProperty("DoubleBuffered",
+                  BindingFlags.Instance | BindingFlags.NonPublic);
+                pi.SetValue(viewPanelView, true, null);
+
+                dgvType = hardpointPanelView.GetType();
+                pi = dgvType.GetProperty("DoubleBuffered",
+                  BindingFlags.Instance | BindingFlags.NonPublic);
+                pi.SetValue(hardpointPanelView, true, null);
+            }
         }
 
         private void ModelViewForm_Activated(object sender, EventArgs e)
@@ -456,7 +472,7 @@ namespace UTFEditor
 			this.SetupDevice(device);
 
             cameraZoom = distance;
-            hp.scale = distance / 35;
+            hp.scale = distance / relativeHardpointScale;
             ChangeHardpointSize(1);
 			ChangeScale(1);
 			
@@ -502,349 +518,385 @@ namespace UTFEditor
                 ds.WriteRange(Hardpoint.displayindexes);
             hp.indices.Unlock();
 
-            DataChanged(null, "", null);
+            DataChanged(DataChangedType.All);
         }
 
         /// <summary>
         /// Parse the treeview and build the directx vertex and index buffers.
         /// </summary>
-        public void DataChanged(TreeNode changedNode, string oldName, object oldData)
+        public void DataChanged(DataChangedType changeType)
         {
-			foreach (MeshGroup bd in MeshGroups)
-            {
-				foreach(var m in bd.M)
-					m.Dispose();
-			}
-			MeshGroups.Clear();
-            MeshDataBuffers.Clear();
-            otherHardpoints.Clear();
-            hardpointPanelView.Rows.Clear();
-            viewPanelView.Rows.Clear();
+            bool changeMesh = (changeType & DataChangedType.Mesh) == DataChangedType.Mesh;
+            bool changeHardpoints = (changeType & DataChangedType.Hardpoints) == DataChangedType.Hardpoints;
 
-            TreeNode VMeshLibrary = rootNode.Nodes["VMeshLibrary"];
-            if (VMeshLibrary == null)
+            hardpointPanelView.SuspendDrawing();
+            viewPanelView.SuspendDrawing();
+
+            hardpointPanelView.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.DisableResizing;
+            viewPanelView.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.DisableResizing;
+
+            if (changeMesh)
             {
-                // If there's a VMeshRef with no VMeshLibrary, assume interface.generic.vms.
-                if (rootNode.Nodes.Find("VMeshRef", true).Length != 0)
+                foreach (MeshGroup bd in MeshGroups)
                 {
-                    int data = directoryPath.IndexOf(@"\DATA\", 0, StringComparison.OrdinalIgnoreCase);
-                    if (data != -1)
-                    {
-                        try
-                        {
+                    foreach (var m in bd.M)
+                        m.Dispose();
+                }
 
-                            UTFFile generic = new UTFFile();
-                            TreeNode genericLib = generic.LoadUTFFile(directoryPath.Remove(data + 6) + @"INTERFACE\interface.generic.vms");
-                            VMeshLibrary = genericLib.Nodes["VMeshLibrary"];
+                MeshGroups.Clear();
+                MeshDataBuffers.Clear();
+
+                TreeNode VMeshLibrary = rootNode.Nodes["VMeshLibrary"];
+                if (VMeshLibrary == null)
+                {
+                    // If there's a VMeshRef with no VMeshLibrary, assume interface.generic.vms.
+                    if (rootNode.Nodes.Find("VMeshRef", true).Length != 0)
+                    {
+                        int data = directoryPath.IndexOf(@"\DATA\", 0, StringComparison.OrdinalIgnoreCase);
+                        if (data != -1)
+                        {
+                            try
+                            {
+
+                                UTFFile generic = new UTFFile();
+                                TreeNode genericLib = generic.LoadUTFFile(directoryPath.Remove(data + 6) + @"INTERFACE\interface.generic.vms");
+                                VMeshLibrary = genericLib.Nodes["VMeshLibrary"];
+                            }
+                            catch { }
                         }
-                        catch { }
                     }
                 }
-            }
-            if (VMeshLibrary == null)
-                throw new Exception("Model not found");
+                if (VMeshLibrary == null)
+                    throw new Exception("Model not found");
 
-            // Scan for and build the mesh groups and the vertex/index buffers for
-            // each mesh group.
-            foreach (TreeNode node in VMeshLibrary.Nodes.Find("VMeshData", true))
-            {
-                MeshDataBuffer md = new MeshDataBuffer();
-                md.crc = Utilities.FLModelCRC(node.Parent.Name);
-                md.VMeshData = new VMeshData(node.Tag as byte[]);
-
-                // Convert index and vertex data into appropriate directx formats.
-                List<VertexPositionNormalTexture> vertices = new List<VertexPositionNormalTexture>();
-                foreach (VMeshData.TVertex vert in md.VMeshData.Vertices)
-                    vertices.Add(new VertexPositionNormalTexture(vert.X, vert.Y, vert.Z, vert.NormalX, vert.NormalY, vert.NormalZ, vert.S, vert.T));
-
-				List<UInt16> indices = new List<UInt16>();
-                foreach (VMeshData.TTriangle tri in md.VMeshData.Triangles)
-				{
-                    indices.Add((UInt16)tri.Vertex1);
-					indices.Add((UInt16)tri.Vertex2);
-					indices.Add((UInt16)tri.Vertex3);
-                }
-
-                // Copy data into GPU buffers
-				md.I = indices.ToArray();
-				md.V = vertices.ToArray();
-
-                // Save the group.
-                MeshDataBuffers.Add(md);
-            }
-
-            // Find Cons(truct) nodes. They contain data that links each mesh to the
-            // root mesh.
-			mapFileToObj.Clear();
-            mapFileToObj["\\"] = "Model";
-            foreach (TreeNode nodeObj in rootNode.Nodes.Find("Object Name", true))
-            {
-                foreach (TreeNode nodeFileName in nodeObj.Parent.Nodes.Find("File Name", false))
+                // Scan for and build the mesh groups and the vertex/index buffers for
+                // each mesh group.
+                foreach (TreeNode node in VMeshLibrary.Nodes.Find("VMeshData", true))
                 {
-                    string objectName = Utilities.GetString(nodeObj);
-                    string fileName = Utilities.GetString(nodeFileName);
-                    mapFileToObj[fileName] = objectName;
-                }
-            }
+                    MeshDataBuffer md = new MeshDataBuffer();
+                    md.crc = Utilities.FLModelCRC(node.Parent.Name);
+                    md.VMeshData = new VMeshData(node.Tag as byte[]);
 
-            // Scan the level 0 VMeshRefs to build mesh group list for each 
-            // of the construction nodes identified in the previous search.
-            //string levelstr = spinnerLevel.Value.ToString();
-            foreach (TreeNode node in rootNode.Nodes.Find("VMeshRef", true))
-            {
+                    // Convert index and vertex data into appropriate directx formats.
+                    List<VertexPositionNormalTexture> vertices = new List<VertexPositionNormalTexture>();
+                    foreach (VMeshData.TVertex vert in md.VMeshData.Vertices)
+                        vertices.Add(new VertexPositionNormalTexture(vert.X, vert.Y, vert.Z, vert.NormalX, vert.NormalY, vert.NormalZ, vert.S, vert.T));
+
+                    List<UInt16> indices = new List<UInt16>();
+                    foreach (VMeshData.TTriangle tri in md.VMeshData.Triangles)
+                    {
+                        indices.Add((UInt16)tri.Vertex1);
+                        indices.Add((UInt16)tri.Vertex2);
+                        indices.Add((UInt16)tri.Vertex3);
+                    }
+
+                    // Copy data into GPU buffers
+                    md.I = indices.ToArray();
+                    md.V = vertices.ToArray();
+
+                    // Save the group.
+                    MeshDataBuffers.Add(md);
+                }
+
+                // Find Cons(truct) nodes. They contain data that links each mesh to the
+                // root mesh.
+                mapFileToObj.Clear();
+                mapFileToObj["\\"] = "Model";
+                foreach (TreeNode nodeObj in rootNode.Nodes.Find("Object Name", true))
+                {
+                    foreach (TreeNode nodeFileName in nodeObj.Parent.Nodes.Find("File Name", false))
+                    {
+                        string objectName = Utilities.GetString(nodeObj);
+                        string fileName = Utilities.GetString(nodeFileName);
+                        mapFileToObj[fileName] = objectName;
+                    }
+                }
+
+                // Scan the level 0 VMeshRefs to build mesh group list for each 
+                // of the construction nodes identified in the previous search.
+                //string levelstr = spinnerLevel.Value.ToString();
+                foreach (TreeNode node in rootNode.Nodes.Find("VMeshRef", true))
+                {
+                    try
+                    {
+                        // Test for LevelN\VMeshData\VMeshRef.
+                        TreeNode fileNode = node.Parent.Parent;
+                        string levelName = fileNode.Name;
+                        string fileName;
+                        bool displayDefault = false;
+                        if (levelName.StartsWith("Level", StringComparison.OrdinalIgnoreCase))
+                        {
+                            // Okay, back up to filename\MultiLevel\LevelN
+                            fileNode = fileNode.Parent.Parent;
+                            fileName = fileNode.Name;
+                            if (levelName.Substring(5) == "0")
+                                displayDefault = true;
+                        }
+                        else
+                        {
+                            // No, it's directly under the file.
+                            fileName = levelName;
+                            levelName = "Level0";
+                            displayDefault = true;
+                        }
+                        string objName;
+                        if (mapFileToObj.TryGetValue(fileName, out objName))
+                        {
+                            MeshGroupDisplayInfo mgdi = GetMeshGroupDisplayInfo(displayDefault, objName, levelName);
+                            MeshGroup mg = new MeshGroup();
+                            mg.Name = objName;
+                            mg.DisplayInfo = mgdi;
+                            mg.RefData = new VMeshRef(node.Tag as byte[]);
+                            mg.Transform = Matrix.Identity;
+                            mg.MeshDataBuffer = FindMatchingMeshData(mg.RefData);
+                            mg.M = new SimpleMesh<VertexPositionNormalTexture>[mg.RefData.NumMeshes];
+                            mg.B = new BoundingBox[mg.RefData.NumMeshes];
+                            mapFileToMesh[fileName] = MeshGroups.Count;
+
+                            int endMesh = mg.RefData.StartMesh + mg.RefData.NumMeshes;
+                            for (int mn = mg.RefData.StartMesh; mn < endMesh; mn++)
+                            {
+                                VMeshData.TMeshHeader mesh = mg.MeshDataBuffer.VMeshData.Meshes[mn];
+
+                                ushort[] indicesCurrent = new ushort[mesh.NumRefVertices];
+                                for (int a = 0; a < indicesCurrent.Length; a++)
+                                    indicesCurrent[a] = mg.MeshDataBuffer.I[mesh.TriangleStart + a];
+
+                                VertexPositionNormalTexture[] verticesCurrent = new VertexPositionNormalTexture[mesh.EndVertex - mesh.StartVertex + 1];
+                                for (int a = 0; a < verticesCurrent.Length; a++)
+                                    verticesCurrent[a] = mg.MeshDataBuffer.V[mesh.StartVertex + mg.RefData.StartVert + a];
+
+                                var m = new SimpleMesh<VertexPositionNormalTexture>(device, verticesCurrent, indicesCurrent);
+
+                                Vector3 min, max;
+                                Utilities.ComputeBoundingBox(verticesCurrent, out min, out max);
+                                mg.B[mn - mg.RefData.StartMesh] = new BoundingBox(min, max);
+                                mg.M[mn - mg.RefData.StartMesh] = m;
+                            }
+
+                            TreeNode WireData = fileNode.Nodes["VMeshWire"];
+                            if (WireData != null)
+                            {
+                                WireData = WireData.Nodes["VWireData"];
+                                if (WireData != null)
+                                    mg.WireData = new VWireData(WireData.Tag as byte[]);
+                            }
+
+                            MeshGroups.Add(mg);
+                        }
+                    }
+                    catch
+                    {
+                        MessageBox.Show("Exception while loading a meshgroup!", "Error");
+                    }
+                }
+
+                // Find the offset and rotations from the Fix, Rev, Pris and Sphere nodes.
+                ParentTransform.Clear();
+                fixData = null;
+                revData = prisData = null;
+                sphereData = null;
                 try
                 {
-					// Test for LevelN\VMeshData\VMeshRef.
-					TreeNode fileNode = node.Parent.Parent;
-                    string levelName = fileNode.Name;
-                    string fileName;
-                    bool displayDefault = false;
-                    if (levelName.StartsWith("Level", StringComparison.OrdinalIgnoreCase))
+                    TreeNode consNode = rootNode.Nodes["Cmpnd"].Nodes["Cons"];
+                    foreach (TreeNode node in consNode.Nodes)
                     {
-						// Okay, back up to filename\MultiLevel\LevelN
-						fileNode = fileNode.Parent.Parent;
-                        fileName = fileNode.Name;
-                        if (levelName.Substring(5) == "0")
-                            displayDefault = true;
-                    }
-                    else
-                    {
-						// No, it's directly under the file.
-                        fileName = levelName;
-                        levelName = "Level0";
-                        displayDefault = true;
-                    }
-                    string objName;
-                    if (mapFileToObj.TryGetValue(fileName, out objName))
-                    {
-						MeshGroupDisplayInfo mgdi = GetMeshGroupDisplayInfo(displayDefault, objName, levelName);
-                        MeshGroup mg = new MeshGroup();
-                        mg.Name = objName;
-                        mg.DisplayInfo = mgdi;
-                        mg.RefData = new VMeshRef(node.Tag as byte[]);
-                        mg.Transform = Matrix.Identity;
-                        mg.MeshDataBuffer = FindMatchingMeshData(mg.RefData);
-                        mg.M = new SimpleMesh<VertexPositionNormalTexture>[mg.RefData.NumMeshes];
-                        mg.B = new BoundingBox[mg.RefData.NumMeshes];
-                        mapFileToMesh[fileName] = MeshGroups.Count;
-
-						int endMesh = mg.RefData.StartMesh + mg.RefData.NumMeshes;
-						for (int mn = mg.RefData.StartMesh; mn < endMesh; mn++)
-						{
-							VMeshData.TMeshHeader mesh = mg.MeshDataBuffer.VMeshData.Meshes[mn];
-							
-							ushort[] indicesCurrent = new ushort[mesh.NumRefVertices];
-							for (int a = 0; a < indicesCurrent.Length; a++)
-								indicesCurrent[a] = mg.MeshDataBuffer.I[mesh.TriangleStart + a];
-							
-							VertexPositionNormalTexture[] verticesCurrent = new VertexPositionNormalTexture[mesh.EndVertex - mesh.StartVertex + 1];
-							for (int a = 0; a < verticesCurrent.Length; a++)
-								verticesCurrent[a] = mg.MeshDataBuffer.V[mesh.StartVertex + mg.RefData.StartVert + a];
-                            
-                            var m = new SimpleMesh<VertexPositionNormalTexture>(device, verticesCurrent, indicesCurrent);
-
-                            Vector3 min, max;
-                            Utilities.ComputeBoundingBox(verticesCurrent, out min, out max);
-                            mg.B[mn - mg.RefData.StartMesh] = new BoundingBox(min, max);
-							mg.M[mn - mg.RefData.StartMesh] = m;
-						}
-						
-						TreeNode WireData = fileNode.Nodes["VMeshWire"];
-						if (WireData != null)
-						{
-							WireData = WireData.Nodes["VWireData"];
-							if (WireData != null)
-								mg.WireData = new VWireData(WireData.Tag as byte[]);
-						}
-						
-                        MeshGroups.Add(mg);
-                    }
-                }
-                catch {
-                    MessageBox.Show("Exception while loading a meshgroup!", "Error");
-                }
-            }
-
-            // Find the offset and rotations from the Fix, Rev, Pris and Sphere nodes.
-            ParentTransform.Clear();
-            fixData = null;
-            revData = prisData = null;
-            sphereData = null;
-            try
-            {
-                TreeNode consNode = rootNode.Nodes["Cmpnd"].Nodes["Cons"];
-                foreach (TreeNode node in consNode.Nodes)
-                {
-                    switch (node.Name.ToLowerInvariant())
-                    {
-                        case "fix":
-                            fixData = new CmpFixData(node.Tag as byte[]);
-                            break;
-                        case "rev":
-                            revData = new CmpRevData(node.Tag as byte[]);
-                            break;
-                        case "pris":
-                            prisData = new CmpRevData(node.Tag as byte[]);
-                            break;
-                        case "sphere":
-                            sphereData = new CmpSphereData(node.Tag as byte[]);
-                            break;
-                    }
-                }
-            }
-            catch { }
-
-            // Find the minima and maxima bounds to determine initial scale.
-            float max_x, max_y, max_z;
-            float min_x, min_y, min_z;
-            max_x = max_y = max_z = float.MinValue;
-            min_x = min_y = min_z = float.MaxValue;
-
-            foreach (MeshGroup mg in MeshGroups)
-            {
-                mg.Transform = GetTransform(mg.Name);
-
-                if (mg.RefData.BoundingBoxMaxX + mg.Transform.M41 > max_x)
-                    max_x = mg.RefData.BoundingBoxMaxX + mg.Transform.M41;
-                if (mg.RefData.BoundingBoxMaxY + mg.Transform.M42 > max_y)
-                    max_y = mg.RefData.BoundingBoxMaxY + mg.Transform.M42;
-                if (mg.RefData.BoundingBoxMaxZ + mg.Transform.M43 > max_z)
-                    max_z = mg.RefData.BoundingBoxMaxZ + mg.Transform.M43;
-                if (mg.RefData.BoundingBoxMinX + mg.Transform.M41 < min_x)
-                    min_x = mg.RefData.BoundingBoxMinX + mg.Transform.M41;
-                if (mg.RefData.BoundingBoxMinY + mg.Transform.M42 < min_y)
-                    min_y = mg.RefData.BoundingBoxMinY + mg.Transform.M42;
-                if (mg.RefData.BoundingBoxMinZ + mg.Transform.M43 < min_z)
-                    min_z = mg.RefData.BoundingBoxMinZ + mg.Transform.M43;
-            }
-            // Now determine the largest distance.
-            distance = Math.Max(max_x - min_x, Math.Max(max_y - min_y, max_z - min_z));
-
-            // Count the number of textures.
-            foreach (MeshDataBuffer mdb in MeshDataBuffers)
-            {
-                foreach (VMeshData.TMeshHeader mesh in mdb.VMeshData.Meshes)
-                {
-                    TexRequired.Add(mesh.MaterialId);
-                }
-            }
-            TexRemaining = TexRequired;
-
-            // Load those textures. Look for textures in the directory this utf file is in
-            // and look in the utf file itself.
-            LoadTextures(rootNode);
-            
-            try
-            {
-                string dir = directoryPath;
-                for (int i = 0; TexRemaining.Count != 0 && i < 3; ++i)
-                {
-                    foreach (string matFile in Directory.GetFiles(dir, "*.mat"))
-                    {
-                        UTFFile matUtfFile = new UTFFile();
-                        try
+                        switch (node.Name.ToLowerInvariant())
                         {
-                            TreeNode matRootNode = matUtfFile.LoadUTFFile(matFile);
-                            LoadTextures(matRootNode);
-                            if (TexRemaining.Count == 0)
+                            case "fix":
+                                fixData = new CmpFixData(node.Tag as byte[]);
+                                break;
+                            case "rev":
+                                revData = new CmpRevData(node.Tag as byte[]);
+                                break;
+                            case "pris":
+                                prisData = new CmpRevData(node.Tag as byte[]);
+                                break;
+                            case "sphere":
+                                sphereData = new CmpSphereData(node.Tag as byte[]);
                                 break;
                         }
-                        catch { }
                     }
-                    dir = Directory.GetParent(dir).ToString();
                 }
+                catch { }
+
+                // Find the minima and maxima bounds to determine initial scale.
+                float max_x, max_y, max_z;
+                float min_x, min_y, min_z;
+                max_x = max_y = max_z = float.MinValue;
+                min_x = min_y = min_z = float.MaxValue;
+
+                foreach (MeshGroup mg in MeshGroups)
+                {
+                    mg.Transform = GetTransform(mg.Name);
+
+                    if (mg.RefData.BoundingBoxMaxX + mg.Transform.M41 > max_x)
+                        max_x = mg.RefData.BoundingBoxMaxX + mg.Transform.M41;
+                    if (mg.RefData.BoundingBoxMaxY + mg.Transform.M42 > max_y)
+                        max_y = mg.RefData.BoundingBoxMaxY + mg.Transform.M42;
+                    if (mg.RefData.BoundingBoxMaxZ + mg.Transform.M43 > max_z)
+                        max_z = mg.RefData.BoundingBoxMaxZ + mg.Transform.M43;
+                    if (mg.RefData.BoundingBoxMinX + mg.Transform.M41 < min_x)
+                        min_x = mg.RefData.BoundingBoxMinX + mg.Transform.M41;
+                    if (mg.RefData.BoundingBoxMinY + mg.Transform.M42 < min_y)
+                        min_y = mg.RefData.BoundingBoxMinY + mg.Transform.M42;
+                    if (mg.RefData.BoundingBoxMinZ + mg.Transform.M43 < min_z)
+                        min_z = mg.RefData.BoundingBoxMinZ + mg.Transform.M43;
+                }
+                // Now determine the largest distance.
+                distance = Math.Max(max_x - min_x, Math.Max(max_y - min_y, max_z - min_z));
+
+                // Count the number of textures.
+                foreach (MeshDataBuffer mdb in MeshDataBuffers)
+                {
+                    foreach (VMeshData.TMeshHeader mesh in mdb.VMeshData.Meshes)
+                    {
+                        TexRequired.Add(mesh.MaterialId);
+                    }
+                }
+                TexRemaining = TexRequired;
+
+                // Load those textures. Look for textures in the directory this utf file is in
+                // and look in the utf file itself.
+                LoadTextures(rootNode);
+
+                try
+                {
+                    string dir = directoryPath;
+                    for (int i = 0; TexRemaining.Count != 0 && i < 3; ++i)
+                    {
+                        foreach (string matFile in Directory.GetFiles(dir, "*.mat"))
+                        {
+                            UTFFile matUtfFile = new UTFFile();
+                            try
+                            {
+                                TreeNode matRootNode = matUtfFile.LoadUTFFile(matFile);
+                                LoadTextures(matRootNode);
+                                if (TexRemaining.Count == 0)
+                                    break;
+                            }
+                            catch { }
+                        }
+                        dir = Directory.GetParent(dir).ToString();
+                    }
+                }
+                catch { }
+
+                viewPanelView.Sort(viewPanelView.Columns[1], ListSortDirection.Ascending);
             }
-            catch { }
+
+            if(changeHardpoints)
+            {
+                otherHardpoints.Clear();
+
+                // Load hardpoints
+                List<DataGridViewRow> hprows = new List<DataGridViewRow>();
+
+                foreach (TreeNode nFixed in rootNode.Nodes.Find("Fixed", true))
+                {
+                    foreach (TreeNode nLoc in nFixed.Nodes)
+                    {
+                        TreeNode node = GetHardpointNode(nLoc);
+                        if (node == null) continue;
+
+                        Matrix m = GetHardpointMatrix(node);
+
+                        HardpointDisplayInfo hi = new HardpointDisplayInfo();
+                        hi.Matrix = m;
+                        hi.Name = node.Name;
+                        hi.Node = node;
+                        hi.Min = hi.Max = 0;
+
+                        try
+                        {
+                            hi.MeshGroup = MeshGroups[mapFileToMesh[hi.Node.Parent.Parent.Parent.Name]];
+                        }
+                        catch { hi.MeshGroup = MeshGroups[0]; }
+
+                        hi.Revolute = false;
+                        hi.Color = new Color(UTFEditorMain.FindHpColor(node.Name).ToRgba());
+                        hi.Display = true;
+                        otherHardpoints.Add(hi);
+
+                        CreateHardpointRow(hi, (IList)hprows);
+
+                    }
+                }
+
+                foreach (TreeNode nRev in rootNode.Nodes.Find("Revolute", true))
+                {
+                    foreach (TreeNode nLoc in nRev.Nodes)
+                    {
+                        TreeNode node = GetHardpointNode(nLoc);
+                        if (node == null) continue;
+
+                        Matrix m = GetHardpointMatrix(node);
+
+                        TreeNode n = node.Nodes["Max"];
+                        float max = BitConverter.ToSingle(n.Tag as byte[], 0);
+                        n = node.Nodes["Min"];
+                        float min = BitConverter.ToSingle(n.Tag as byte[], 0);
+                        // If max is 360° or min is -360°, set them to ±180°.
+                        if (max >= (float)Math.PI * 2 - 0.0001f || min <= 0.0001f - (float)Math.PI * 2)
+                        {
+                            max = (float)Math.PI;
+                            min = -max;
+                        }
+                        // Axis doesn't seem to be used, so just rotate them to fit.
+                        max = -max - (float)Math.PI / 2;
+                        min = -min - (float)Math.PI / 2;
+
+                        HardpointDisplayInfo hi = new HardpointDisplayInfo();
+                        hi.Matrix = m;
+                        hi.Name = node.Name;
+                        hi.Node = node;
+                        hi.Min = min;
+                        hi.Max = max;
+                        hi.MeshGroup = MeshGroups[mapFileToMesh[hi.Node.Parent.Parent.Parent.Name]];
+                        hi.Revolute = true;
+                        hi.Color = new Color(UTFEditorMain.FindHpColor(node.Name).ToRgba());
+                        hi.Display = true;
+                        otherHardpoints.Add(hi);
+
+                        CreateHardpointRow(hi, hprows);
+                    }
+                }
+                hardpointPanelView.Rows.Clear();
+                hardpointPanelView.Rows.AddRange(hprows.ToArray());
+
+                hardpointPanelView.Sort(hardpointPanelView.Columns[1], ListSortDirection.Ascending);
+            }
+
+            hardpointPanelView.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToDisplayedHeaders;
+            viewPanelView.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToDisplayedHeaders;
+
+            hardpointPanelView.ResumeDrawing(true);
+            viewPanelView.ResumeDrawing(true);
+
             
             // Load SUR, if available
             try
             {
-				//SUR.LoadFromFile(parent.fileName);
+                //SUR.LoadFromFile(parent.fileName);
             }
-            catch(Exception)
+            catch (Exception)
             { }
-
-            // Load hardpoints
-            hardpointPanelView.SuspendDrawing();
-			foreach (TreeNode nFixed in rootNode.Nodes.Find("Fixed", true))
-			{
-				foreach (TreeNode nLoc in nFixed.Nodes)
-				{
-					TreeNode node = GetHardpointNode(nLoc);
-					if (node == null) continue;
-
-					Matrix m = GetHardpointMatrix(node);
-
-					HardpointDisplayInfo hi = new HardpointDisplayInfo();
-                    hi.Matrix = m;
-					hi.Name = node.Name;
-					hi.Node = node;
-					hi.Min = hi.Max = 0;
-
-                    try
-                    {
-                        hi.MeshGroup = MeshGroups[mapFileToMesh[hi.Node.Parent.Parent.Parent.Name]];
-                    }
-                    catch { hi.MeshGroup = MeshGroups[0]; }
-
-					hi.Revolute = false;
-					hi.Color = new Color(UTFEditorMain.FindHpColor(node.Name).ToRgba());
-					hi.Display = true;
-					otherHardpoints.Add(hi);
-
-					CreateHardpointRow(hi);
-				}
-			}
-
-			foreach (TreeNode nRev in rootNode.Nodes.Find("Revolute", true))
-			{
-				foreach (TreeNode nLoc in nRev.Nodes)
-				{
-					TreeNode node = GetHardpointNode(nLoc);
-					if (node == null) continue;
-
-					Matrix m = GetHardpointMatrix(node);
-
-					TreeNode n = node.Nodes["Max"];
-					float max = BitConverter.ToSingle(n.Tag as byte[], 0);
-					n = node.Nodes["Min"];
-					float min = BitConverter.ToSingle(n.Tag as byte[], 0);
-					// If max is 360° or min is -360°, set them to ±180°.
-					if (max >= (float)Math.PI * 2 - 0.0001f || min <= 0.0001f - (float)Math.PI * 2)
-					{
-						max = (float)Math.PI;
-						min = -max;
-					}
-					// Axis doesn't seem to be used, so just rotate them to fit.
-					max = -max - (float)Math.PI / 2;
-					min = -min - (float)Math.PI / 2;
-
-					HardpointDisplayInfo hi = new HardpointDisplayInfo();
-					hi.Matrix = m;
-					hi.Name = node.Name;
-					hi.Node = node;
-					hi.Min = min;
-					hi.Max = max;
-					hi.MeshGroup = MeshGroups[mapFileToMesh[hi.Node.Parent.Parent.Parent.Name]];
-					hi.Revolute = true;
-					hi.Color = new Color(UTFEditorMain.FindHpColor(node.Name).ToRgba());
-					hi.Display = true;
-					otherHardpoints.Add(hi);
-					
-					CreateHardpointRow(hi);
-				}
-            }
-            hardpointPanelView.ResumeDrawing();
-
-            viewPanelView.Sort(viewPanelView.Columns[1], ListSortDirection.Ascending);
-			hardpointPanelView.Sort(hardpointPanelView.Columns[1], ListSortDirection.Ascending);
         }
-        
-        int CreateHardpointRow(HardpointDisplayInfo hi)
+
+        DataGridViewRow CreateHardpointRow(HardpointDisplayInfo hi, IList rows)
         {
-            int row = hardpointPanelView.Rows.Add(true, hi.Name, hi.Revolute, String.Format("#{0:X8}", hi.Color.ToArgb()));
-            hardpointPanelView[1, row].Tag = new object[] { hi.MeshGroup, false };
-            CreateHardpointPanelMeshGroupRow(row, hi.MeshGroup);
+            DataGridViewRow row = new DataGridViewRow();
+
+            row.CreateCells(hardpointPanelView);
+            row.Cells[0].Value = true;
+            row.Cells[1].Value = hi.Name;
+            row.Cells[2].Value = hi.Revolute;
+            row.Cells[3].Value = String.Format("#{0:X8}", hi.Color.ToArgb());
+            row.Cells[1].Tag = new object[] { hi.MeshGroup, false };
+
+            CreateHardpointPanelMeshGroupRow(rows.Count - 1, hi.MeshGroup, rows);
+
+            rows.Add(row);
 
             return row;
 		}
@@ -955,25 +1007,33 @@ namespace UTFEditor
 			viewPanelView.Rows[row].DefaultCellStyle.ForeColor = System.Drawing.SystemColors.ControlLightLight;
 		}
 
-		void CreateHardpointPanelMeshGroupRow(int row, MeshGroup mg)
+		void CreateHardpointPanelMeshGroupRow(int i, MeshGroup mg, IList rows)
 		{
-			for (int a = row; a >= 0; a--)
+			for (int a = i; a >= 0; a--)
 			{
-				object[] data = (object[])hardpointPanelView[1, a].Tag;
+				object[] data = (object[])(rows[a] as DataGridViewRow).Cells[1].Tag;
 				if (data == null) continue;
 				if ((MeshGroup)data[0] == mg && (bool)data[1]) return;
 			}
 
-			row = hardpointPanelView.Rows.Add();
+            DataGridViewRow row = new DataGridViewRow();
+            row.CreateCells(hardpointPanelView);
 
-			hardpointPanelView[0, row].Value = true;
-			hardpointPanelView[1, row].Value = mg.Name;
-			hardpointPanelView[2, row].Value = false;
-			hardpointPanelView[3, row].Value = "#FFFFFFFF";
-			hardpointPanelView[1, row].Tag = new object[] { mg, true };
+            row.Cells[0].Value = true;
+            row.Cells[1].Value = mg.Name;
+            row.Cells[2].Value = false;
+            row.Cells[3].Value = "#FFFFFFFF";
 
-			hardpointPanelView.Rows[row].DefaultCellStyle.BackColor = System.Drawing.SystemColors.ControlDarkDark;
-			hardpointPanelView.Rows[row].DefaultCellStyle.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            row.Cells[1].Tag = new object[] { mg, true };
+            row.Cells[1].ReadOnly = true;
+            row.Cells[2].ReadOnly = true;
+            row.Cells[2].Style.ForeColor = System.Drawing.Color.DarkGray;
+            (row.Cells[2] as DataGridViewCheckBoxCell).FlatStyle = FlatStyle.Flat;
+
+            row.DefaultCellStyle.BackColor = System.Drawing.SystemColors.ControlDarkDark;
+            row.DefaultCellStyle.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+
+            rows.Add(row);
 		}
 
         /// <summary>
@@ -1501,7 +1561,7 @@ namespace UTFEditor
                                 tex.texture = new SharpDX.Direct3D9.Texture(device, 1, 1, 1, Usage.None, Format.A8R8G8B8, Pool.Default);
                                 tex.texture.Fill((x, s) => Color.White);
 							}
-							textures.Add(matID, tex);
+                            textures[matID] = tex;
                         }
                     }
                     catch { }
@@ -1550,7 +1610,7 @@ namespace UTFEditor
             cameraPosition = Vector3.Zero;
             cameraYawPitch = Vector2.Zero;
             cameraZoom = distance;
-            hp.scale = distance / 35;
+            hp.scale = distance / relativeHardpointScale;
             ChangeHardpointSize(1);
             ChangeScale(1);
 
@@ -1771,8 +1831,6 @@ namespace UTFEditor
 
             if (!LinkHardpoint(hp.Node, nameFinal, revolute)) return false;
 
-            //DataChanged(null, "", null);
-
             HardpointDisplayInfo hi = new HardpointDisplayInfo();
             hi.Matrix = GetHardpointMatrix(hp.Node);
             hi.Name = hp.Name;
@@ -1808,8 +1866,8 @@ namespace UTFEditor
             }
 
             otherHardpoints.Add(hi);
-            int row = CreateHardpointRow(hi);
-            hardpointPanelView.CurrentCell = hardpointPanelView.Rows[row].Cells[0];
+            DataGridViewRow row = CreateHardpointRow(hi, hardpointPanelView.Rows);
+            hardpointPanelView.CurrentCell = row.Cells[0];
 
             bool made = PlaceHardpoint(x, y, hp, loc, faceNormal, nameFinal);
 
@@ -2085,17 +2143,13 @@ namespace UTFEditor
                     }
                     break;
 
+                case Keys.F:
+                    CenterViewOnHardpoint();
+                    break;
                 // Reset the view, but keep the origin and scales
                 case Keys.Home:
-					if(e.Shift)
-					{
-						CenterViewOnHardpoint();
-					}
-					else
-					{
-						ResetPosition();
-						ResetView(Viewpoint.Defaults.Back);
-                    }
+                    ResetPosition();
+                    ResetView(Viewpoint.Defaults.Back);
                     break;
 
 				// Toggle the panel.
