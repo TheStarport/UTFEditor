@@ -15,11 +15,12 @@ P				Toggle the panel\par
 +				Zoom in\par
 -				Zoom out\par
 \par
-Arrows			Move the model (with Shift for finer movement)\par
+Arrows			Move the camera (with Shift for finer movement)\par
 Page Up			Rotate 15° (1° with Shift) anticlockwise around the Y axis\par
 Page Down		Rotate 15° (1° with Shift) clockwise around the Y axis\par
 Ctrl+Page		Rotate around the X axis\par
-Home			Move to center, remove rotation\par
+Home			Center camera on origin and reset orientation\par
+F				Center camera on currently selected waypoint\par
 \par
 {\b\ul EDIT KEYS}\par
 Space			Enter Edit Mode\par
