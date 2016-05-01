@@ -879,31 +879,6 @@ namespace UTFEditor
 			return m;
         }
 
-        Matrix GetHardpointMatrix(HardpointData hp)
-        {
-            Matrix m = Matrix.Identity;
-            m.M41 = hp.PosX;
-            m.M42 = hp.PosY;
-            m.M43 = hp.PosZ;
-            m.M44 = 1;
-
-            m.M11 = hp.RotMatXX;
-            m.M12 = hp.RotMatXY;
-            m.M13 = hp.RotMatXZ;
-
-            m.M21 = hp.RotMatYX;
-            m.M22 = hp.RotMatYY;
-            m.M23 = hp.RotMatYZ;
-
-            m.M31 = hp.RotMatZX;
-            m.M32 = hp.RotMatZY;
-            m.M33 = hp.RotMatZZ;
-
-            m.M14 = m.M24 = m.M34 = 0;
-
-            return m;
-        }
-
 		MeshGroupDisplayInfo GetMeshGroupDisplayInfo(bool def, string name, string level)
         {
 			for(int a = 0; a < viewPanelView.Rows.Count; a++)
@@ -1767,6 +1742,7 @@ namespace UTFEditor
                             v1.Normalize();
                             v2.Normalize();
                             faceNormal = Vector3.Cross(v1, v2);
+                            faceNormal = Vector3.TransformNormal(faceNormal, Matrix.Invert(mg.Transform));
                             faceNormal.Normalize();
                         }
                     }
@@ -1874,29 +1850,36 @@ namespace UTFEditor
 
 			if (Control.ModifierKeys == (Keys.Shift | Keys.Control) || Control.ModifierKeys == (Keys.Control | Keys.Alt))
 			{
-				Matrix transMat = Matrix.LookAtRH(new Vector3(0, 0, 0), faceNormal, new Vector3(0, 1, 0));
-				if (transMat.Determinant() == 0)
-					transMat = Matrix.LookAtRH(new Vector3(0, 0, 0), faceNormal, new Vector3(0, 0, 1));
-				if ((Control.ModifierKeys & Keys.Alt) != Keys.None)
-					transMat *= Matrix.RotationX((float)Math.PI / 2);
-				hpNew.RotMatXX = transMat.M11;
-				hpNew.RotMatXY = transMat.M12;
-				hpNew.RotMatXZ = transMat.M13;
+                Matrix transMat = Matrix.Identity;
 
-				hpNew.RotMatYX = transMat.M21;
-				hpNew.RotMatYY = transMat.M22;
-				hpNew.RotMatYZ = transMat.M23;
+                bool alt = (Control.ModifierKeys & Keys.Alt) != Keys.None;
+                Vector3 secondVector = Math.Abs(Vector3.Dot(faceNormal, Vector3.Up)) > 0.5f ? Vector3.ForwardRH : Vector3.Up;
+                {
+                    Matrix3x3 rot = new Matrix3x3();
 
-				hpNew.RotMatZX = transMat.M31;
-				hpNew.RotMatZY = transMat.M32;
-				hpNew.RotMatZZ = transMat.M33;
+                    rot.Row1 = alt ? secondVector : faceNormal;
+                    rot.Row2 = alt ? faceNormal : secondVector;
+                    rot.Row3 = Vector3.Cross(rot.Row1, rot.Row2);
+                    rot.Row2 = Vector3.Cross(rot.Row3, rot.Row1);
+
+                    rot.Row1.Normalize();
+                    rot.Row2.Normalize();
+                    rot.Row3.Normalize();
+
+                    transMat = (Matrix)rot;
+                    transMat.TranslationVector = loc;
+                    transMat.M14 = transMat.M24 = transMat.M34 = 0;
+                    transMat.M44 = 1;
+                }
+
+                hpNew.LoadMatrix(transMat);
 			}
 
 			hpNew.Write();
 			OnHardpointMoved();
             HardpointDisplayInfo hi = null;
             GetHardpointFromName(hpNew.Name, ref hi);
-            hi.Matrix = GetHardpointMatrix(hpNew);
+            hi.Matrix = hpNew.ToMatrix();
             try
             {
                 hi.MeshGroup = MeshGroups[mapFileToMesh[hi.Node.Parent.Parent.Parent.Name]];
@@ -2269,17 +2252,7 @@ namespace UTFEditor
 
             hi.Matrix = t * hi.Matrix;
 
-            hpNew.RotMatXX = hi.Matrix.M11;
-            hpNew.RotMatXY = hi.Matrix.M12;
-            hpNew.RotMatXZ = hi.Matrix.M13;
-
-            hpNew.RotMatYX = hi.Matrix.M21;
-            hpNew.RotMatYY = hi.Matrix.M22;
-            hpNew.RotMatYZ = hi.Matrix.M23;
-
-            hpNew.RotMatZX = hi.Matrix.M31;
-            hpNew.RotMatZY = hi.Matrix.M32;
-            hpNew.RotMatZZ = hi.Matrix.M33;
+            hpNew.LoadMatrix(hi.Matrix);
 
             hpNew.Write();
             OnHardpointMoved();

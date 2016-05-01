@@ -74,13 +74,13 @@ namespace UTFEditor
 
             data = Read("Orientation", 9);
             RotMatXX = data[0];
-            RotMatXY = data[1];
-            RotMatXZ = data[2];
-            RotMatYX = data[3];
+            RotMatYX = data[1];
+            RotMatZX = data[2];
+            RotMatXY = data[3];
             RotMatYY = data[4];
-            RotMatYZ = data[5];
-            RotMatZX = data[6];
-            RotMatZY = data[7];
+            RotMatZY = data[5];
+            RotMatXZ = data[6];
+            RotMatYZ = data[7];
             RotMatZZ = data[8];
 
             if (Utilities.StrIEq(hardpoint.Parent.Name, "Revolute"))
@@ -108,13 +108,13 @@ namespace UTFEditor
             Write("Position", data, 3);
 
             data[0] = RotMatXX;
-            data[1] = RotMatXY;
-            data[2] = RotMatXZ;
-            data[3] = RotMatYX;
+            data[1] = RotMatYX;
+            data[2] = RotMatZX;
+            data[3] = RotMatXY;
             data[4] = RotMatYY;
-            data[5] = RotMatYZ;
-            data[6] = RotMatZX;
-            data[7] = RotMatZY;
+            data[5] = RotMatZY;
+            data[6] = RotMatXZ;
+            data[7] = RotMatYZ;
             data[8] = RotMatZZ;
             Write("Orientation", data, 9);
 
