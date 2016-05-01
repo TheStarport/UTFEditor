@@ -8,22 +8,22 @@ using SharpDX.Direct3D9;
 
 namespace UTFEditor
 {
-    public struct IntersectInformation<I>
+    public struct IntersectInformation
     {
         public float Dist;
-        public I FaceIndex;
+        public uint FaceIndex;
     }
 
-    public class SimpleMesh<V, I> : IDisposable where V : struct, IVertexFormat where I : struct
+    public class SimpleMesh<V> : IDisposable where V : struct, IVertexFormat
     {
-        public I[] Indices { get; private set; }
+        public ushort[] Indices { get; private set; }
         public V[] Vertices { get; private set; }
 
         private VertexBuffer vb;
         private IndexBuffer ib;
         private Device dev;
 
-        public SimpleMesh(Device dev, V[] vertices, I[] indices)
+        public SimpleMesh(Device dev, V[] vertices, ushort[] indices)
         {
             this.dev = dev;
 
@@ -41,12 +41,12 @@ namespace UTFEditor
             if (indices.Length == 0)
                 return;
 
-            ib = new IndexBuffer(dev, indices.Length * (typeof(I) == typeof(ushort) ? sizeof(ushort) : sizeof(uint)), Usage.None, Pool.Default, typeof(I) == typeof(ushort));
+            ib = new IndexBuffer(dev, indices.Length * sizeof(ushort), Usage.None, Pool.Default, true);
             using (DataStream ds = ib.Lock(0, 0, LockFlags.None))
                 ds.WriteRange(indices);
             ib.Unlock();
 
-            Indices = new I[indices.Length];
+            Indices = new ushort[indices.Length];
             Array.Copy(indices, Indices, indices.Length);
         }
 
@@ -71,10 +71,26 @@ namespace UTFEditor
             Indices = null;
         }
 
-        public bool Intersect(Ray r, out IntersectInformation<I> hit)
+        public bool Intersects(Ray r, out IntersectInformation hit)
         {
-            hit = new IntersectInformation<I>();
-            return false;
+            hit = new IntersectInformation();
+            hit.Dist = Single.MaxValue;
+            hit.FaceIndex = 0;
+
+            for(uint i = 0; i < Indices.Length; i += 3)
+            {
+                Vector3 v1 = Vertices[Indices[i]].GetPosition();
+                Vector3 v2 = Vertices[Indices[i + 1]].GetPosition();
+                Vector3 v3 = Vertices[Indices[i + 2]].GetPosition();
+                float dist;
+                if(r.Intersects(ref v1, ref v2, ref v3, out dist) && dist < hit.Dist)
+                {
+                    hit.Dist = dist;
+                    hit.FaceIndex = i / 3;
+                }
+            }
+
+            return hit.Dist < Single.MaxValue;
         }
     }
 }
