@@ -1384,12 +1384,9 @@ namespace UTFEditor
                     lblHardpointName.Text = hi.Name;
                     lblHardpointName.Location = new System.Drawing.Point(e.X + Cursor.Size.Width / 2, e.Y + Cursor.Size.Height / 2);
                     lblHardpointName.Visible = true;
-                    //if(hardpointNameToolTip.GetToolTip(modelView) != hi.Name)
-                    //	hardpointNameToolTip.Show(hi.Name, modelView, e.X + 5, e.Y + 5);
                 }
 				else
                     lblHardpointName.Visible = false;
-                    //hardpointNameToolTip.Hide(modelView);
                 return;
             }
 
