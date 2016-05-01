@@ -23,11 +23,7 @@ namespace UTFEditor
         PresentParameters presentParams;
         Surface depthStencil = null;
         Format depthFormat;
-
-        /// <summary>
-        /// The model scale.
-        /// </summary>
-        float scale = 20.0f;
+        
         float distance;
 
         Color background = Color.Black;
@@ -37,38 +33,10 @@ namespace UTFEditor
         /// </summary>
         System.Drawing.Point lastPosition;
 
-        /// <summary>
-        /// Is the right button rotating or zooming?
-        /// </summary>
-        enum RightType { RightFirst, RightZoom, RightRotate };
-        RightType right = RightType.RightFirst;
-
-        /// <summary>
-        /// The current rotation around the Y axis.
-        /// </summary>
-        float rotY = 0;
-
-        /// <summary>
-        /// The current rotation around the X axis.
-        /// </summary>
-        float rotX = 0;
-
-        /// <summary>
-        /// The current rotation around the Z axis.
-        /// </summary>
-        float rotZ = 0;
-
-        /// The current X offset.
-        float posX = 0;
-
-        /// The current Y offset.
-        float posY = 0;
-
-        /// The current X/Y/Z origin.
-        float orgX = 0, orgY = 0, orgZ = 0;
-        
-        /// The thn scene origin if we've imported hardpoints from a thn file.
-        float thnX = 0, thnY = 0, thnZ = 0;
+        Vector3 cameraPosition;
+        Vector2 cameraYawPitch;
+        float cameraZoom = 1.0f;
+        Matrix viewMatrix, projMatrix;
         
         DateTime lastClickTime;
 
@@ -464,6 +432,9 @@ namespace UTFEditor
 			Format[] formats = { Format.D32, Format.D24X8, Format.D16 };
 			foreach (Format format in formats)
 			{
+                if (!d3d.CheckDeviceFormat(0, DeviceType.Hardware, Format.X8R8G8B8, Usage.DepthStencil, ResourceType.Surface, format))
+                    continue;
+
 				depthFormat = format;
 				if (d3d.CheckDepthStencilMatch(0, DeviceType.Hardware, d3d.Adapters[0].CurrentDisplayMode.Format, d3d.Adapters[0].CurrentDisplayMode.Format, depthFormat)) break;
 			}
@@ -483,13 +454,9 @@ namespace UTFEditor
                 throw new Exception("Unable to initialise DirectX.");
 
 			this.SetupDevice(device);
-			
-            scale = (modelView.Panel1.Height - 1) / distance;
-            if (scale < 0.001f)
-                scale = 0.001f;
-            else if (scale > 1000)
-                scale = 1000;
-            hp.scale = 25 / scale;
+
+            cameraZoom = distance;
+            hp.scale = distance / 35;
             ChangeHardpointSize(1);
 			ChangeScale(1);
 			
@@ -521,6 +488,7 @@ namespace UTFEditor
 			hp.display = new VertexBuffer(dev, Hardpoint.displayvertices.Length * VertexPositionColor.Stride, Usage.WriteOnly, VertexPositionColor.Format, Pool.Default);
             using (DataStream ds = hp.display.Lock(0, 0, LockFlags.None))
                 ds.WriteRange(Hardpoint.displayvertices);
+            hp.display.Unlock();
 			hp.revolute = new VertexBuffer(dev, 26, Usage.WriteOnly, VertexPositionColor.Format, Pool.Default);
 			hp.max = Single.MaxValue;
 			hp.min = Single.MinValue;
@@ -532,8 +500,9 @@ namespace UTFEditor
 			hp.indices = new IndexBuffer(device, Hardpoint.displayindexes.Length * sizeof(int), Usage.WriteOnly, Pool.Default, false);
             using (DataStream ds = hp.indices.Lock(0, 0, LockFlags.None))
                 ds.WriteRange(Hardpoint.displayindexes);
+            hp.indices.Unlock();
 
-			DataChanged(null, "", null);
+            DataChanged(null, "", null);
         }
 
         /// <summary>
@@ -819,7 +788,7 @@ namespace UTFEditor
                     catch { hi.MeshGroup = MeshGroups[0]; }
 
 					hi.Revolute = false;
-					hi.Color = new SharpDX.Color(UTFEditorMain.FindHpColor(node.Name).ToArgb());
+					hi.Color = new Color(UTFEditorMain.FindHpColor(node.Name).ToRgba());
 					hi.Display = true;
 					otherHardpoints.Add(hi);
 
@@ -858,7 +827,7 @@ namespace UTFEditor
 					hi.Max = max;
 					hi.MeshGroup = MeshGroups[mapFileToMesh[hi.Node.Parent.Parent.Parent.Name]];
 					hi.Revolute = true;
-					hi.Color = new SharpDX.Color(UTFEditorMain.FindHpColor(node.Name).ToArgb());
+					hi.Color = new Color(UTFEditorMain.FindHpColor(node.Name).ToRgba());
 					hi.Display = true;
 					otherHardpoints.Add(hi);
 					
@@ -986,7 +955,7 @@ namespace UTFEditor
                         m.Groups["A"].Success ? Int32.Parse(m.Groups["A"].Value, System.Globalization.NumberStyles.HexNumber) : 255
                         );
 			
-			return new Color(System.Drawing.Color.FromName(text.Replace(" ", "")).ToArgb());
+			return new Color(System.Drawing.Color.FromName(text.Replace(" ", "")).ToRgba());
         }
         
         void CreateModelPanelLevelRow(int row, int level, bool def)
@@ -1070,7 +1039,7 @@ namespace UTFEditor
                             parentMat = GetTransform(part.ParentName);
                             ParentTransform.Add(part.ParentName, parentMat);
                         }
-                        Matrix.Multiply(m, parentMat);
+                        m *= parentMat;
                         return m;
                     }
                 }
@@ -1106,7 +1075,7 @@ namespace UTFEditor
                             parentMat = GetTransform(part.ParentName);
                             ParentTransform.Add(part.ParentName, parentMat);
                         }
-                        Matrix.Multiply(m, parentMat);
+                        m *= parentMat;
                         return m;
                     }
                 }
@@ -1142,7 +1111,7 @@ namespace UTFEditor
                             parentMat = GetTransform(part.ParentName);
                             ParentTransform.Add(part.ParentName, parentMat);
                         }
-                        Matrix.Multiply(m, parentMat);
+                        m *= parentMat;
                         return m;
                     }
                 }
@@ -1178,7 +1147,7 @@ namespace UTFEditor
                             parentMat = GetTransform(part.ParentName);
                             ParentTransform.Add(part.ParentName, parentMat);
                         }
-                        Matrix.Multiply(m, parentMat);
+                        m *= parentMat;
                         return m;
                     }
                 }
@@ -1190,15 +1159,19 @@ namespace UTFEditor
         /// <summary>
         /// Build the rotation matrix for the view and the projection matrix.
         /// </summary>
+        /// 
         private void SetupMatrices()
         {
-            Matrix rotation = Matrix.RotationZ(rotZ);
-            Matrix.Multiply(rotation, Matrix.RotationY(rotY));
-            Matrix.Multiply(rotation, Matrix.RotationX(rotX));
-            Matrix.Multiply(rotation, Matrix.Scaling(scale, scale, scale));
-            Matrix.Multiply(rotation, Matrix.Translation(posX, posY, 0));
-            device.SetTransform(TransformState.View, rotation);
-            device.SetTransform(TransformState.Projection, Matrix.OrthoRH(modelView.Panel1.Width, modelView.Panel1.Height, -200000.0f, 200000.0f));
+            cameraYawPitch.Y = Utilities.Clamp(cameraYawPitch.Y, -(float)Math.PI / 2 * 0.98f, (float)Math.PI / 2 * 0.98f);
+
+            Vector3 pos = Vector3.TransformCoordinate(Vector3.BackwardRH, Matrix.Translation(0, 0, cameraZoom) * Matrix.RotationYawPitchRoll(-cameraYawPitch.X, -cameraYawPitch.Y, 0));
+            pos += cameraPosition;
+
+            viewMatrix = Matrix.LookAtRH(pos, cameraPosition, Vector3.Up);
+            projMatrix = Matrix.PerspectiveFovRH(45.0f, device.Viewport.Width / (float)device.Viewport.Height, 0.5f, 100000.0f);
+
+            device.SetTransform(TransformState.View, viewMatrix);
+            device.SetTransform(TransformState.Projection, projMatrix);
         }
 
         /// <summary>
@@ -1207,86 +1180,6 @@ namespace UTFEditor
         private void SetupLights()
 		{
 			device.SetRenderState(RenderState.Lighting, true);
-			/*device.Lights[0].Type = LightType.Directional;
-			device.Lights[0].Diffuse = Color.Blue;
-			//device.Lights[0].DiffuseColor = new ColorValue(scale, scale, scale);
-			device.Lights[0].Direction = new Vector3(1.0f, 1.0f, 1.0f);
-			device.Lights[0].Update();
-			device.Lights[0].Enabled = true;
-			device.RenderState.Ambient = Color.Gray;
-			Material mtrl = new Material();
-			mtrl.Ambient = Color.Black;
-			mtrl.Diffuse = Color.White;
-			device.Material = mtrl;
-			
-			/*
-			device.RenderState.DiffuseMaterialSource = ColorSource.Material;
-			device.RenderState.SpecularMaterialSource = ColorSource.Material;
-			Material mtrl = new Material();
-			mtrl.Ambient = Color.Black;
-			mtrl.Diffuse = Color.White;
-			device.Material = mtrl;
-			
-			/*device.RenderState.Lighting = true;
-			device.Lights[0].Type = LightType.Directional;
-			device.Lights[0].Diffuse = Color.Red;
-			device.Lights[0].DiffuseColor = new ColorValue(scale, scale, scale);
-			device.Lights[0].Direction = new Vector3(1.0f, 1.0f, 1.0f);
-			device.Lights[0].Enabled = true;
-			/*Material mtrl = new Material();
-			mtrl.Ambient = Color.Red;//mgdi.Color;
-			device.Material = mtrl;
-			
-			device.RenderState.Ambient = Color.Red;
-			device.RenderState.Lighting = true;
-			device.Lights[0].Type = LightType.Directional;
-			device.Lights[0].Diffuse = Color.Red;
-			device.Lights[0].DiffuseColor = new ColorValue(scale, scale, scale);
-			device.Lights[0].Direction = new Vector3(1.0f, 1.0f, 1.0f);
-			device.Lights[0].Enabled = true;*/
-			/*Material mtrl = new Material();
-			mtrl.Ambient = Color.Red;//mgdi.Color;
-			device.Material = mtrl;
-			device.RenderState.Lighting = false;
-			device.RenderState.Ambient = Color.Red;*/
-
-			/*device.RenderState.DiffuseMaterialSource = ColorSource.Color1;
-			device.RenderState.EmissiveMaterialSource = ColorSource.Color1;
-			device.RenderState.AmbientMaterialSource = ColorSource.Color1;
-
-			device.RenderState.Lighting = true;
-            device.Lights[0].Type = LightType.Directional;
-			device.Lights[0].Diffuse = mgdi.Color;
-            device.Lights[0].DiffuseColor = new ColorValue(scale, scale, scale);
-            device.Lights[0].Direction = new Vector3(1.0f, 1.0f, 1.0f);
-
-            device.Lights[1].Type = LightType.Directional;
-			device.Lights[1].Diffuse = mgdi.Color;
-            device.Lights[1].DiffuseColor = new ColorValue(scale, scale, scale);
-            device.Lights[1].Direction = new Vector3(-1.0f, -1.0f, -1.0f);
-
-			if (mgdi.Texture && hasTexture)
-			{
-				device.RenderState.Lighting = true;
-				device.Lights[0].Enabled = true;
-				device.Lights[1].Enabled = true;
-                device.RenderState.DiffuseMaterialSource = ColorSource.Material;
-                device.RenderState.SpecularMaterialSource = ColorSource.Material;
-            }
-            else
-            {
-                device.RenderState.Lighting = false;
-                device.RenderState.Ambient = mgdi.Color;
-                device.Lights[0].Enabled = false;
-				device.Lights[1].Enabled = false;
-                device.RenderState.DiffuseMaterialSource = ColorSource.Material;
-				device.RenderState.SpecularMaterialSource = ColorSource.Material;
-            }
-
-            device.RenderState.LocalViewer = true;
-            device.RenderState.SpecularEnable = true;
-            device.RenderState.DitherEnable = true;
-            device.RenderState.NormalizeNormals = false;*/
         }
 
         /// <summary>
@@ -1311,7 +1204,7 @@ namespace UTFEditor
             {
 				if (!mg.DisplayInfo.Display) continue;
 
-                device.SetTransform(TransformState.World, mg.Transform * Matrix.Translation(orgX, orgY, orgZ));
+                device.SetTransform(TransformState.World, mg.Transform);
 				
 				int endMesh = mg.RefData.StartMesh + mg.RefData.NumMeshes;
 				for (int mn = mg.RefData.StartMesh; mn < endMesh; mn++)
@@ -1336,9 +1229,9 @@ namespace UTFEditor
 
 					Texture tex = FindTextureByMaterialID(mesh.MaterialId);
                     if (mg.DisplayInfo.Texture == TextureMode.Texture || mg.DisplayInfo.Texture == TextureMode.None || tex == null)
-                        device.SetRenderState(RenderState.TextureFactor, mg.DisplayInfo.Color.ToArgb());
+                        device.SetRenderState(RenderState.TextureFactor, mg.DisplayInfo.Color.ToRgba());
                     else
-                        device.SetRenderState(RenderState.TextureFactor, Color.Modulate(mg.DisplayInfo.Color, new Color(tex.Dc)).ToArgb());
+                        device.SetRenderState(RenderState.TextureFactor, Color.Modulate(mg.DisplayInfo.Color, new Color(tex.Dc)).ToRgba());
 
 					if (tex != null && (mg.DisplayInfo.Texture == TextureMode.Texture || mg.DisplayInfo.Texture == TextureMode.TextureColor))
 					{
@@ -1401,41 +1294,7 @@ namespace UTFEditor
         /// <param name="e"></param>
         void modelView_MouseWheel(object sender, MouseEventArgs e)
         {
-            // Adjust the scale.
-            if (e.Delta < 0)
-                scale *= 1.25f;
-            else
-                scale /= 1.25f;
-
-            ChangeScale(1);
-        }
-        
-        /// <summary>
-        /// If the scale track bar is updated then re-scale the display.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void trackBarScale_Scroll(object sender, EventArgs e)
-        {
-            scale = (float)Math.Pow(10, (double)trackBarScale.Value / 100.0);
-            ChangeScale(1);
-        }
-
-        private void textBoxScale_TextChanged(object sender, EventArgs e)
-        {
-            float s;
-            if (Single.TryParse(textBoxScale.Text, out s) &&
-                s >= 0.001 && s <= 1000)
-            {
-                scale = s;
-                // Map the scale onto the trackbar.
-                this.trackBarScale.Scroll -= new System.EventHandler(this.trackBarScale_Scroll);
-                trackBarScale.Value = (int)(Math.Log10(scale) * 100);
-                this.trackBarScale.Scroll += new System.EventHandler(this.trackBarScale_Scroll);
-                textBoxScale.ForeColor = System.Drawing.SystemColors.WindowText;
-                Invalidate();
-            }
-            else textBoxScale.ForeColor = System.Drawing.Color.Red;
+            ChangeScale(e.Delta < 0 ? 1.15f : 1.0f / 1.15f);
         }
 
         /// <summary>
@@ -1448,7 +1307,6 @@ namespace UTFEditor
         {
 			(sender as Panel).Focus();
             lastPosition = e.Location;
-            right = RightType.RightFirst;
             lastClickTime = DateTime.Now;
 		}
 
@@ -1488,11 +1346,15 @@ namespace UTFEditor
 				HardpointDisplayInfo hi;
 				if(GetHardpointFromScreen(e.X, e.Y, out hi))
 				{
-					if(hardpointNameToolTip.GetToolTip(modelView) != hi.Name)
-						hardpointNameToolTip.Show(hi.Name, modelView, e.X + 5, e.Y + 5);
-				}
+                    lblHardpointName.Text = hi.Name;
+                    lblHardpointName.Location = new System.Drawing.Point(e.X + Cursor.Size.Width / 2, e.Y + Cursor.Size.Height / 2);
+                    lblHardpointName.Visible = true;
+                    //if(hardpointNameToolTip.GetToolTip(modelView) != hi.Name)
+                    //	hardpointNameToolTip.Show(hi.Name, modelView, e.X + 5, e.Y + 5);
+                }
 				else
-					hardpointNameToolTip.Hide(modelView);
+                    lblHardpointName.Visible = false;
+                    //hardpointNameToolTip.Hide(modelView);
                 return;
             }
 
@@ -1500,42 +1362,26 @@ namespace UTFEditor
             int deltaY = e.Location.Y - lastPosition.Y;
             if ((e.Button & MouseButtons.Left) != 0)
             {
-                // If the shift key is down or the right button is pressed then move.
-                if ((Control.ModifierKeys & Keys.Shift) == Keys.Shift ||
-                    (e.Button & MouseButtons.Right) != 0)
-                {
-                    posX += deltaX;
-                    posY -= deltaY;
-                }
-                // Otherwise rotate.
-                else
-                {
-                    // Movement in the left-right direction of the window results 
-                    // in rotation around the Y axis.
-                    rotY += deltaX / 100f;
+                // Movement in the left-right direction of the window results 
+                // in rotation around the Y axis.
+                cameraYawPitch.X += deltaX / 100f;
 
-                    // Movement in the top-bottom direction of the window results
-                    // in rotation around the X axis.
-                    rotX += deltaY / 100f;
-                }
+                // Movement in the top-bottom direction of the window results
+                // in rotation around the X axis.
+                cameraYawPitch.Y += deltaY / 100f;
             }
             else if ((e.Button & MouseButtons.Right) != 0)
             {
-                if (right == RightType.RightFirst)
-                    right = (deltaX != 0) ? RightType.RightRotate : RightType.RightZoom;
-                switch (right)
-                {
-                    case RightType.RightZoom:
-                        scale = (float)Math.Pow(10, Math.Log10(scale) + deltaY / 100f);
-                        ChangeScale(1);
-                        break;
+                cameraZoom = (float)Math.Pow(10, Math.Log10(cameraZoom) + deltaY / 100f);
+                ChangeScale(1);
+            }
+            else if((e.Button & MouseButtons.Middle) != 0)
+            {
+                Matrix view = Matrix.Invert(viewMatrix);
 
-                    case RightType.RightRotate:
-                        // Movement in the left-right direction of the window results
-                        // in rotation around the Z axis.
-                        rotZ -= deltaX / 100f;
-                        break;
-                }
+                Vector3 offset = new Vector3(deltaX, -deltaY, 0);
+                offset = Vector3.Transform(offset, (Matrix3x3)view);
+                cameraPosition -= offset;
             }
             lastPosition = e.Location;
             Invalidate();
@@ -1677,8 +1523,7 @@ namespace UTFEditor
 
 							if (tex.fileName == null && Dc_present)
 							{
-                                byte[] whitepx = { 255, 255, 255, 255 };
-                                tex.texture = new SharpDX.Direct3D9.Texture(device, 1, 1, 1, Usage.None, Format.A8B8G8R8, Pool.Default);
+                                tex.texture = new SharpDX.Direct3D9.Texture(device, 1, 1, 1, Usage.None, Format.A8R8G8B8, Pool.Default);
                                 tex.texture.Fill((x, s) => Color.White);
 							}
 							textures.Add(matID, tex);
@@ -1715,10 +1560,7 @@ namespace UTFEditor
                                 texture = (byte[])texture.Clone();
                                 texture[0x11] |= 0x20; // set the origin flag, flipping the texture
                             }
-                            using (MemoryStream ms = new MemoryStream(texture))
-                            {
-                                return SharpDX.Direct3D9.Texture.FromStream(device, ms);
-                            }
+                            return SharpDX.Direct3D9.Texture.FromMemory(device, texture);
                         }
                     }
                 }
@@ -1729,18 +1571,13 @@ namespace UTFEditor
         private void ResetAll()
 		{
 			viewPanelView.Rows.Clear();
-			
-            rotX = rotY = rotZ = 0;
-            posX = posY = 0;
-            orgX = orgY = orgZ = 0;
-            scale = (modelView.Panel1.Height - 1) / distance;
-            if (scale < 0.001f)
-                scale = 0.001f;
-            else if (scale > 1000)
-                scale = 1000;
-            ChangeScale(1);
-            hp.scale = 25 / scale;
+
+            cameraPosition = Vector3.Zero;
+            cameraYawPitch = Vector2.Zero;
+            cameraZoom = distance;
+            hp.scale = distance / 35;
             ChangeHardpointSize(1);
+            ChangeScale(1);
 
             SetBackground(false);
             // If the scale is the same, the text box won't change, so explicitly invalidate.
@@ -1765,20 +1602,17 @@ namespace UTFEditor
                 node = node.Nodes["Position"];
                 byte[] data = node.Tag as byte[];
                 int pos = 0;
-                orgX = Utilities.GetFloat(data, ref pos);
-                orgY = Utilities.GetFloat(data, ref pos);
-                orgZ = Utilities.GetFloat(data, ref pos);
+                cameraPosition.X = Utilities.GetFloat(data, ref pos);
+                cameraPosition.Y = Utilities.GetFloat(data, ref pos);
+                cameraPosition.Z = Utilities.GetFloat(data, ref pos);
                 
                 MeshGroup mg;
                 if (node.Parent.Parent.Parent.Parent.Name=="THN")
                     mg = MeshGroups[0];
                 else
                     mg = MeshGroups[mapFileToMesh[node.Parent.Parent.Parent.Parent.Name]];
-                
-                Matrix m = Matrix.Multiply(mg.Transform, Matrix.Translation(orgX, orgY, orgZ));
-                orgX = -m.M41;
-                orgY = -m.M42;
-                orgZ = -m.M43;
+
+                cameraPosition = Vector3.TransformCoordinate(cameraPosition, mg.Transform);
                 Invalidate();
             }
             catch
@@ -1835,8 +1669,8 @@ namespace UTFEditor
 			
 			foreach(HardpointDisplayInfo hi in otherHardpoints)
             {
-                device.SetRenderState(RenderState.TextureFactor, hi.Color.ToArgb());
-                device.SetRenderState(RenderState.BlendFactor, hi.Color.ToArgb());
+                device.SetRenderState(RenderState.TextureFactor, hi.Color.ToRgba());
+                device.SetRenderState(RenderState.BlendFactor, hi.Color.ToRgba());
 
 				try
 				{
@@ -1844,12 +1678,12 @@ namespace UTFEditor
 					if (!isSelectedNode)
 						if (splitViewHardpoint.Panel2Collapsed || !hi.Display) continue;
 					float scale = hp.scale * (isSelectedNode ? 4f : 1f);
-                    device.SetTransform(TransformState.World, Matrix.Scaling(scale, scale, scale) * hi.Matrix * hi.MeshGroup.Transform * Matrix.Translation(orgX, orgY, orgZ) * Matrix.Translation(thnX, thnY, thnZ));
+                    device.SetTransform(TransformState.World, Matrix.Scaling(scale, scale, scale) * hi.Matrix * hi.MeshGroup.Transform);
 
 					if (isSelectedNode)
                     {
-                        device.SetRenderState(RenderState.TextureFactor, Color.Add(hi.Color, Color.Gray).ToArgb());
-                        device.SetRenderState(RenderState.BlendFactor, Color.Add(hi.Color, Color.Gray).ToArgb());
+                        device.SetRenderState(RenderState.TextureFactor, Color.Add(hi.Color, Color.Gray).ToRgba());
+                        device.SetRenderState(RenderState.BlendFactor, Color.Add(hi.Color, Color.Gray).ToRgba());
                         
 						if (hi.Revolute)
 						{
@@ -1869,6 +1703,7 @@ namespace UTFEditor
 										rotVert[pos++] = new VertexPositionColor(2 * (float)Math.Cos(angle), 0, 2 * (float)Math.Sin(angle), 0xffff00);
                                     using (var stream = hp.revolute.Lock(0, 0, LockFlags.None))
                                         stream.WriteRange(rotVert);
+                                    hp.revolute.Unlock();
                                 }
 								device.SetStreamSource(0, hp.revolute, 0, VertexPositionColor.Stride);
 								device.DrawPrimitives(PrimitiveType.TriangleFan, 0, 24);
@@ -1913,7 +1748,7 @@ namespace UTFEditor
 				Vector3 near = new Vector3(nearInit.X, nearInit.Y, nearInit.Z);
 				Vector3 far = new Vector3(farInit.X, farInit.Y, farInit.Z);
                 
-                Matrix wvp = (Matrix)device.GetTransform(TransformState.Projection) * device.GetTransform(TransformState.View) * Matrix.Translation(orgX, orgY, orgZ);
+                Matrix wvp = viewMatrix * projMatrix;
 
                 near = Vector3.Unproject(near, device.Viewport.X, device.Viewport.Y, device.Viewport.Width, device.Viewport.Height, device.Viewport.MinDepth, device.Viewport.MaxDepth, wvp);
                 far = Vector3.Unproject(far, device.Viewport.X, device.Viewport.Y, device.Viewport.Width, device.Viewport.Height, device.Viewport.MinDepth, device.Viewport.MaxDepth, wvp);
@@ -1951,10 +1786,6 @@ namespace UTFEditor
 			if (minDist == Single.MaxValue) return false;
 			
 			hitLocation = minDist * (farFinal - nearFinal) + nearFinal;
-            hitLocation.X -= thnX;
-            hitLocation.Y -= thnY;
-            hitLocation.Z -= thnZ;
-
 
 			return true;
         }
@@ -1980,7 +1811,7 @@ namespace UTFEditor
             hi.Name = hp.Name;
             hi.Node = hp.Node;
             hi.MeshGroup = MeshGroups[mapFileToMesh[hi.Node.Parent.Parent.Parent.Name]];
-            hi.Color = new Color(UTFEditorMain.FindHpColor(hp.Node.Name).ToArgb());
+            hi.Color = new Color(UTFEditorMain.FindHpColor(hp.Node.Name).ToRgba());
             hi.Display = true;
 
             if (revolute)
@@ -2052,9 +1883,9 @@ namespace UTFEditor
 
 			if (Control.ModifierKeys == (Keys.Shift | Keys.Control) || Control.ModifierKeys == (Keys.Control | Keys.Alt))
 			{
-				Matrix transMat = transMat = Matrix.LookAtRH(new Vector3(0, 0, 0), faceNormal, new Vector3(0, 1, 0));
+				Matrix transMat = Matrix.LookAtRH(new Vector3(0, 0, 0), faceNormal, new Vector3(0, 1, 0));
 				if (transMat.Determinant() == 0)
-					transMat = transMat = Matrix.LookAtRH(new Vector3(0, 0, 0), faceNormal, new Vector3(0, 0, 1));
+					transMat = Matrix.LookAtRH(new Vector3(0, 0, 0), faceNormal, new Vector3(0, 0, 1));
 				if ((Control.ModifierKeys & Keys.Alt) != Keys.None)
 					transMat *= Matrix.RotationX((float)Math.PI / 2);
 				hpNew.RotMatXX = transMat.M11;
@@ -2277,7 +2108,6 @@ namespace UTFEditor
                     {
                         case Keys.None:    RotateView(Viewpoint.Rotate.Y, e.KeyCode == Keys.PageUp, e.Shift); break;
 						case Keys.Control: RotateView(Viewpoint.Rotate.X, e.KeyCode == Keys.PageUp, e.Shift); break;
-                        case Keys.Alt:     RotateView(Viewpoint.Rotate.Z, e.KeyCode == Keys.PageUp, e.Shift); break;
                     }
                     break;
 
@@ -2446,7 +2276,7 @@ namespace UTFEditor
                     break;
             }
 
-            hi.Matrix = Matrix.Multiply(t, hi.Matrix);
+            hi.Matrix = t * hi.Matrix;
 
             hpNew.RotMatXX = hi.Matrix.M11;
             hpNew.RotMatXY = hi.Matrix.M12;
@@ -2535,27 +2365,22 @@ namespace UTFEditor
 			switch(v)
 			{
 				case Viewpoint.Defaults.Bottom:
-					rotY = rotZ = 0;
-					rotX = -(float)Math.PI / 2;
+                    cameraYawPitch = new Vector2(-(float)Math.PI / 2, 0);
 					break;
 				case Viewpoint.Defaults.Top:
-					rotY = rotZ = 0;
-					rotX = (float)Math.PI / 2;
+                    cameraYawPitch = new Vector2((float)Math.PI / 2, 0);
 					break;
 				case Viewpoint.Defaults.Back:
-					rotX = rotY = rotZ = 0;
+                    cameraYawPitch = Vector2.Zero;
 					break;
 				case Viewpoint.Defaults.Front:
-					rotX = rotZ = 0;
-					rotY = (float)Math.PI;
+                    cameraYawPitch = new Vector2(0, (float)Math.PI);
 					break;
 				case Viewpoint.Defaults.Right:
-					rotX = rotZ = 0;
-					rotY = -(float)Math.PI / 2;
+                    cameraYawPitch = new Vector2(0, -(float)Math.PI / 2);
 					break;
 				case Viewpoint.Defaults.Left:
-					rotX = rotZ = 0;
-					rotY = (float)Math.PI / 2;
+                    cameraYawPitch = new Vector2(0, (float)Math.PI / 2);
 					break;
 			}
 			Invalidate();
@@ -2579,34 +2404,36 @@ namespace UTFEditor
 
         private void ChangeScale(float value)
         {
-            scale *= value;
-            if (scale > 1000)
-                scale = 1000;
-            if (scale < 0.001f)
-                scale = 0.001f;
-            textBoxScale.Text = scale.ToString("0.###");
+            cameraZoom *= value;
             Invalidate();
         }
         
         private void MoveView(Viewpoint.Move m, bool fine)
         {
-			int mv = fine ? 1 : 10;
+            Matrix view = Matrix.Invert(viewMatrix);
+            Vector3 offset = Vector3.Zero;
+
+            int mv = fine ? 1 : 10;
 			switch(m)
 			{
 				case Viewpoint.Move.Up:
-					posY -= mv;
+                    offset.X -= mv;
 					break;
 				case Viewpoint.Move.Down:
-					posY += mv;
+                    offset.Y += mv;
 					break;
 				case Viewpoint.Move.Left:
-					posX += mv;
+                    offset.X += mv;
 					break;
 				case Viewpoint.Move.Right:
-					posX -= mv;
+                    offset.X -= mv;
 					break;
-			}
-			Invalidate();
+            }
+
+            offset = Vector3.Transform(offset, (Matrix3x3)view);
+            cameraPosition += offset;
+
+            Invalidate();
         }
         
         private void RotateView(Viewpoint.Rotate r, bool clockwise, bool fine)
@@ -2617,13 +2444,10 @@ namespace UTFEditor
 			switch(r)
 			{
 				case Viewpoint.Rotate.X:
-					rotX += delta;
+					cameraYawPitch.Y += delta;
 					break;
 				case Viewpoint.Rotate.Y:
-					rotY += delta;
-					break;
-				case Viewpoint.Rotate.Z:
-					rotZ += delta;
+                    cameraYawPitch.X -= delta;
 					break;
 			}
 			Invalidate();
@@ -2631,7 +2455,7 @@ namespace UTFEditor
         
         private void ResetPosition()
         {
-			posX = posY = 0;
+            cameraPosition = Vector3.Zero;
 			Invalidate();
         }
 
@@ -2891,72 +2715,32 @@ namespace UTFEditor
 		private bool GetHardpointFromScreen(int x, int y, out HardpointDisplayInfo foundHardpoint)
 		{
 			TreeNode selectedHp = GetHardpointNode();
-			Vector3 nearInit = new Vector3(x, y, 0);
-			Vector3 farInit = new Vector3(x, y, 1);
-			
-			Vector3 near = new Vector3(nearInit.X, nearInit.Y, nearInit.Z);
-			Vector3 far = new Vector3(farInit.X, farInit.Y, farInit.Z);
-
-            Matrix wvp = (Matrix)device.GetTransform(TransformState.Projection) * device.GetTransform(TransformState.View) * Matrix.Translation(orgX, orgY, orgZ);
-
-            near = Vector3.Unproject(near, device.Viewport.X, device.Viewport.Y, device.Viewport.Width, device.Viewport.Height, device.Viewport.MinDepth, device.Viewport.MaxDepth, wvp);
-            far = Vector3.Unproject(far, device.Viewport.X, device.Viewport.Y, device.Viewport.Width, device.Viewport.Height, device.Viewport.MinDepth, device.Viewport.MaxDepth, wvp);
-
-            Vector3 direction = far - near;
-			far -= direction * 0.47f;
-			near += direction * 0.47f;
-			direction.Normalize();
+            
+            Ray r = Ray.GetPickRay(x, y, new ViewportF(device.Viewport.X, device.Viewport.Y, device.Viewport.Width, device.Viewport.Height, device.Viewport.MinDepth, device.Viewport.MaxDepth), viewMatrix * projMatrix);
 			
 			foundHardpoint = new HardpointDisplayInfo();
-			float minFactor = Single.MaxValue;
+			float minDist = Single.MaxValue;
 			foundHardpoint.Node = utf.SelectedNode;
-			
-			// Calculating GetHitFromScreen is really slow and doesn't seem to be needed.
-			/*
-			Vector3 hit;
-			Vector3 normal;
-			string name;
-			bool hitMesh = GetHitFromScreen(x, y, out hit, out normal, out name);
-			*/
-			
-			float hScale = hp.scale / scale;
 			
 			foreach(HardpointDisplayInfo hi in otherHardpoints)
 			{
 				bool selected = hi.Node == selectedHp;
 				if (!selected)
 					if (splitViewHardpoint.Panel2Collapsed || !hi.Display) continue;
-				Vector3 hpLoc = new Vector3(hi.Matrix.M41, hi.Matrix.M42, hi.Matrix.M43);
-                Matrix tr = hi.MeshGroup.Transform * Matrix.Translation(thnX, thnY, thnZ);
-                Vector3.TransformCoordinate(ref hpLoc, ref tr, out hpLoc);
 
-				float distanceHardpoint = Vector3.DistanceSquared(hpLoc, near);
-				/*if(hitMesh)
-				{
-					float distanceMesh = Vector3.LengthSq(hit - near);
-					if (distanceHardpoint > distanceMesh*1.002f) continue;
-				}*/
-				float dot = Vector3.Dot(hpLoc - near, direction);
-				float offsetHardpoint = Math.Abs(distanceHardpoint - dot*dot);
-				
-				//System.Diagnostics.Debug.WriteLine(hi.Name + ": distance = " + distanceHardpoint + ", offset = " + offsetHardpoint + ", dot = " + dot);
-				
-				//System.Diagnostics.Debug.WriteLine(hi.Name + ": projDirection = " + projDirection + ", distCameraHp = " + distCameraHp + ", cosine = " + cosine + ", theta = " + theta + ", offsetHardpoint = " + offsetHardpoint + ", distanceHardpoint = " + distanceHardpoint);
-				
-				float precisionFactor = distanceHardpoint * offsetHardpoint * hScale;
+                Vector3 hpLoc = Vector3.TransformCoordinate(Vector3.Zero, hi.Matrix * hi.MeshGroup.Transform);
 
-				if (precisionFactor < minFactor && offsetHardpoint < hScale * 6 * (selected ? 16 : 1))
+                BoundingSphere bs = new BoundingSphere(hpLoc, hp.scale);
+                float dist;
+                if(r.Intersects(ref bs, out dist) && dist < minDist)
 				{
-					minFactor = precisionFactor;
+                    minDist = dist;
 					foundHardpoint = hi;
-					//System.Diagnostics.Debug.WriteLine("New min: " + distanceHardpoint + " by " + hi.Name);
 				}
 			}
 
-			if (minFactor == Single.MaxValue)
-			{
+			if (minDist == Single.MaxValue)
 				return false;
-			}
 			
 			return true;
 		}

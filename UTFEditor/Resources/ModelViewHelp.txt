@@ -19,7 +19,6 @@ Arrows       Move the model (with Shift for finer movement)\par
 Page Up      Rotate 15° (1° with Shift) anticlockwise around the Y axis\par
 Page Down    Rotate 15° (1° with Shift) clockwise around the Y axis\par
 Ctrl+Page    Rotate around the X axis\par
-Alt+Page     Rotate around the Z axis\par
 Home         Move to center, remove rotation\par
 \par
 {\b\ul EDIT KEYS}\par

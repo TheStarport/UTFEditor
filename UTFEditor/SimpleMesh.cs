@@ -33,6 +33,7 @@ namespace UTFEditor
             vb = new VertexBuffer(dev, vertices.Length * vertices[0].StrideV, Usage.WriteOnly, vertices[0].FormatV, Pool.Default);
             using (DataStream ds = vb.Lock(0, 0, LockFlags.None))
                 ds.WriteRange(vertices);
+            vb.Unlock();
 
             Vertices = new V[vertices.Length];
             Array.Copy(vertices, Vertices, vertices.Length);
@@ -43,6 +44,7 @@ namespace UTFEditor
             ib = new IndexBuffer(dev, indices.Length * (typeof(I) == typeof(ushort) ? sizeof(ushort) : sizeof(uint)), Usage.None, Pool.Default, typeof(I) == typeof(ushort));
             using (DataStream ds = ib.Lock(0, 0, LockFlags.None))
                 ds.WriteRange(indices);
+            ib.Unlock();
 
             Indices = new I[indices.Length];
             Array.Copy(indices, Indices, indices.Length);

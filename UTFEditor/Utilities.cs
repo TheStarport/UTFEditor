@@ -42,6 +42,16 @@ namespace UTFEditor
 
             return (int)value;
         }
+
+        public static int ToRgba(this System.Drawing.Color c)
+        {
+            uint value = c.R;
+            value |= (uint)c.G << 8;
+            value |= (uint)c.B << 16;
+            value |= (uint)c.A << 24;
+
+            return (int)value;
+        }
     }
 
     class Utilities
@@ -478,6 +488,16 @@ namespace UTFEditor
 					ch == 22 ||   // Ctrl+V - Paste
 					ch == 24);      // Ctrl+X - Cut
         }
+
+        public static float Clamp(float v, float a, float b)
+        {
+            if (v < a)
+                return a;
+            else if (v > b)
+                return b;
+            else
+                return v;
+        }
     }
 
     public interface IVertexFormat
@@ -525,7 +545,7 @@ namespace UTFEditor
         public static int Stride => 3 * sizeof(float) + 3 * sizeof(float) + 2 * sizeof(float);
         public int StrideV => Stride;
 
-        public static SharpDX.Direct3D9.VertexFormat Format => SharpDX.Direct3D9.VertexFormat.Position | SharpDX.Direct3D9.VertexFormat.Normal | SharpDX.Direct3D9.VertexFormat.Texture0;
+        public static SharpDX.Direct3D9.VertexFormat Format => SharpDX.Direct3D9.VertexFormat.Position | SharpDX.Direct3D9.VertexFormat.Normal | SharpDX.Direct3D9.VertexFormat.Texture1;
         public SharpDX.Direct3D9.VertexFormat FormatV => Format;
 
         public VertexPositionNormalTexture(SharpDX.Vector3 p, SharpDX.Vector3 n, SharpDX.Vector2 t)
