@@ -28,12 +28,8 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.components = new System.ComponentModel.Container();
-            this.trackBarScale = new System.Windows.Forms.TrackBar();
-            this.label1 = new System.Windows.Forms.Label();
-            this.textBoxScale = new System.Windows.Forms.TextBox();
-            this.toolStripContainer1 = new System.Windows.Forms.ToolStripContainer();
             this.modelView = new System.Windows.Forms.SplitContainer();
+            this.lblHardpointName = new System.Windows.Forms.Label();
             this.splitViewHardpoint = new System.Windows.Forms.SplitContainer();
             this.viewPanelView = new System.Windows.Forms.DataGridView();
             this.colMPVisible = new System.Windows.Forms.DataGridViewCheckBoxColumn();
@@ -77,12 +73,11 @@
             this.shortcutsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.showViewPanelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.colorDiag = new System.Windows.Forms.ColorDialog();
-            this.hardpointNameToolTip = new System.Windows.Forms.ToolTip(this.components);
-            ((System.ComponentModel.ISupportInitialize)(this.trackBarScale)).BeginInit();
-            this.toolStripContainer1.ContentPanel.SuspendLayout();
-            this.toolStripContainer1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.modelView)).BeginInit();
+            this.modelView.Panel1.SuspendLayout();
             this.modelView.Panel2.SuspendLayout();
             this.modelView.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitViewHardpoint)).BeginInit();
             this.splitViewHardpoint.Panel1.SuspendLayout();
             this.splitViewHardpoint.Panel2.SuspendLayout();
             this.splitViewHardpoint.SuspendLayout();
@@ -90,61 +85,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.hardpointPanelView)).BeginInit();
             this.menu.SuspendLayout();
             this.SuspendLayout();
-            // 
-            // trackBarScale
-            // 
-            this.trackBarScale.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.trackBarScale.AutoSize = false;
-            this.trackBarScale.Location = new System.Drawing.Point(52, 11);
-            this.trackBarScale.Maximum = 300;
-            this.trackBarScale.Minimum = -300;
-            this.trackBarScale.Name = "trackBarScale";
-            this.trackBarScale.Size = new System.Drawing.Size(500, 25);
-            this.trackBarScale.TabIndex = 2;
-            this.trackBarScale.Value = 130;
-            this.trackBarScale.Scroll += new System.EventHandler(this.trackBarScale_Scroll);
-            // 
-            // label1
-            // 
-            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(12, 15);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(34, 13);
-            this.label1.TabIndex = 1;
-            this.label1.Text = "Zoom";
-            // 
-            // textBoxScale
-            // 
-            this.textBoxScale.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.textBoxScale.Location = new System.Drawing.Point(558, 12);
-            this.textBoxScale.MaxLength = 8;
-            this.textBoxScale.Name = "textBoxScale";
-            this.textBoxScale.Size = new System.Drawing.Size(54, 20);
-            this.textBoxScale.TabIndex = 3;
-            this.textBoxScale.Text = "20";
-            this.textBoxScale.TextChanged += new System.EventHandler(this.textBoxScale_TextChanged);
-            // 
-            // toolStripContainer1
-            // 
-            this.toolStripContainer1.BottomToolStripPanelVisible = false;
-            // 
-            // toolStripContainer1.ContentPanel
-            // 
-            this.toolStripContainer1.ContentPanel.BackColor = System.Drawing.SystemColors.Control;
-            this.toolStripContainer1.ContentPanel.Controls.Add(this.textBoxScale);
-            this.toolStripContainer1.ContentPanel.Controls.Add(this.label1);
-            this.toolStripContainer1.ContentPanel.Controls.Add(this.trackBarScale);
-            this.toolStripContainer1.ContentPanel.Size = new System.Drawing.Size(1008, 43);
-            this.toolStripContainer1.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.toolStripContainer1.LeftToolStripPanelVisible = false;
-            this.toolStripContainer1.Location = new System.Drawing.Point(0, 687);
-            this.toolStripContainer1.Name = "toolStripContainer1";
-            this.toolStripContainer1.RightToolStripPanelVisible = false;
-            this.toolStripContainer1.Size = new System.Drawing.Size(1008, 43);
-            this.toolStripContainer1.TabIndex = 1;
-            this.toolStripContainer1.Text = "toolStripContainer1";
-            this.toolStripContainer1.TopToolStripPanelVisible = false;
             // 
             // modelView
             // 
@@ -155,23 +95,37 @@
             // modelView.Panel1
             // 
             this.modelView.Panel1.BackColor = System.Drawing.Color.Black;
+            this.modelView.Panel1.Controls.Add(this.lblHardpointName);
             this.modelView.Panel1.Margin = new System.Windows.Forms.Padding(0, 24, 0, 0);
             this.modelView.Panel1.Paint += new System.Windows.Forms.PaintEventHandler(this.modelView_Paint);
-            this.modelView.Panel1.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.modelView_Panel1_PreviewKeyDown);
-            this.modelView.Panel1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.modelView_MouseMove);
-            this.modelView.Panel1.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.modelView_Panel1_MouseDoubleClick);
             this.modelView.Panel1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.modelView_MouseClick);
+            this.modelView.Panel1.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.modelView_Panel1_MouseDoubleClick);
             this.modelView.Panel1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.modelView_MouseDown);
-            this.modelView.Panel1.Resize += new System.EventHandler(this.modelView_Panel1_Resize);
+            this.modelView.Panel1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.modelView_MouseMove);
             this.modelView.Panel1.MouseUp += new System.Windows.Forms.MouseEventHandler(this.modelView_Panel1_MouseUp);
+            this.modelView.Panel1.PreviewKeyDown += new System.Windows.Forms.PreviewKeyDownEventHandler(this.modelView_Panel1_PreviewKeyDown);
+            this.modelView.Panel1.Resize += new System.EventHandler(this.modelView_Panel1_Resize);
             // 
             // modelView.Panel2
             // 
             this.modelView.Panel2.Controls.Add(this.splitViewHardpoint);
             this.modelView.Panel2MinSize = 0;
-            this.modelView.Size = new System.Drawing.Size(1008, 663);
+            this.modelView.Size = new System.Drawing.Size(1008, 706);
             this.modelView.SplitterDistance = 689;
             this.modelView.TabIndex = 0;
+            // 
+            // lblHardpointName
+            // 
+            this.lblHardpointName.AutoSize = true;
+            this.lblHardpointName.BackColor = System.Drawing.Color.White;
+            this.lblHardpointName.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.lblHardpointName.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblHardpointName.Location = new System.Drawing.Point(0, 0);
+            this.lblHardpointName.Name = "lblHardpointName";
+            this.lblHardpointName.Size = new System.Drawing.Size(92, 22);
+            this.lblHardpointName.TabIndex = 0;
+            this.lblHardpointName.Text = "HpName01";
+            this.lblHardpointName.Visible = false;
             // 
             // splitViewHardpoint
             // 
@@ -188,7 +142,7 @@
             // 
             this.splitViewHardpoint.Panel2.Controls.Add(this.hardpointPanelView);
             this.splitViewHardpoint.Panel2Collapsed = true;
-            this.splitViewHardpoint.Size = new System.Drawing.Size(315, 663);
+            this.splitViewHardpoint.Size = new System.Drawing.Size(315, 706);
             this.splitViewHardpoint.SplitterDistance = 320;
             this.splitViewHardpoint.TabIndex = 5;
             // 
@@ -212,12 +166,12 @@
             this.viewPanelView.Name = "viewPanelView";
             this.viewPanelView.RowHeadersVisible = false;
             this.viewPanelView.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.CellSelect;
-            this.viewPanelView.Size = new System.Drawing.Size(315, 663);
+            this.viewPanelView.Size = new System.Drawing.Size(315, 706);
             this.viewPanelView.TabIndex = 3;
             this.viewPanelView.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.viewPanelView_CellValueChanged);
+            this.viewPanelView.CurrentCellDirtyStateChanged += new System.EventHandler(this.viewPanelView_CurrentCellDirtyStateChanged);
             this.viewPanelView.SortCompare += new System.Windows.Forms.DataGridViewSortCompareEventHandler(this.viewPanelView_SortCompare);
             this.viewPanelView.DoubleClick += new System.EventHandler(this.viewPanelView_DoubleClick);
-            this.viewPanelView.CurrentCellDirtyStateChanged += new System.EventHandler(this.viewPanelView_CurrentCellDirtyStateChanged);
             // 
             // colMPVisible
             // 
@@ -291,9 +245,9 @@
             this.hardpointPanelView.Size = new System.Drawing.Size(150, 46);
             this.hardpointPanelView.TabIndex = 0;
             this.hardpointPanelView.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.hardpointPanelView_CellValueChanged);
+            this.hardpointPanelView.CurrentCellDirtyStateChanged += new System.EventHandler(this.hardpointPanelView_CurrentCellDirtyStateChanged);
             this.hardpointPanelView.SortCompare += new System.Windows.Forms.DataGridViewSortCompareEventHandler(this.hardpointPanelView_SortCompare);
             this.hardpointPanelView.DoubleClick += new System.EventHandler(this.hardpointPanelView_DoubleClick);
-            this.hardpointPanelView.CurrentCellDirtyStateChanged += new System.EventHandler(this.hardpointPanelView_CurrentCellDirtyStateChanged);
             // 
             // colHPVisible
             // 
@@ -345,13 +299,13 @@
             this.resetAllToolStripMenuItem1,
             this.editHardpointsToolStripMenuItem});
             this.editToolStripMenuItem.Name = "editToolStripMenuItem";
-            this.editToolStripMenuItem.Size = new System.Drawing.Size(37, 20);
+            this.editToolStripMenuItem.Size = new System.Drawing.Size(39, 20);
             this.editToolStripMenuItem.Text = "Edit";
             // 
             // resetAllToolStripMenuItem1
             // 
             this.resetAllToolStripMenuItem1.Name = "resetAllToolStripMenuItem1";
-            this.resetAllToolStripMenuItem1.Size = new System.Drawing.Size(155, 22);
+            this.resetAllToolStripMenuItem1.Size = new System.Drawing.Size(147, 22);
             this.resetAllToolStripMenuItem1.Text = "Reset Settings";
             this.resetAllToolStripMenuItem1.Click += new System.EventHandler(this.resetAllToolStripMenuItem_Click);
             // 
@@ -362,27 +316,27 @@
             this.addHardpointsToolStripMenuItem,
             this.fuseComposerToolStripMenuItem});
             this.editHardpointsToolStripMenuItem.Name = "editHardpointsToolStripMenuItem";
-            this.editHardpointsToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
+            this.editHardpointsToolStripMenuItem.Size = new System.Drawing.Size(147, 22);
             this.editHardpointsToolStripMenuItem.Text = "Mode";
             // 
             // editHardpointsToolStripMenuItem1
             // 
             this.editHardpointsToolStripMenuItem1.Name = "editHardpointsToolStripMenuItem1";
-            this.editHardpointsToolStripMenuItem1.Size = new System.Drawing.Size(159, 22);
+            this.editHardpointsToolStripMenuItem1.Size = new System.Drawing.Size(158, 22);
             this.editHardpointsToolStripMenuItem1.Text = "Edit Hardpoints";
             this.editHardpointsToolStripMenuItem1.Click += new System.EventHandler(this.hardpointEditToolStripMenuItem_Click);
             // 
             // addHardpointsToolStripMenuItem
             // 
             this.addHardpointsToolStripMenuItem.Name = "addHardpointsToolStripMenuItem";
-            this.addHardpointsToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
+            this.addHardpointsToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
             this.addHardpointsToolStripMenuItem.Text = "Add Hardpoints";
             this.addHardpointsToolStripMenuItem.Click += new System.EventHandler(this.addHardpointsToolStripMenuItem_Click);
             // 
             // fuseComposerToolStripMenuItem
             // 
             this.fuseComposerToolStripMenuItem.Name = "fuseComposerToolStripMenuItem";
-            this.fuseComposerToolStripMenuItem.Size = new System.Drawing.Size(159, 22);
+            this.fuseComposerToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
             this.fuseComposerToolStripMenuItem.Text = "Fuse Composer";
             this.fuseComposerToolStripMenuItem.Click += new System.EventHandler(this.fuseComposerToolStripMenuItem_Click);
             // 
@@ -398,14 +352,14 @@
             this.resetToolStripMenuItem,
             this.centerOnHardpointToolStripMenuItem});
             this.viewToolStripMenuItem.Name = "viewToolStripMenuItem";
-            this.viewToolStripMenuItem.Size = new System.Drawing.Size(41, 20);
+            this.viewToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
             this.viewToolStripMenuItem.Text = "View";
             // 
             // bottomToolStripMenuItem
             // 
             this.bottomToolStripMenuItem.Name = "bottomToolStripMenuItem";
             this.bottomToolStripMenuItem.ShortcutKeyDisplayString = "1";
-            this.bottomToolStripMenuItem.Size = new System.Drawing.Size(247, 22);
+            this.bottomToolStripMenuItem.Size = new System.Drawing.Size(255, 22);
             this.bottomToolStripMenuItem.Text = "Bottom";
             this.bottomToolStripMenuItem.Click += new System.EventHandler(this.bottomToolStripMenuItem_Click);
             // 
@@ -413,7 +367,7 @@
             // 
             this.topToolStripMenuItem.Name = "topToolStripMenuItem";
             this.topToolStripMenuItem.ShortcutKeyDisplayString = "2";
-            this.topToolStripMenuItem.Size = new System.Drawing.Size(247, 22);
+            this.topToolStripMenuItem.Size = new System.Drawing.Size(255, 22);
             this.topToolStripMenuItem.Text = "Top";
             this.topToolStripMenuItem.Click += new System.EventHandler(this.topToolStripMenuItem_Click);
             // 
@@ -421,7 +375,7 @@
             // 
             this.backToolStripMenuItem.Name = "backToolStripMenuItem";
             this.backToolStripMenuItem.ShortcutKeyDisplayString = "3";
-            this.backToolStripMenuItem.Size = new System.Drawing.Size(247, 22);
+            this.backToolStripMenuItem.Size = new System.Drawing.Size(255, 22);
             this.backToolStripMenuItem.Text = "Back";
             this.backToolStripMenuItem.Click += new System.EventHandler(this.backToolStripMenuItem_Click);
             // 
@@ -429,7 +383,7 @@
             // 
             this.frontToolStripMenuItem.Name = "frontToolStripMenuItem";
             this.frontToolStripMenuItem.ShortcutKeyDisplayString = "4";
-            this.frontToolStripMenuItem.Size = new System.Drawing.Size(247, 22);
+            this.frontToolStripMenuItem.Size = new System.Drawing.Size(255, 22);
             this.frontToolStripMenuItem.Text = "Front";
             this.frontToolStripMenuItem.Click += new System.EventHandler(this.frontToolStripMenuItem_Click);
             // 
@@ -437,7 +391,7 @@
             // 
             this.rightToolStripMenuItem.Name = "rightToolStripMenuItem";
             this.rightToolStripMenuItem.ShortcutKeyDisplayString = "5";
-            this.rightToolStripMenuItem.Size = new System.Drawing.Size(247, 22);
+            this.rightToolStripMenuItem.Size = new System.Drawing.Size(255, 22);
             this.rightToolStripMenuItem.Text = "Right";
             this.rightToolStripMenuItem.Click += new System.EventHandler(this.rightToolStripMenuItem_Click);
             // 
@@ -445,7 +399,7 @@
             // 
             this.leftToolStripMenuItem.Name = "leftToolStripMenuItem";
             this.leftToolStripMenuItem.ShortcutKeyDisplayString = "6";
-            this.leftToolStripMenuItem.Size = new System.Drawing.Size(247, 22);
+            this.leftToolStripMenuItem.Size = new System.Drawing.Size(255, 22);
             this.leftToolStripMenuItem.Text = "Left";
             this.leftToolStripMenuItem.Click += new System.EventHandler(this.leftToolStripMenuItem_Click);
             // 
@@ -453,7 +407,7 @@
             // 
             this.resetToolStripMenuItem.Name = "resetToolStripMenuItem";
             this.resetToolStripMenuItem.ShortcutKeyDisplayString = "Home";
-            this.resetToolStripMenuItem.Size = new System.Drawing.Size(247, 22);
+            this.resetToolStripMenuItem.Size = new System.Drawing.Size(255, 22);
             this.resetToolStripMenuItem.Text = "Reset";
             this.resetToolStripMenuItem.Click += new System.EventHandler(this.resetToolStripMenuItem_Click);
             // 
@@ -461,7 +415,7 @@
             // 
             this.centerOnHardpointToolStripMenuItem.Name = "centerOnHardpointToolStripMenuItem";
             this.centerOnHardpointToolStripMenuItem.ShortcutKeyDisplayString = "Shift+Home";
-            this.centerOnHardpointToolStripMenuItem.Size = new System.Drawing.Size(247, 22);
+            this.centerOnHardpointToolStripMenuItem.Size = new System.Drawing.Size(255, 22);
             this.centerOnHardpointToolStripMenuItem.Text = "Center on Hardpoint";
             this.centerOnHardpointToolStripMenuItem.Click += new System.EventHandler(this.centerOnHardpointToolStripMenuItem_Click);
             // 
@@ -472,7 +426,7 @@
             this.hardpointSizeToolStripMenuItem,
             this.zoomToolStripMenuItem});
             this.visibilityToolStripMenuItem.Name = "visibilityToolStripMenuItem";
-            this.visibilityToolStripMenuItem.Size = new System.Drawing.Size(56, 20);
+            this.visibilityToolStripMenuItem.Size = new System.Drawing.Size(63, 20);
             this.visibilityToolStripMenuItem.Text = "Visibility";
             // 
             // backgroundToolStripMenuItem
@@ -481,7 +435,7 @@
             this.blackToolStripMenuItem,
             this.whiteToolStripMenuItem});
             this.backgroundToolStripMenuItem.Name = "backgroundToolStripMenuItem";
-            this.backgroundToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
+            this.backgroundToolStripMenuItem.Size = new System.Drawing.Size(151, 22);
             this.backgroundToolStripMenuItem.Text = "Background";
             // 
             // blackToolStripMenuItem
@@ -490,7 +444,7 @@
             this.blackToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.blackToolStripMenuItem.Name = "blackToolStripMenuItem";
             this.blackToolStripMenuItem.ShortcutKeyDisplayString = "B";
-            this.blackToolStripMenuItem.Size = new System.Drawing.Size(126, 22);
+            this.blackToolStripMenuItem.Size = new System.Drawing.Size(119, 22);
             this.blackToolStripMenuItem.Text = "Black";
             this.blackToolStripMenuItem.Click += new System.EventHandler(this.blackToolStripMenuItem_Click);
             // 
@@ -498,7 +452,7 @@
             // 
             this.whiteToolStripMenuItem.Name = "whiteToolStripMenuItem";
             this.whiteToolStripMenuItem.ShortcutKeyDisplayString = "B";
-            this.whiteToolStripMenuItem.Size = new System.Drawing.Size(126, 22);
+            this.whiteToolStripMenuItem.Size = new System.Drawing.Size(119, 22);
             this.whiteToolStripMenuItem.Text = "White";
             this.whiteToolStripMenuItem.Click += new System.EventHandler(this.whiteToolStripMenuItem_Click);
             // 
@@ -509,7 +463,7 @@
             this.increaseToolStripMenuItem1,
             this.toolStripHardpointSizeSet});
             this.hardpointSizeToolStripMenuItem.Name = "hardpointSizeToolStripMenuItem";
-            this.hardpointSizeToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
+            this.hardpointSizeToolStripMenuItem.Size = new System.Drawing.Size(151, 22);
             this.hardpointSizeToolStripMenuItem.Text = "Hardpoint Size";
             // 
             // decreaseToolStripMenuItem1
@@ -531,7 +485,7 @@
             // toolStripHardpointSizeSet
             // 
             this.toolStripHardpointSizeSet.Name = "toolStripHardpointSizeSet";
-            this.toolStripHardpointSizeSet.Size = new System.Drawing.Size(100, 21);
+            this.toolStripHardpointSizeSet.Size = new System.Drawing.Size(100, 23);
             this.toolStripHardpointSizeSet.TextBoxTextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.toolStripHardpointSizeSet.TextChanged += new System.EventHandler(this.toolStripHardpointSizeSet_TextChanged);
             // 
@@ -541,14 +495,14 @@
             this.inToolStripMenuItem,
             this.outToolStripMenuItem});
             this.zoomToolStripMenuItem.Name = "zoomToolStripMenuItem";
-            this.zoomToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
+            this.zoomToolStripMenuItem.Size = new System.Drawing.Size(151, 22);
             this.zoomToolStripMenuItem.Text = "Zoom";
             // 
             // inToolStripMenuItem
             // 
             this.inToolStripMenuItem.Name = "inToolStripMenuItem";
             this.inToolStripMenuItem.ShortcutKeyDisplayString = "+";
-            this.inToolStripMenuItem.Size = new System.Drawing.Size(114, 22);
+            this.inToolStripMenuItem.Size = new System.Drawing.Size(106, 22);
             this.inToolStripMenuItem.Text = "In";
             this.inToolStripMenuItem.Click += new System.EventHandler(this.inToolStripMenuItem_Click);
             // 
@@ -556,7 +510,7 @@
             // 
             this.outToolStripMenuItem.Name = "outToolStripMenuItem";
             this.outToolStripMenuItem.ShortcutKeyDisplayString = "-";
-            this.outToolStripMenuItem.Size = new System.Drawing.Size(114, 22);
+            this.outToolStripMenuItem.Size = new System.Drawing.Size(106, 22);
             this.outToolStripMenuItem.Text = "Out";
             this.outToolStripMenuItem.Click += new System.EventHandler(this.outToolStripMenuItem_Click);
             // 
@@ -565,14 +519,14 @@
             this.helpToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.shortcutsToolStripMenuItem});
             this.helpToolStripMenuItem.Name = "helpToolStripMenuItem";
-            this.helpToolStripMenuItem.Size = new System.Drawing.Size(40, 20);
+            this.helpToolStripMenuItem.Size = new System.Drawing.Size(44, 20);
             this.helpToolStripMenuItem.Text = "Help";
             // 
             // shortcutsToolStripMenuItem
             // 
             this.shortcutsToolStripMenuItem.Name = "shortcutsToolStripMenuItem";
             this.shortcutsToolStripMenuItem.ShortcutKeyDisplayString = "F1";
-            this.shortcutsToolStripMenuItem.Size = new System.Drawing.Size(162, 22);
+            this.shortcutsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.shortcutsToolStripMenuItem.Text = "Shortcuts...";
             this.shortcutsToolStripMenuItem.Click += new System.EventHandler(this.shortcutsToolStripMenuItem_Click);
             // 
@@ -582,14 +536,9 @@
             this.showViewPanelToolStripMenuItem.Checked = true;
             this.showViewPanelToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
             this.showViewPanelToolStripMenuItem.Name = "showViewPanelToolStripMenuItem";
-            this.showViewPanelToolStripMenuItem.Size = new System.Drawing.Size(105, 20);
+            this.showViewPanelToolStripMenuItem.Size = new System.Drawing.Size(115, 20);
             this.showViewPanelToolStripMenuItem.Text = "Toggle View Panel";
             this.showViewPanelToolStripMenuItem.Click += new System.EventHandler(this.showViewPanelToolStripMenuItem_Click);
-            // 
-            // hardpointNameToolTip
-            // 
-            this.hardpointNameToolTip.UseAnimation = false;
-            this.hardpointNameToolTip.UseFading = false;
             // 
             // ModelViewForm
             // 
@@ -597,23 +546,21 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1008, 730);
             this.Controls.Add(this.modelView);
-            this.Controls.Add(this.toolStripContainer1);
             this.Controls.Add(this.menu);
             this.Name = "ModelViewForm";
             this.ShowIcon = false;
             this.Text = "x";
-            this.Load += new System.EventHandler(this.ModelViewForm_Load);
             this.Activated += new System.EventHandler(this.ModelViewForm_Activated);
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.ModelViewForm_FormClosing);
-            ((System.ComponentModel.ISupportInitialize)(this.trackBarScale)).EndInit();
-            this.toolStripContainer1.ContentPanel.ResumeLayout(false);
-            this.toolStripContainer1.ContentPanel.PerformLayout();
-            this.toolStripContainer1.ResumeLayout(false);
-            this.toolStripContainer1.PerformLayout();
+            this.Load += new System.EventHandler(this.ModelViewForm_Load);
+            this.modelView.Panel1.ResumeLayout(false);
+            this.modelView.Panel1.PerformLayout();
             this.modelView.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.modelView)).EndInit();
             this.modelView.ResumeLayout(false);
             this.splitViewHardpoint.Panel1.ResumeLayout(false);
             this.splitViewHardpoint.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.splitViewHardpoint)).EndInit();
             this.splitViewHardpoint.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.viewPanelView)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.hardpointPanelView)).EndInit();
@@ -625,11 +572,6 @@
         }
 
         #endregion
-
-		private System.Windows.Forms.TrackBar trackBarScale;
-        private System.Windows.Forms.Label label1;
-		private System.Windows.Forms.TextBox textBoxScale;
-		private System.Windows.Forms.ToolStripContainer toolStripContainer1;
 		private System.Windows.Forms.SplitContainer modelView;
 		private System.Windows.Forms.DataGridView viewPanelView;
 		private System.Windows.Forms.MenuStrip menu;
@@ -675,5 +617,6 @@
         private System.Windows.Forms.ToolStripMenuItem editHardpointsToolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem addHardpointsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem fuseComposerToolStripMenuItem;
+        private System.Windows.Forms.Label lblHardpointName;
     }
 }
