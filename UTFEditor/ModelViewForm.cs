@@ -164,7 +164,7 @@ namespace UTFEditor
             public VWireData WireData;
             public Matrix Transform;
             public MeshDataBuffer MeshDataBuffer;
-            public SimpleMesh<VertexPositionNormalTexture, ushort>[] M;
+            public SimpleMesh<VertexPositionNormalTexture>[] M;
             public BoundingBox[] B;
 		};
 
@@ -624,7 +624,7 @@ namespace UTFEditor
                         mg.RefData = new VMeshRef(node.Tag as byte[]);
                         mg.Transform = Matrix.Identity;
                         mg.MeshDataBuffer = FindMatchingMeshData(mg.RefData);
-                        mg.M = new SimpleMesh<VertexPositionNormalTexture, ushort>[mg.RefData.NumMeshes];
+                        mg.M = new SimpleMesh<VertexPositionNormalTexture>[mg.RefData.NumMeshes];
                         mg.B = new BoundingBox[mg.RefData.NumMeshes];
                         mapFileToMesh[fileName] = MeshGroups.Count;
 
@@ -641,7 +641,7 @@ namespace UTFEditor
 							for (int a = 0; a < verticesCurrent.Length; a++)
 								verticesCurrent[a] = mg.MeshDataBuffer.V[mesh.StartVertex + mg.RefData.StartVert + a];
                             
-                            var m = new SimpleMesh<VertexPositionNormalTexture, ushort>(device, verticesCurrent, indicesCurrent);
+                            var m = new SimpleMesh<VertexPositionNormalTexture>(device, verticesCurrent, indicesCurrent);
 
                             Vector3 min, max;
                             Utilities.ComputeBoundingBox(verticesCurrent, out min, out max);
@@ -1729,43 +1729,32 @@ namespace UTFEditor
         
         private bool GetHitFromScreen(int x, int y, out Vector3 hitLocation, out Vector3 faceNormal, out string nameFinal)
         {
-			Vector3 nearFinal = new Vector3(x, y, 0);
-			Vector3 farFinal = new Vector3(x, y, 1);
-
-			Vector3 nearInit = new Vector3(x, y, 0);
-			Vector3 farInit = new Vector3(x, y, 1);
 			nameFinal = null;
 
 			float minDist = Single.MaxValue;
 			faceNormal = Vector3.Zero;
+            Ray rayFinal = new Ray();
 			
 			hitLocation = Vector3.Zero;
 
 			foreach (MeshGroup mg in MeshGroups)
 			{
 				if(!mg.DisplayInfo.Display) continue;
-				
-				Vector3 near = new Vector3(nearInit.X, nearInit.Y, nearInit.Z);
-				Vector3 far = new Vector3(farInit.X, farInit.Y, farInit.Z);
-                
-                Matrix wvp = viewMatrix * projMatrix;
 
-                near = Vector3.Unproject(near, device.Viewport.X, device.Viewport.Y, device.Viewport.Width, device.Viewport.Height, device.Viewport.MinDepth, device.Viewport.MaxDepth, wvp);
-                far = Vector3.Unproject(far, device.Viewport.X, device.Viewport.Y, device.Viewport.Width, device.Viewport.Height, device.Viewport.MinDepth, device.Viewport.MaxDepth, wvp);
+                Ray r = Ray.GetPickRay(x, y, new ViewportF(device.Viewport.X, device.Viewport.Y, device.Viewport.Width, device.Viewport.Height, device.Viewport.MinDepth, device.Viewport.MaxDepth), mg.Transform * viewMatrix * projMatrix);
 
-				int mn = 0;
+                int mn = 0;
 				foreach (var m in mg.M)
 				{
                     BoundingBox b = mg.B[mn];
-                    if (b.Intersect(near, far))
+                    //if (b.Intersect(near, far))
                     {
-                        IntersectInformation<ushort> hit;
-                        if (m.Intersect(new Ray(near, far - near), out hit) && hit.Dist < minDist)
+                        IntersectInformation hit;
+                        if (m.Intersects(r, out hit) && hit.Dist < minDist)
                         {
                             minDist = hit.Dist;
-                            farFinal = far;
-                            nearFinal = near;
                             nameFinal = mg.Name;
+                            rayFinal = r;
 
                             VertexPositionNormalTexture[] tempIntersectedVertices = new VertexPositionNormalTexture[3];
                             
@@ -1775,6 +1764,8 @@ namespace UTFEditor
 
                             Vector3 v1 = tempIntersectedVertices[1].position - tempIntersectedVertices[0].position;
                             Vector3 v2 = tempIntersectedVertices[2].position - tempIntersectedVertices[0].position;
+                            v1.Normalize();
+                            v2.Normalize();
                             faceNormal = Vector3.Cross(v1, v2);
                             faceNormal.Normalize();
                         }
@@ -1785,7 +1776,7 @@ namespace UTFEditor
 
 			if (minDist == Single.MaxValue) return false;
 			
-			hitLocation = minDist * (farFinal - nearFinal) + nearFinal;
+			hitLocation = minDist * rayFinal.Direction + rayFinal.Position;
 
 			return true;
         }

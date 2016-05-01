@@ -1723,7 +1723,8 @@ namespace UTFEditor
 
 		void modelView_HardpointMoved(object sender, EventArgs e)
 		{
-			parent.SetSelectedNode(treeView1.SelectedNode);
+            if(treeView1.SelectedNode != null)
+			    parent.SetSelectedNode(treeView1.SelectedNode);
 			Modified();
 		}
 
