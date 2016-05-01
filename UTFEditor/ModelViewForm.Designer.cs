@@ -606,7 +606,6 @@
 		private System.Windows.Forms.DataGridViewComboBoxColumn colMPTexture;
 		private System.Windows.Forms.SplitContainer splitViewHardpoint;
 		private System.Windows.Forms.DataGridView hardpointPanelView;
-		private System.Windows.Forms.ToolTip hardpointNameToolTip;
 		private System.Windows.Forms.DataGridViewCheckBoxColumn colHPVisible;
 		private System.Windows.Forms.DataGridViewTextBoxColumn colHPName;
 		private System.Windows.Forms.DataGridViewCheckBoxColumn colHPRevolute;
