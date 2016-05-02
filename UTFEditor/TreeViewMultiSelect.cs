@@ -528,7 +528,11 @@ namespace UTFEditor
             {
                 if (n.Parent != null && nodes.Contains(n.Parent)) continue;
 
+                var parent = n.Parent;
+
                 n.Remove();
+                
+                OnModifiedNode(new TreeViewEventArgs(parent));
             }
 
             OnModified(new EventArgs());
