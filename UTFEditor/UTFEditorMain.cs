@@ -868,6 +868,13 @@ namespace UTFEditor
 				{
 					hpdata.Min = (float)dataView[1, 7].Value;
 					hpdata.Max = (float)dataView[1, 8].Value;
+
+                    if(hpdata.Min > hpdata.Max)
+                    {
+                        float t = hpdata.Min;
+                        hpdata.Min = hpdata.Max;
+                        hpdata.Max = t;
+                    }
 				}
 				
 				hpdata.Write();
