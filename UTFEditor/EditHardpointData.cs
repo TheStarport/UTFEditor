@@ -53,6 +53,13 @@ namespace UTFEditor
 
             if (revolute)
             {
+                if (floatBoxMin.Value > floatBoxMax.Value)
+                {
+                    float t = floatBoxMax.Value;
+                    floatBoxMax.Value = floatBoxMin.Value;
+                    floatBoxMin.Value = t;
+                }
+
                 data.AxisX = floatBoxAxisRotX.Value;
                 data.AxisY = floatBoxAxisRotY.Value;
                 data.AxisZ = floatBoxAxisRotZ.Value;

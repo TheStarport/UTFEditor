@@ -2313,6 +2313,7 @@ namespace UTFEditor
 
         private void MinMaxHardpoint(int min, int max)
         {
+
             TreeNode node = GetHardpointNode();
             if (node == null) return;
             if (node.Parent.Name != "Revolute") return;
@@ -2320,8 +2321,16 @@ namespace UTFEditor
             HardpointDisplayInfo hi = null;
             GetHardpointFromName(node.Name, ref hi);
 
-            hpNew.Min = (float)Math.Max(-Math.PI, Math.Min(0, hpNew.Min - min * Math.PI / 180));
-            hpNew.Max = (float)Math.Min(Math.PI, Math.Max(0, hpNew.Max + max * Math.PI / 180));
+            hpNew.Min = (float)Math.Max(-Math.PI, Math.Min(Math.PI, hpNew.Min - min * Math.PI / 180));
+            hpNew.Max = (float)Math.Min(Math.PI, Math.Max(-Math.PI, hpNew.Max + max * Math.PI / 180));
+            
+            if (hpNew.Min > hpNew.Max)
+            {
+                float t = hpNew.Min;
+                hpNew.Min = hpNew.Max;
+                hpNew.Max = t;
+            }
+
             hi.Min = hpNew.Min;
             hi.Max = hpNew.Max;
 
