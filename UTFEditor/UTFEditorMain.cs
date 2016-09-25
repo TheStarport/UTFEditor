@@ -1200,6 +1200,27 @@ namespace UTFEditor
                 }
             }
         }
+
+        /// <summary>
+        /// On click method for "Export Hardpoint names to file"
+        /// </summary>                
+        private void toolStripMenuItem7_Click(object sender, EventArgs e)
+        {
+
+            if (this.ActiveMdiChild is UTFForm)
+            {
+                UTFForm childForm = this.ActiveMdiChild as UTFForm;
+
+                saveFileDialog2.FileName = "Hardpoint Names";
+                saveFileDialog2.Filter = "Text Files | *.txt";
+                saveFileDialog2.DefaultExt = "txt";
+
+                if (saveFileDialog2.ShowDialog(this) == DialogResult.OK)
+                {
+                    childForm.ExportHardpointsToFile(saveFileDialog2.FileName);
+                }
+            }
+        }
         
         private void toolStripMenuOpenVMeshDataNodeNameFixer_Click(object sender, EventArgs e)
         {

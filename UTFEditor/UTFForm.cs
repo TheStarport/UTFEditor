@@ -613,6 +613,19 @@ namespace UTFEditor
             File.WriteAllText(path, thn.Write());
         }
 
+        public void ExportHardpointsToFile(string fileName)
+        {
+            string hardpointNames = "";
+            foreach (TreeNode n in treeView1.Nodes[1].Nodes)
+            {
+                if ( n.Name.StartsWith("Hp") )
+                {
+                    hardpointNames += n.Name + "\n";
+                }
+            }
+            File.WriteAllText(fileName, hardpointNames);
+        }
+
         public void MakeAnimFrames()
         {
             TreeNode node = treeView1.SelectedNode;
