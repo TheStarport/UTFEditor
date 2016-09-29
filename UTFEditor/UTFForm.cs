@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
@@ -620,20 +621,15 @@ namespace UTFEditor
         public void ExportHardpointsToFile(string path)
         {
             string hardpointNames = "";
+            TreeNode Hardpoints = treeView1.Nodes.Cast<TreeNode>().FirstOrDefault(tn => tn.Text == "Hardpoints");
 
-            foreach (TreeNode superNode in treeView1.Nodes)
+            foreach (TreeNode hardpointNode in Hardpoints.Nodes)
             {
-                if (superNode.Text == "Hardpoints")
+                if (hardpointNode.Name.StartsWith("Hp"))
                 {
-                    foreach (TreeNode hardpointNode in superNode.Nodes)
-                    {
-                        if (hardpointNode.Name.StartsWith("Hp"))
-                        {
-                            hardpointNames += hardpointNode.Name + "\n";
-                        }
-                    }
+                    hardpointNames += hardpointNode.Name + "\n";
                 }
-            }
+            }                            
 
             File.WriteAllText(path, hardpointNames);
         }
