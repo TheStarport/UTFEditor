@@ -2090,5 +2090,137 @@ namespace UTFEditor
             foreach (TreeNode node in n.Nodes)
                 ReplaceNodeAndChildren(node, find, replace, whole, content, name);
         }
+
+        HashSet<string> rescaledHPs = new HashSet<string>();
+        internal void RescaleModel(float scaling)
+        {
+            rescaledHPs.Clear();
+
+            foreach (TreeNode n in treeView1.Nodes)
+            {
+                if (n.Name == "\\")
+                {
+                    TraverseRescaleModel(n, scaling);
+                    Modified(n);
+                }
+            }
+
+            rescaledHPs.Clear();
+
+            foreach (UTFFormObserver ob in observers)
+                ob.DataChanged(DataChangedType.All);
+        }
+
+        void TraverseRescaleModel(TreeNode p, float scaling)
+        {
+            foreach (TreeNode n in p.Nodes)
+            {
+                switch (IsEditable(n))
+                {
+                    case Editable.VMeshRef: RescaleVMeshRef(n, scaling); break;
+                    case Editable.Fix: RescaleFixData(n, scaling); break;
+                    case Editable.Rev: RescaleRevData(n, scaling); break;
+                    case Editable.Hardpoint: RescaleHardpoint(n, scaling); break;
+                }
+
+                if (n.Name.ToLowerInvariant() == "vmeshdata")
+                    RescaleVMeshData(n, scaling);
+
+                TraverseRescaleModel(n, scaling);
+            }
+        }
+
+        private void RescaleVMeshData(TreeNode n, float scaling)
+        {
+            byte[] data = n.Tag as byte[];
+
+            VMeshData s = new VMeshData(data);
+
+            s.Vertices = s.Vertices.Select(v =>
+            {
+                v.X *= scaling;
+                v.Y *= scaling;
+                v.Z *= scaling;
+
+                return v;
+            }).ToList();
+
+            n.Tag = s.GetRawData();
+        }
+
+        private void RescaleHardpoint(TreeNode n, float scaling)
+        {
+            var hp = FindHardpoint(n);
+            if (hp == null || rescaledHPs.Contains(hp.Name))
+                return;
+
+            HardpointData s = new HardpointData(hp);
+
+            s.PosX *= scaling;
+            s.PosY *= scaling;
+            s.PosZ *= scaling;
+
+            s.Write();
+
+            rescaledHPs.Add(s.Name);
+        }
+
+        private void RescaleRevData(TreeNode n, float scaling)
+        {
+            byte[] data = n.Tag as byte[];
+
+            CmpRevData s = new CmpRevData(data);
+
+            foreach(var p in s.Parts)
+            {
+                p.OffsetX *= scaling;
+                p.OffsetY *= scaling;
+                p.OffsetZ *= scaling;
+
+                p.OriginX *= scaling;
+                p.OriginY *= scaling;
+                p.OriginZ *= scaling;
+            }
+
+            n.Tag = s.GetBytes();
+        }
+
+        private void RescaleFixData(TreeNode n, float scaling)
+        {
+            byte[] data = n.Tag as byte[];
+
+            CmpFixData s = new CmpFixData(data);
+
+            foreach (var p in s.Parts)
+            {
+                p.OriginX *= scaling;
+                p.OriginY *= scaling;
+                p.OriginZ *= scaling;
+            }
+
+            n.Tag = s.GetBytes();
+        }
+
+        private void RescaleVMeshRef(TreeNode n, float scaling)
+        {
+            byte[] data = n.Tag as byte[];
+
+            VMeshRef s = new VMeshRef(data);
+
+            s.BoundingBoxMaxX *= scaling;
+            s.BoundingBoxMaxY *= scaling;
+            s.BoundingBoxMaxZ *= scaling;
+            s.BoundingBoxMinX *= scaling;
+            s.BoundingBoxMinY *= scaling;
+            s.BoundingBoxMinZ *= scaling;
+
+            s.CenterX *= scaling;
+            s.CenterY *= scaling;
+            s.CenterZ *= scaling;
+
+            s.Radius *= scaling;
+
+            n.Tag = s.GetBytes();
+        }
     }
 }

@@ -1254,5 +1254,19 @@ namespace UTFEditor
                 }
             }
         }
+
+        private void resizeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (this.ActiveMdiChild is UTFForm)
+            {
+                ResizeForm rf = new ResizeForm();
+
+                if(rf.ShowDialog(this) == DialogResult.OK)
+                {
+                    UTFForm childForm = this.ActiveMdiChild as UTFForm;
+                    childForm.RescaleModel((float)rf.ModelScale);
+                }
+            }
+        }
     }
 }
