@@ -1,113 +1,79 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Collections;
 using System.IO;
+using SharpDX.Direct3D9;
 
 namespace UTFEditor
 {
     class SurFile
     {
-        //SUR File Format
-        //Compiled By Lancer Solurus with Adoxa's help
-        //All values in HEX unless otherwise noted (Size in decimal)
-        //*****************************************
-        //Size(d) Type Comment
+        public string VersionString;
+        public float VersionNumber;
+        public string FixedFlag;
 
-        //** Header
-        //4 string 'vers' - Version
-        //4 float 2.0
-
-        //** Section header
-        //4 ULONG CRC
-        //4 ULONG Surface Type Count (!fxd, exts, surf & hpid)
-        //4 string '!fxd' - Part header
-        //4 string 'exts' - Tag
-        //12 XYZ Box minimum
-        //12 XYZ Box maximum
-
-        //** Surface tag
-        //4 string 'surf' - Surface
-        //** Surface header 0x00000034
-        //4 ULONG Surface offset, bytes to next HPID or section (this addr + offset)
-        //** Surface base pointer 0x00000038
-        //12 XYZ Center
-        //12 XYZ Inertial damping
-        //4 float Radius for visibility (set this large enough to surround entire object to keep it from 'popping', 1.5*radius is good)
-        //1 byte Flag or Scaler?
-        //3 byte Duplicate of surface offset above
-        //4 ULONG Bits section offset (surface header start addr + offset)
-        //4 ULONG 0 unused
-        //4 ULONG 0 unused
-        //4 ULONG 0 unused
-
-        //** Face list header (size = 16*face lists)
-        //4 ULONG Vertex list offset (this addr + offset)
-        //4 ULONG Cmpnd/HP CRC or bits offset if 'last face group flag' is set
-        //1 byte Type 4-normal face, 5-face linkage (final face list entry)
-        //3 byte Referenced vertex count, unused by FL, simply set to 0
-        //4 ULONG Face count
-
-        //** Face list (size = 16*Face count)
-        //12 bits Face number nn xn xx xx (4 bytes) max 16,384 faces
-        //12 bits Opposite face xx nx nn xx
-        //1 byte Flag xx xx xx nn
-        //2 WORD Vertex index 1 nn nn xx xx
-        //15 bits Opposite offset xx xx nn nn (bits 0-14)
-        //1 bit Last Face Group Flag xx xx xx nx (bit 15) (only set if more than 1 face group)
-        //2 WORD Vertex index 2
-        //15 bits Opposite offset
-        //1 bit Last Face Group Flag
-        //2 WORD Vertex index 3
-        //15 bits Opposite offset
-        //1 bit Last Face Group Flag
-
-        //** Vertex list (size = 16*Vertex count)
-        //12 XYZ Vertex position
-        //4 ULONG Cmpnd/HP CRC
-
-        //** Bits section (as in 24 bit bitmap)
-        //4 ULONG Sibling offset {Bits base addr + offset)
-        //4 ULONG Triangle offset (this bits base addr - face base offset (0-fbo)) (if sibling offset is not 0, this is 0)
-        //12 XYZ Center
-        //4 float Radius
-        //4 ULONG Scale (XX YY ZZ xx) - xx is always 00 since it's unused
-
-        //** HpID section - hardpoint IDs
-        //4 ULONG Count
-        //4 ULONG Hardpoint CRC list (size = 4*Count)
-    
-
-        // SUR File Structs compiled by Twex, Phantom Fox, Free Spirit, Dr Del, CCCP, shsan and Skyshooter
-        // From FLModelTool and probably originally from Colin Sanby's SUR exporter/importer.
-        public class SurTriangleGroupHeader
+        public struct HardpointSection
         {
-            public int OffsetToVertex;  // (number of bytes to first Vertex Section, including this header)
-            public UInt32 TriangleID;   // (the reference id used assosiate triangles with vertices)
-            public byte Type;           // ('4' = D3DPT_TRIANGLELIST or '5' = D3DPT_TRIANGLESTRIP)
-            public UInt16 NumRefVerts;  // number of referenced verticies ?
-            public UInt32 NumTriangles; // (number of triangle sections in group (note indexed from 0 to N-1))
+            public uint MeshIdCount;
+            public uint[] MeshIds;
+        }
+        
+        public struct TriangleGroup
+        {
+            public uint VertexOffset;
+            public uint MeshId;
+            public byte Type;
+            public uint RefVertexCount;
+            public short TriangleCount;
+            public Triangle[] Triangles;
+        }
+
+        public struct SurfaceSection
+        {
+            public SharpDX.Vector3 Center;
+            public SharpDX.Vector3 Inertia;
+            public float Radius;
+            public float Scale;
+            public uint Size;
+            public uint BitsSectionOffset;
+
+            public List<TriangleGroup> TriangleGroups;
+            public List<Vertex> Vertices;
+        }
+
+        public struct Triangle
+        {
+            public ushort TriangleNumber;
+            public ushort TriangleOpp;
+            public byte Flag;
+            public Index[] Indices;
+        }
+
+        public struct Index
+        {
+            public ushort VertexId;
+            public short Offset; // Offset / 16 -> triangle ID      (Offset & 15) >> 2 -> index ID (1, 2 or 3) within triangle
+            public byte Flag;
+        }
+
+        public struct Vertex
+        {
+            public float X;
+            public float Y;
+            public float Z;
+            public UInt32 MeshId; // Reference to the Triangle Group Header Section (MeshId)
         };
 
-        public class SurTriangle
+        public struct Mesh
         {
-            public UInt32 TriID;
-            public UInt16  Vertex1;     // (index of the first vertex in the triangle (vertexes are incrementally numbered from the start of the vertex section)
-            public UInt16  Vertex2;     // (index of the second vertex)
-            public UInt16  Vertex3;     // (index of the third Vertex)
-        };
+            public uint MeshId;
 
-        List<SurTriangle> Triangles = new List<SurTriangle>();
+            public SharpDX.Vector3[] BoundingBox;
+            public List<HardpointSection> HardpointSections;
+            public List<SurfaceSection> SurfaceSections;
+        }
 
-        public class SurVertex
-        {
-            public float X;             // (coordinate on the X Axe)
-            public float Y;             // (coordinate on the Y Axe)
-            public float Z;             // (coordinate on the Z Axe)
-            public UInt32 TriID;        // (reference to the Triangle group Header Section (the TriangleID)
-        };
-
-        List<SurVertex> Vertices = new List<SurVertex>();
+        List<Mesh> Meshes = new List<Mesh>();
 
         public string FilePath;
 
@@ -126,142 +92,204 @@ namespace UTFEditor
                 fs.Read(data, 0, (int)fs.Length);
                 fs.Close();
             }
-
+            
             int pos = 0;
 
-            // Read header.
-            UInt32 Tag = Utilities.GetDWord(data, ref pos);
-            float Version = Utilities.GetFloat(data, ref pos);
-            if (Tag != 0x73726576 || Version != 2.0f)
-            {
-                throw new Exception("Unsupported sur header.");
-            }
+            VersionString = Utilities.GetString(data, ref pos, 4);
+            VersionNumber = Utilities.GetFloat(data, ref pos);
+
+            if (VersionNumber != 2.0f || VersionString != "vers")
+                throw new FormatException();
 
             while (pos < data.Length)
             {
-                // ID Header
-                UInt32 CRC = Utilities.GetDWord(data, ref pos);
-                UInt32 count = Utilities.GetDWord(data, ref pos);
+                Mesh m = new Mesh();
+                m.HardpointSections = new List<HardpointSection>();
+                m.SurfaceSections = new List<SurfaceSection>();
+                m.MeshId = Utilities.GetDWord(data, ref pos);
+                uint blockCount = Utilities.GetDWord(data, ref pos);
 
-                while (count-- != 0)
+                while (blockCount-- > 0)
                 {
-                    string tag = Utilities.GetString(data, ref pos, 4);
-
-                    if (tag == "!fxd")
+                    string nextType = Utilities.GetString(data, ref pos, 4);
+                    if (nextType == "hpid")
                     {
-                        // all there is
+                        HardpointSection hps = new HardpointSection();
+                        hps.MeshIdCount = Utilities.GetDWord(data, ref pos);
+                        hps.MeshIds = new uint[hps.MeshIdCount];
+                        for (int a = 0; a < hps.MeshIdCount; a++)
+                            hps.MeshIds[a] = Utilities.GetDWord(data, ref pos);
+                        m.HardpointSections.Add(hps);
                     }
-
-                    // Read the bounding box
-                    if (tag == "exts")
+                    else if (nextType == "!fxd")
+                        FixedFlag = nextType;
+                    else if (nextType == "exts")
                     {
-                        float BoundingBoxMinX = Utilities.GetFloat(data, ref pos);
-                        float BoundingBoxMinY = Utilities.GetFloat(data, ref pos);
-                        float BoundingBoxMinZ = Utilities.GetFloat(data, ref pos);
-                        float BoundingBoxMaxX = Utilities.GetFloat(data, ref pos);
-                        float BoundingBoxMaxY = Utilities.GetFloat(data, ref pos);
-                        float BoundingBoxMaxZ = Utilities.GetFloat(data, ref pos);
+                        m.BoundingBox = new SharpDX.Vector3[2];
+                        for (int a = 0; a < 2; a++)
+                            m.BoundingBox[a] = new SharpDX.Vector3(
+                                                        Utilities.GetFloat(data, ref pos),
+                                                        Utilities.GetFloat(data, ref pos),
+                                                        Utilities.GetFloat(data, ref pos));
                     }
-
-                    // Read the surface header
-                    if (tag == "surf")
+                    else if (nextType == "surf")
                     {
-                        uint SurfaceTag = Utilities.GetDWord(data, ref pos);
-                        int OffsetToNextComponent = Utilities.GetInt(data, ref pos);
-                        OffsetToNextComponent += pos;
+                        SurfaceSection ss = new SurfaceSection();
 
-                        // Read the surface details
-                        float CenterX = Utilities.GetFloat(data, ref pos);
-                        float CenterY = Utilities.GetFloat(data, ref pos);
-                        float CenterZ = Utilities.GetFloat(data, ref pos);
-                        float InertiaMomentX = Utilities.GetFloat(data, ref pos);
-                        float InertiaMomentY = Utilities.GetFloat(data, ref pos);
-                        float InertiaMomentZ = Utilities.GetFloat(data, ref pos);
-                        float Radius = Utilities.GetFloat(data, ref pos);
-                        ushort Unknown = Utilities.GetWord(data, ref pos);
-                        ushort NumTriangles = Utilities.GetWord(data, ref pos);
-                        int OffsetToBits = Utilities.GetInt(data, ref pos); OffsetToBits += pos;
-                        pos += 12;
+                        uint size = Utilities.GetDWord(data, ref pos);
+                        uint header_pos = (uint)pos;
+                        ss.Center = new SharpDX.Vector3(
+                                            Utilities.GetFloat(data, ref pos),
+                                            Utilities.GetFloat(data, ref pos),
+                                            Utilities.GetFloat(data, ref pos));
+                        ss.Inertia = new SharpDX.Vector3(
+                                            Utilities.GetFloat(data, ref pos),
+                                            Utilities.GetFloat(data, ref pos),
+                                            Utilities.GetFloat(data, ref pos));
+                        ss.Radius = Utilities.GetFloat(data, ref pos);
+                        ss.Scale = data[pos] / 250.0f;
+                        ss.Size = Utilities.GetDWord(data, ref pos) >> 8;
+                        ss.BitsSectionOffset = Utilities.GetDWord(data, ref pos);
+                        ss.TriangleGroups = new List<TriangleGroup>();
+                        ss.Vertices = new List<Vertex>();
 
-                        // Triangle data.
+                        uint bits_beg = header_pos + ss.BitsSectionOffset;
+                        uint bits_end = header_pos + ss.Size;
+
+                        // padding
+                        pos += 3 * sizeof(uint);
+
                         int vertBufStart = data.Length;
                         while (pos < vertBufStart)
                         {
-                            // Read the triangle group header. We ignore data that we don't need.
-                            SurTriangleGroupHeader hdrTri = new SurTriangleGroupHeader();
-                            hdrTri.OffsetToVertex = Utilities.GetInt(data, ref pos);
-                            hdrTri.TriangleID = Utilities.GetDWord(data, ref pos);
-                            hdrTri.Type = (byte)(data[pos] >> 4);
-                            hdrTri.NumRefVerts = (ushort)(Utilities.GetWord(data, ref pos) & 0x0FFF);
-                            hdrTri.NumTriangles = Utilities.GetWord(data, ref pos);
+                            TriangleGroup tgh = new TriangleGroup();
 
-                            vertBufStart = pos + (int)hdrTri.OffsetToVertex;
+                            int group_pos = pos;
+                            tgh.VertexOffset = Utilities.GetDWord(data, ref pos);
+                            tgh.MeshId = Utilities.GetDWord(data, ref pos);
+                            tgh.Type = data[pos];
+                            tgh.RefVertexCount = Utilities.GetDWord(data, ref pos) >> 8;
+                            tgh.TriangleCount = Utilities.GetShort(data, ref pos); pos += 2;
+                            tgh.Triangles = new Triangle[tgh.TriangleCount];
 
-                            for (int i = 0; i < hdrTri.NumTriangles; i++)
+                            vertBufStart = group_pos + (int)tgh.VertexOffset;
+
+                            for (int a = 0; a < tgh.TriangleCount; a++)
                             {
-                                // Read a triangle. Note a number of fields are skipped over.
-                                SurTriangle tri = new SurTriangle();
-                                tri.TriID = (uint)(Utilities.GetShort(data, ref pos) >> 4); pos += 2;
-                                tri.Vertex1 = Utilities.GetWord(data, ref pos); pos += 2;
-                                tri.Vertex2 = Utilities.GetWord(data, ref pos); pos += 2;
-                                tri.Vertex3 = Utilities.GetWord(data, ref pos); pos += 2;
-                                Triangles.Add(tri);
+                                Triangle t = new Triangle();
+                                byte[] tempData = new byte[(12 + 12 + 7 + 1 + 3 * (16 + 15 + 1)) / 8];
+                                Array.Copy(data, pos, tempData, 0, tempData.Length);
+                                pos += tempData.Length;
+                                BitArray br = new BitArray(tempData);
+
+                                int bitpos = 0;
+                                t.TriangleNumber = (ushort)Advance(br, 12, ref bitpos);
+                                t.TriangleOpp = (ushort)Advance(br, 12, ref bitpos);
+                                bitpos += 7;
+                                t.Flag = (byte)Advance(br, 1, ref bitpos);
+                                t.Indices = new Index[3];
+                                for (int b = 0; b < 3; b++)
+                                {
+                                    Index i = new Index();
+                                    i.VertexId = (ushort)Advance(br, sizeof(ushort) * 8, ref bitpos);
+                                    i.Offset = (short)Advance(br, 15, ref bitpos);
+                                    i.Flag = (byte)Advance(br, 1, ref bitpos);
+                                    t.Indices[b] = i;
+                                }
+                                tgh.Triangles[a] = t;
                             }
+
+                            ss.TriangleGroups.Add(tgh);
                         }
 
                         // Vertices
-                        while (pos < OffsetToBits)
+                        while (pos < bits_beg)
                         {
-                            SurVertex vertex = new SurVertex();
+                            Vertex vertex = new Vertex();
                             vertex.X = Utilities.GetFloat(data, ref pos);
                             vertex.Y = Utilities.GetFloat(data, ref pos);
                             vertex.Z = Utilities.GetFloat(data, ref pos);
-                            vertex.TriID = Utilities.GetDWord(data, ref pos);
-                            Vertices.Add(vertex);
+                            vertex.MeshId = Utilities.GetDWord(data, ref pos);
+                            ss.Vertices.Add(vertex);
                         }
 
-                        // bits section
-                        while (pos < OffsetToNextComponent)
-                        {
-                            pos++;
-                        }
+                        m.SurfaceSections.Add(ss);
+
+                        pos = (int)bits_end;
                     }
+                    else throw new FormatException();
                 }
-            }
-
-            foreach (SurTriangle tri in Triangles)
-            {
-                Console.WriteLine("{0} {1} {2} {3}", tri.TriID, tri.Vertex1, tri.Vertex1, tri.Vertex3);
-            }
-
-            foreach (SurVertex vert in Vertices)
-            {
-                Console.WriteLine("{0} {1} {2} {3}", vert.TriID, vert.X, vert.Y, vert.Z);
+                
+                Meshes.Add(m);
             }
         }
 
         public void RenderSur(SharpDX.Direct3D9.Device device)
         {
-            device.SetRenderState(SharpDX.Direct3D9.RenderState.CullMode, SharpDX.Direct3D9.Cull.None);
-            device.SetRenderState(SharpDX.Direct3D9.RenderState.FillMode, SharpDX.Direct3D9.FillMode.Wireframe);
-
-            List<SharpDX.Vector3> tmpVertices
-                = new List<SharpDX.Vector3>();
-            foreach (SurVertex vert in Vertices)
+            var colors = new SharpDX.Color[]
             {
-                tmpVertices.Add(new SharpDX.Vector3(vert.X,vert.Y,vert.Z));
-            }
+                new SharpDX.Color(180, 180, 180, 50),
+                new SharpDX.Color(180,148,62, 50),
+                new SharpDX.Color(114,124,206, 50),
+                new SharpDX.Color(96,168,98, 50),
+                new SharpDX.Color(193,92,165, 50),
+                new SharpDX.Color(203,90,76, 50)
+            };
 
-            List<int> tmpTri = new List<int>();
-            foreach (SurTriangle tri in Triangles)
+            device.SetTexture(0, null);
+            device.SetTransform(TransformState.World, SharpDX.Matrix.Identity);
+
+            device.SetTextureStageState(0, TextureStage.ColorOperation, TextureOperation.SelectArg2);
+            device.SetTextureStageState(0, TextureStage.ColorArg2, TextureArgument.TFactor);
+            device.SetTextureStageState(0, TextureStage.AlphaOperation, TextureOperation.SelectArg2);
+            device.SetTextureStageState(0, TextureStage.AlphaArg2, TextureArgument.TFactor);
+
+            int c = 0;
+            foreach (var m in Meshes)
             {
-                tmpTri.Add(tri.Vertex1);
-                tmpTri.Add(tri.Vertex2);
-                tmpTri.Add(tri.Vertex3);
+                List<SharpDX.Vector3> tmpVertices = new List<SharpDX.Vector3>();
+                List<int> tmpTri = new List<int>();
+
+                foreach (var ss in m.SurfaceSections)
+                {
+                    foreach (var vert in ss.Vertices)
+                    {
+                        tmpVertices.Add(new SharpDX.Vector3(vert.X, vert.Y, vert.Z));
+                    }
+
+                    foreach (var tg in ss.TriangleGroups)
+                    {
+                        foreach (var tri in tg.Triangles)
+                        {
+                            foreach (var i in tri.Indices)
+                            {
+                                tmpTri.Add(i.VertexId);
+                                System.Diagnostics.Debug.Assert(i.VertexId < tmpVertices.Count);
+                            }
+                        }
+                    }
+                }
+
+                var color = colors[c % colors.Length];
+                device.SetRenderState(RenderState.TextureFactor, color.ToRgba());
+
+                device.DrawIndexedUserPrimitives(SharpDX.Direct3D9.PrimitiveType.TriangleList,
+                    0, tmpVertices.Count, tmpTri.Count / 3, tmpTri.ToArray(), SharpDX.Direct3D9.Format.Index32, tmpVertices.ToArray());
+
+                c++;
             }
-            
-            device.DrawIndexedUserPrimitives(SharpDX.Direct3D9.PrimitiveType.TriangleList,
-                0, tmpVertices.Count, tmpTri.Count, tmpTri.ToArray(), SharpDX.Direct3D9.Format.Index32, tmpVertices.ToArray());
+        }
+
+        private static UInt64 Advance(BitArray br, int length, ref int pos)
+        {
+            UInt64 output = 0;
+            for (int a = length - 1; a >= 0; a--)
+            {
+                output <<= 1;
+                output += (UInt64)(br[pos + a] ? 1 : 0);
+            }
+            pos += length;
+            return output;
         }
     }
 }

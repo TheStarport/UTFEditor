@@ -133,19 +133,6 @@ namespace UTFEditor
 						for(int a = 0; a < tgh.TriangleCount; a++)
 						{
 							Triangle t = new Triangle();
-							/*t.TriangleNumber = (ushort) (Utilities.GetWord(data, ref pos) >> 4 << 4); pos--;
-							t.TriangleOpp = (ushort)(Utilities.GetWord(data, ref pos) << 4);
-							t.Flag = (byte) (data[pos++] << 7);
-							t.Indices = new Index[3];
-							for(int b = 0; b < 3; b++)
-							{
-								Index i = new Index();
-								i.VertexId = Utilities.GetWord(data, ref pos);
-								i.Offset = (short) (Utilities.GetShort(data, ref pos) >> 1 << 1); pos --;
-								i.Flag = (byte) (data[pos++] << 7);
-								t.Indices[b] = i;
-							}
-							tgh.Triangles[a] = t;*/
 							byte[] tempData = new byte[20];
 							Array.Copy(data, pos, tempData, 0, 20);
 							BitArray br = new BitArray( tempData );

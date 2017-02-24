@@ -59,6 +59,10 @@ namespace UTFEditor
         /// </summary>
         UTFFile utfFile = new UTFFile();
 
+        SurFile surFile = null;
+
+        internal SurFile SUR => surFile;
+
         /// <summary>
         /// The name of the UTF file.
         /// </summary>
@@ -109,6 +113,20 @@ namespace UTFEditor
                 treeView1.Nodes[0].Expand();
 
             treeView1.Modified += (s, e) => { Modified(); };
+
+            var surpath = Path.ChangeExtension(filePath, ".sur");
+            if (File.Exists(surpath))
+            {
+                try
+                {
+                    surFile = new SurFile(surpath);
+                }
+                catch(Exception)
+                {
+                    surFile = null;
+                    MessageBox.Show("Error while loading associated SUR file '" + surpath + "'.", "SUR Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
         }
 
         /// <sumary>

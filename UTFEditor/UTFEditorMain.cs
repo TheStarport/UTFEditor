@@ -54,14 +54,15 @@ namespace UTFEditor
         /// Open and show a UTF file. Throws exception on failure.
         /// </summary>
         /// <param name="name">File to open</param>
-        public void LoadUTFFile(string name)
+        public void LoadUTFFile(string name, bool recent = true)
         {
             UTFForm childForm = new UTFForm(this, name);
             childForm.LoadUTFFile(name);
             childForm.MdiParent = this;
             childForm.Show();
 
-            UpdateRecentFiles(childForm.fileName);
+            if(recent)
+                UpdateRecentFiles(childForm.fileName);
         }
 
         /// <summary>
@@ -1028,29 +1029,6 @@ namespace UTFEditor
             }
         }
 
-        private void loadSURToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            openFileDialog1.FileName = "";
-            openFileDialog1.Filter = "FL SUR Files|*.sur|All Files|*.*";
-            if (openFileDialog1.ShowDialog(this) == DialogResult.OK)
-            {
-                try
-                {
-                    SurFile f = new SurFile(openFileDialog1.FileName);
-                    /* UTFForm childForm = new UTFForm(this, openFileDialog1.FileName);
-                    childForm.LoadUTFFile(openFileDialog1.FileName);
-                    childForm.MdiParent = this;
-                    childForm.Show(); */
-
-                    // UpdateRecentFiles(childForm.fileName);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(this, "Error " + ex.Message, "Unable to open file");
-                }
-            }
-        }
-
         private void buttonAddTangents_Click(object sender, EventArgs e)
         {
             if (this.ActiveMdiChild is UTFForm)
@@ -1149,6 +1127,67 @@ namespace UTFEditor
                 if (folderBrowserDialog1.ShowDialog(this) == DialogResult.OK)
                 {
                     childForm.ExportAllTextures(folderBrowserDialog1.SelectedPath);
+                }
+            }
+        }
+        
+        private void exportAllTexturesInFolderToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var old_desc = folderBrowserDialog1.Description;
+
+            folderBrowserDialog1.Description = "Please select path to read textures from...";
+            if (folderBrowserDialog1.ShowDialog(this) == DialogResult.OK)
+            {
+                var path_from = folderBrowserDialog1.SelectedPath;
+
+                folderBrowserDialog1.Description = "Please select path to save textures to...";
+                if (folderBrowserDialog1.ShowDialog(this) == DialogResult.OK)
+                {
+                    var path_to = folderBrowserDialog1.SelectedPath;
+
+                    try
+                    {
+                        while (this.MdiChildren.Length > 0)
+                            this.MdiChildren[0].Close();
+
+                        System.Threading.Thread.Sleep(100);
+
+                        this.SuspendDrawing();
+
+                        traverseExportAllTextures(path_from, path_to);
+
+                        this.ResumeDrawing();
+                    }
+                    catch(Exception) { }
+                }
+            }
+
+            folderBrowserDialog1.Description = old_desc;
+        }
+
+        private void traverseExportAllTextures(string dir, string to)
+        {
+            foreach (var d in Directory.EnumerateDirectories(dir))
+                traverseExportAllTextures(d, to);
+
+            foreach(var f in Directory.EnumerateFiles(dir))
+            {
+                var ext = Path.GetExtension(f).ToLowerInvariant();
+                if (ext == ".txm" || ext == ".mat" || ext == ".3db" || ext == ".cmp")
+                {
+                    try
+                    {
+                        LoadUTFFile(f, false);
+                    }
+                    catch (Exception) { }
+                    
+                    {
+                        UTFForm childForm = this.MdiChildren[0] as UTFForm;
+
+                        childForm.ExportAllTextures(to);
+
+                        childForm.Close();
+                    }
                 }
             }
         }
