@@ -26,6 +26,18 @@ namespace UTFEditor
         Surface depthStencil = null;
         Format depthFormat;
 
+        SurFile sur = null;
+
+        enum SurDisplay
+        {
+            Hidden,
+            Wireframe,
+            Transparent,
+            Opaque
+        }
+
+        SurDisplay surDisplay = SurDisplay.Hidden;
+
         const float relativeHardpointScale = 60;
         float distance;
 
@@ -406,6 +418,7 @@ namespace UTFEditor
 
         public ModelViewForm(UTFForm parent, TreeView utf, string directoryPath)
         {
+            this.sur = parent.SUR;
             this.parent = parent;
             this.utf = utf;
             this.rootNode = utf.Nodes[0];
@@ -872,15 +885,6 @@ namespace UTFEditor
 
             hardpointPanelView.ResumeDrawing(true);
             viewPanelView.ResumeDrawing(true);
-
-            
-            // Load SUR, if available
-            try
-            {
-                //SUR.LoadFromFile(parent.fileName);
-            }
-            catch (Exception)
-            { }
         }
 
         DataGridViewRow CreateHardpointRow(HardpointDisplayInfo hi, IList rows)
@@ -1229,7 +1233,9 @@ namespace UTFEditor
 			device.SetRenderTarget(0, s);
 			device.DepthStencilSurface = depthStencil;
 			device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, background, 1.0f, 0);
-			s.Dispose();
+            device.SetRenderState(SharpDX.Direct3D9.RenderState.ZWriteEnable, true);
+            device.SetRenderState(SharpDX.Direct3D9.RenderState.ZEnable, true);
+            s.Dispose();
             device.BeginScene();
 
             SetupMatrices();
@@ -1296,6 +1302,50 @@ namespace UTFEditor
 					mg.M[mn - mg.RefData.StartMesh].Draw();
 				}
 			}
+
+            if (sur != null && surDisplay != SurDisplay.Hidden)
+            {
+                device.SetRenderState(SharpDX.Direct3D9.RenderState.ZWriteEnable, false);
+                device.SetRenderState(SharpDX.Direct3D9.RenderState.ZEnable, true);
+
+                switch (surDisplay)
+                {
+                    case SurDisplay.Wireframe:
+                        device.SetRenderState(SharpDX.Direct3D9.RenderState.CullMode, SharpDX.Direct3D9.Cull.None);
+                        device.SetRenderState(SharpDX.Direct3D9.RenderState.FillMode, SharpDX.Direct3D9.FillMode.Wireframe);
+
+                        device.SetRenderState(RenderState.AlphaBlendEnable, false);
+                        break;
+                    case SurDisplay.Transparent:
+                        device.SetRenderState(SharpDX.Direct3D9.RenderState.CullMode, SharpDX.Direct3D9.Cull.Clockwise);
+                        device.SetRenderState(SharpDX.Direct3D9.RenderState.FillMode, SharpDX.Direct3D9.FillMode.Solid);
+
+                        device.SetRenderState(RenderState.AlphaBlendEnable, true);
+                        device.SetRenderState(RenderState.SourceBlend, Blend.SourceAlpha);
+                        device.SetRenderState(RenderState.DestinationBlend, Blend.One);
+                        device.SetRenderState(RenderState.BlendOperation, BlendOperation.Add);
+                        break;
+                    case SurDisplay.Opaque:
+                        device.SetRenderState(SharpDX.Direct3D9.RenderState.CullMode, SharpDX.Direct3D9.Cull.Clockwise);
+                        device.SetRenderState(SharpDX.Direct3D9.RenderState.FillMode, SharpDX.Direct3D9.FillMode.Solid);
+
+                        device.SetRenderState(RenderState.AlphaBlendEnable, false);
+                        break;
+
+                }
+                sur.RenderSur(device);
+
+                // Re-render wireframe on top of the transparent SUR
+                if(surDisplay == SurDisplay.Transparent)
+                {
+                    device.SetRenderState(SharpDX.Direct3D9.RenderState.CullMode, SharpDX.Direct3D9.Cull.None);
+                    device.SetRenderState(SharpDX.Direct3D9.RenderState.FillMode, SharpDX.Direct3D9.FillMode.Wireframe);
+
+                    device.SetRenderState(RenderState.AlphaBlendEnable, false);
+
+                    sur.RenderSur(device);
+                }
+            }
 
             ShowHardpoint();
 
@@ -2929,6 +2979,40 @@ namespace UTFEditor
         }
 
         private void CloseFuseEditor() { CloseFuseEditor(true); }
+
+        private void ResetSurVisibilityCheckboxes()
+        {
+            hiddenToolStripMenuItem.Checked = surDisplay == SurDisplay.Hidden;
+            wireframeToolStripMenuItem.Checked = surDisplay == SurDisplay.Wireframe;
+            transparentToolStripMenuItem.Checked = surDisplay == SurDisplay.Transparent;
+            opaqueToolStripMenuItem.Checked = surDisplay == SurDisplay.Opaque;
+            Refresh();
+        }
+
+        private void hiddenToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            surDisplay = SurDisplay.Hidden;
+            ResetSurVisibilityCheckboxes();
+        }
+
+        private void wireframeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            surDisplay = SurDisplay.Wireframe;
+            ResetSurVisibilityCheckboxes();
+        }
+
+        private void transparentToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            surDisplay = SurDisplay.Transparent;
+            ResetSurVisibilityCheckboxes();
+        }
+
+        private void opaqueToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            surDisplay = SurDisplay.Opaque;
+            ResetSurVisibilityCheckboxes();
+        }
+
         private void CloseFuseEditor(bool close)
         {
             if (fuse == null) return;

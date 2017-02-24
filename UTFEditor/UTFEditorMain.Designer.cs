@@ -37,6 +37,7 @@
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
             this.saveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.resizeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem5 = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem4 = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem7 = new System.Windows.Forms.ToolStripMenuItem();
@@ -112,7 +113,7 @@
             this.folderBrowserDialog2 = new System.Windows.Forms.FolderBrowserDialog();
             this.openFileDialog2 = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog2 = new System.Windows.Forms.SaveFileDialog();
-            this.resizeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.exportAllTexturesFromFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip.SuspendLayout();
             this.toolStrip.SuspendLayout();
             this.toolStripContainer1.ContentPanel.SuspendLayout();
@@ -155,6 +156,7 @@
             this.toolStripMenuItem7,
             this.importTexturesToolStripMenuItem,
             this.exportAllTexturesToolStripMenuItem,
+            this.exportAllTexturesFromFolderToolStripMenuItem,
             this.toolStripMenuItem6,
             this.toolStripSeparator4,
             this.toolStripMenuItemRecentFiles,
@@ -208,6 +210,13 @@
             this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(289, 26);
             this.saveAsToolStripMenuItem.Text = "Save &As";
             this.saveAsToolStripMenuItem.Click += new System.EventHandler(this.SaveAsToolStripMenuItem_Click);
+            // 
+            // resizeToolStripMenuItem
+            // 
+            this.resizeToolStripMenuItem.Name = "resizeToolStripMenuItem";
+            this.resizeToolStripMenuItem.Size = new System.Drawing.Size(289, 26);
+            this.resizeToolStripMenuItem.Text = "Resize...";
+            this.resizeToolStripMenuItem.Click += new System.EventHandler(this.resizeToolStripMenuItem_Click);
             // 
             // toolStripMenuItem5
             // 
@@ -531,12 +540,12 @@
             this.toolStripContainer1.ContentPanel.Controls.Add(this.groupBox6);
             this.toolStripContainer1.ContentPanel.Controls.Add(this.groupBox2);
             this.toolStripContainer1.ContentPanel.Controls.Add(this.groupBox1);
-            this.toolStripContainer1.ContentPanel.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.toolStripContainer1.ContentPanel.Margin = new System.Windows.Forms.Padding(4);
             this.toolStripContainer1.ContentPanel.Size = new System.Drawing.Size(424, 713);
             this.toolStripContainer1.Dock = System.Windows.Forms.DockStyle.Right;
             this.toolStripContainer1.LeftToolStripPanelVisible = false;
             this.toolStripContainer1.Location = new System.Drawing.Point(800, 55);
-            this.toolStripContainer1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.toolStripContainer1.Margin = new System.Windows.Forms.Padding(4);
             this.toolStripContainer1.Name = "toolStripContainer1";
             this.toolStripContainer1.RightToolStripPanelVisible = false;
             this.toolStripContainer1.Size = new System.Drawing.Size(424, 713);
@@ -554,9 +563,9 @@
             this.groupBox6.Controls.Add(this.button2);
             this.groupBox6.Controls.Add(this.buttonEditFixData);
             this.groupBox6.Location = new System.Drawing.Point(8, 491);
-            this.groupBox6.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.groupBox6.Margin = new System.Windows.Forms.Padding(4);
             this.groupBox6.Name = "groupBox6";
-            this.groupBox6.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.groupBox6.Padding = new System.Windows.Forms.Padding(4);
             this.groupBox6.Size = new System.Drawing.Size(408, 170);
             this.groupBox6.TabIndex = 1;
             this.groupBox6.TabStop = false;
@@ -565,7 +574,7 @@
             // buttonAddTangents
             // 
             this.buttonAddTangents.Location = new System.Drawing.Point(48, 129);
-            this.buttonAddTangents.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.buttonAddTangents.Margin = new System.Windows.Forms.Padding(4);
             this.buttonAddTangents.Name = "buttonAddTangents";
             this.buttonAddTangents.Size = new System.Drawing.Size(312, 28);
             this.buttonAddTangents.TabIndex = 6;
@@ -576,7 +585,7 @@
             // buttonEditRevData
             // 
             this.buttonEditRevData.Location = new System.Drawing.Point(48, 58);
-            this.buttonEditRevData.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.buttonEditRevData.Margin = new System.Windows.Forms.Padding(4);
             this.buttonEditRevData.Name = "buttonEditRevData";
             this.buttonEditRevData.Size = new System.Drawing.Size(152, 28);
             this.buttonEditRevData.TabIndex = 2;
@@ -587,7 +596,7 @@
             // buttonShowModel
             // 
             this.buttonShowModel.Location = new System.Drawing.Point(208, 94);
-            this.buttonShowModel.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.buttonShowModel.Margin = new System.Windows.Forms.Padding(4);
             this.buttonShowModel.Name = "buttonShowModel";
             this.buttonShowModel.Size = new System.Drawing.Size(152, 28);
             this.buttonShowModel.TabIndex = 5;
@@ -598,7 +607,7 @@
             // button1
             // 
             this.button1.Location = new System.Drawing.Point(48, 94);
-            this.button1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.button1.Margin = new System.Windows.Forms.Padding(4);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(152, 28);
             this.button1.TabIndex = 4;
@@ -609,7 +618,7 @@
             // buttonEditPrisData
             // 
             this.buttonEditPrisData.Location = new System.Drawing.Point(208, 58);
-            this.buttonEditPrisData.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.buttonEditPrisData.Margin = new System.Windows.Forms.Padding(4);
             this.buttonEditPrisData.Name = "buttonEditPrisData";
             this.buttonEditPrisData.Size = new System.Drawing.Size(152, 28);
             this.buttonEditPrisData.TabIndex = 3;
@@ -620,7 +629,7 @@
             // button2
             // 
             this.button2.Location = new System.Drawing.Point(208, 22);
-            this.button2.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.button2.Margin = new System.Windows.Forms.Padding(4);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(152, 28);
             this.button2.TabIndex = 1;
@@ -631,7 +640,7 @@
             // buttonEditFixData
             // 
             this.buttonEditFixData.Location = new System.Drawing.Point(48, 22);
-            this.buttonEditFixData.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.buttonEditFixData.Margin = new System.Windows.Forms.Padding(4);
             this.buttonEditFixData.Name = "buttonEditFixData";
             this.buttonEditFixData.Size = new System.Drawing.Size(152, 28);
             this.buttonEditFixData.TabIndex = 0;
@@ -646,9 +655,9 @@
             this.groupBox2.Controls.Add(this.groupBox4);
             this.groupBox2.Controls.Add(this.buttonApply);
             this.groupBox2.Location = new System.Drawing.Point(8, 74);
-            this.groupBox2.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.groupBox2.Margin = new System.Windows.Forms.Padding(4);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.groupBox2.Padding = new System.Windows.Forms.Padding(4);
             this.groupBox2.Size = new System.Drawing.Size(408, 410);
             this.groupBox2.TabIndex = 0;
             this.groupBox2.TabStop = false;
@@ -657,7 +666,7 @@
             // btnRevFixed
             // 
             this.btnRevFixed.Location = new System.Drawing.Point(16, 305);
-            this.btnRevFixed.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.btnRevFixed.Margin = new System.Windows.Forms.Padding(4);
             this.btnRevFixed.Name = "btnRevFixed";
             this.btnRevFixed.Size = new System.Drawing.Size(124, 28);
             this.btnRevFixed.TabIndex = 3;
@@ -681,7 +690,7 @@
             this.column3});
             this.dataView.EditMode = System.Windows.Forms.DataGridViewEditMode.EditOnEnter;
             this.dataView.Location = new System.Drawing.Point(8, 23);
-            this.dataView.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.dataView.Margin = new System.Windows.Forms.Padding(4);
             this.dataView.Name = "dataView";
             this.dataView.RowHeadersVisible = false;
             this.dataView.RowTemplate.ReadOnly = true;
@@ -725,9 +734,9 @@
             this.groupBox4.Controls.Add(this.buttonExport);
             this.groupBox4.Controls.Add(this.buttonView);
             this.groupBox4.Location = new System.Drawing.Point(8, 336);
-            this.groupBox4.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.groupBox4.Margin = new System.Windows.Forms.Padding(4);
             this.groupBox4.Name = "groupBox4";
-            this.groupBox4.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.groupBox4.Padding = new System.Windows.Forms.Padding(4);
             this.groupBox4.Size = new System.Drawing.Size(392, 66);
             this.groupBox4.TabIndex = 2;
             this.groupBox4.TabStop = false;
@@ -736,7 +745,7 @@
             // buttonEdit
             // 
             this.buttonEdit.Location = new System.Drawing.Point(8, 23);
-            this.buttonEdit.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.buttonEdit.Margin = new System.Windows.Forms.Padding(4);
             this.buttonEdit.Name = "buttonEdit";
             this.buttonEdit.Size = new System.Drawing.Size(88, 28);
             this.buttonEdit.TabIndex = 0;
@@ -747,7 +756,7 @@
             // buttonImport
             // 
             this.buttonImport.Location = new System.Drawing.Point(200, 23);
-            this.buttonImport.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.buttonImport.Margin = new System.Windows.Forms.Padding(4);
             this.buttonImport.Name = "buttonImport";
             this.buttonImport.Size = new System.Drawing.Size(88, 28);
             this.buttonImport.TabIndex = 2;
@@ -758,7 +767,7 @@
             // buttonExport
             // 
             this.buttonExport.Location = new System.Drawing.Point(296, 23);
-            this.buttonExport.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.buttonExport.Margin = new System.Windows.Forms.Padding(4);
             this.buttonExport.Name = "buttonExport";
             this.buttonExport.Size = new System.Drawing.Size(88, 28);
             this.buttonExport.TabIndex = 3;
@@ -769,7 +778,7 @@
             // buttonView
             // 
             this.buttonView.Location = new System.Drawing.Point(104, 23);
-            this.buttonView.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.buttonView.Margin = new System.Windows.Forms.Padding(4);
             this.buttonView.Name = "buttonView";
             this.buttonView.Size = new System.Drawing.Size(88, 28);
             this.buttonView.TabIndex = 1;
@@ -780,7 +789,7 @@
             // buttonApply
             // 
             this.buttonApply.Location = new System.Drawing.Point(312, 305);
-            this.buttonApply.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.buttonApply.Margin = new System.Windows.Forms.Padding(4);
             this.buttonApply.Name = "buttonApply";
             this.buttonApply.Size = new System.Drawing.Size(88, 28);
             this.buttonApply.TabIndex = 1;
@@ -794,9 +803,9 @@
             this.groupBox1.Controls.Add(this.buttonDelNodes);
             this.groupBox1.Controls.Add(this.buttonAddNode);
             this.groupBox1.Location = new System.Drawing.Point(8, 4);
-            this.groupBox1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.groupBox1.Margin = new System.Windows.Forms.Padding(4);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.groupBox1.Padding = new System.Windows.Forms.Padding(4);
             this.groupBox1.Size = new System.Drawing.Size(408, 63);
             this.groupBox1.TabIndex = 2;
             this.groupBox1.TabStop = false;
@@ -805,7 +814,7 @@
             // buttonRenameNode
             // 
             this.buttonRenameNode.Location = new System.Drawing.Point(256, 23);
-            this.buttonRenameNode.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.buttonRenameNode.Margin = new System.Windows.Forms.Padding(4);
             this.buttonRenameNode.Name = "buttonRenameNode";
             this.buttonRenameNode.Size = new System.Drawing.Size(112, 28);
             this.buttonRenameNode.TabIndex = 2;
@@ -816,7 +825,7 @@
             // buttonDelNodes
             // 
             this.buttonDelNodes.Location = new System.Drawing.Point(148, 23);
-            this.buttonDelNodes.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.buttonDelNodes.Margin = new System.Windows.Forms.Padding(4);
             this.buttonDelNodes.Name = "buttonDelNodes";
             this.buttonDelNodes.Size = new System.Drawing.Size(100, 28);
             this.buttonDelNodes.TabIndex = 1;
@@ -827,7 +836,7 @@
             // buttonAddNode
             // 
             this.buttonAddNode.Location = new System.Drawing.Point(40, 23);
-            this.buttonAddNode.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.buttonAddNode.Margin = new System.Windows.Forms.Padding(4);
             this.buttonAddNode.Name = "buttonAddNode";
             this.buttonAddNode.Size = new System.Drawing.Size(100, 28);
             this.buttonAddNode.TabIndex = 0;
@@ -864,12 +873,12 @@
             this.openFileDialog2.Multiselect = true;
             this.openFileDialog2.Title = "Import Textures";
             // 
-            // resizeToolStripMenuItem
+            // exportAllTexturesFromFolderToolStripMenuItem
             // 
-            this.resizeToolStripMenuItem.Name = "resizeToolStripMenuItem";
-            this.resizeToolStripMenuItem.Size = new System.Drawing.Size(289, 26);
-            this.resizeToolStripMenuItem.Text = "Resize...";
-            this.resizeToolStripMenuItem.Click += new System.EventHandler(this.resizeToolStripMenuItem_Click);
+            this.exportAllTexturesFromFolderToolStripMenuItem.Name = "exportAllTexturesFromFolderToolStripMenuItem";
+            this.exportAllTexturesFromFolderToolStripMenuItem.Size = new System.Drawing.Size(289, 26);
+            this.exportAllTexturesFromFolderToolStripMenuItem.Text = "Export All Textures In Folder";
+            this.exportAllTexturesFromFolderToolStripMenuItem.Click += new System.EventHandler(this.exportAllTexturesInFolderToolStripMenuItem_Click);
             // 
             // UTFEditorMain
             // 
@@ -883,7 +892,7 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.IsMdiContainer = true;
             this.MainMenuStrip = this.menuStrip;
-            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "UTFEditorMain";
             this.Text = "UTF Editor";
             this.MdiChildActivate += new System.EventHandler(this.UTFEditor_MdiChildActivate);
@@ -991,6 +1000,7 @@
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem7;
         private System.Windows.Forms.SaveFileDialog saveFileDialog2;
         private System.Windows.Forms.ToolStripMenuItem resizeToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem exportAllTexturesFromFolderToolStripMenuItem;
     }
 }
 
