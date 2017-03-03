@@ -1333,7 +1333,7 @@ namespace UTFEditor
                         break;
 
                 }
-                sur.RenderSur(device);
+                sur.RenderSur(device, MeshGroups);
 
                 // Re-render wireframe on top of the transparent SUR
                 if(surDisplay == SurDisplay.Transparent)
@@ -1343,7 +1343,7 @@ namespace UTFEditor
 
                     device.SetRenderState(RenderState.AlphaBlendEnable, false);
 
-                    sur.RenderSur(device);
+                    sur.RenderSur(device, MeshGroups);
                 }
             }
 

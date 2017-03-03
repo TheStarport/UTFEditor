@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections;
 using System.IO;
 using SharpDX.Direct3D9;
+using System.Linq;
 
 namespace UTFEditor
 {
@@ -224,7 +225,7 @@ namespace UTFEditor
             }
         }
 
-        public void RenderSur(SharpDX.Direct3D9.Device device)
+        public void RenderSur(SharpDX.Direct3D9.Device device, List<ModelViewForm.MeshGroup> meshgroups)
         {
             var colors = new SharpDX.Color[]
             {
@@ -244,9 +245,24 @@ namespace UTFEditor
             device.SetTextureStageState(0, TextureStage.AlphaOperation, TextureOperation.SelectArg2);
             device.SetTextureStageState(0, TextureStage.AlphaArg2, TextureArgument.TFactor);
 
+            Dictionary<uint, SharpDX.Matrix> meshgrouptransforms = new Dictionary<uint, SharpDX.Matrix>();
+            foreach(var m in meshgroups)
+            {
+                var k = Utilities.FLModelCRC(m.Name);
+                if (meshgrouptransforms.ContainsKey(k))
+                    continue;
+                else
+                    meshgrouptransforms[k] = m.Transform;
+            }
+
             int c = 0;
             foreach (var m in Meshes)
             {
+                if (meshgrouptransforms.ContainsKey(m.MeshId))
+                    device.SetTransform(TransformState.World, meshgrouptransforms[m.MeshId]);
+                else
+                    device.SetTransform(TransformState.World, SharpDX.Matrix.Identity);
+
                 List<SharpDX.Vector3> tmpVertices = new List<SharpDX.Vector3>();
                 List<int> tmpTri = new List<int>();
 
