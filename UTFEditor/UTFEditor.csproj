@@ -76,6 +76,9 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ArcManagedFBX">
+      <HintPath>Dependencies\Release\ArcManagedFBX.dll</HintPath>
+    </Reference>
     <Reference Include="SharpDX, Version=3.0.2.0, Culture=neutral, PublicKeyToken=b4dcf0f35e5521f1, processorArchitecture=MSIL">
       <HintPath>..\latest\SharpDX.dll</HintPath>
       <Private>True</Private>
@@ -182,6 +185,13 @@
     <Compile Include="FloatBox.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="ModelImporter.cs" />
+    <Compile Include="ModelImporterOptions.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ModelImporterOptions.Designer.cs">
+      <DependentUpon>ModelImporterOptions.cs</DependentUpon>
+    </Compile>
     <Compile Include="ReplaceAll.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -284,6 +294,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="EditAnimChannel.resx">
       <DependentUpon>EditAnimChannel.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ModelImporterOptions.resx">
+      <DependentUpon>ModelImporterOptions.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ReplaceAll.resx">
       <DependentUpon>ReplaceAll.cs</DependentUpon>

@@ -38,11 +38,13 @@
             this.saveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.resizeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.importFBXToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem5 = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem4 = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem7 = new System.Windows.Forms.ToolStripMenuItem();
             this.importTexturesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exportAllTexturesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.exportAllTexturesFromFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem6 = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
             this.toolStripMenuItemRecentFiles = new System.Windows.Forms.ToolStripMenuItem();
@@ -113,7 +115,6 @@
             this.folderBrowserDialog2 = new System.Windows.Forms.FolderBrowserDialog();
             this.openFileDialog2 = new System.Windows.Forms.OpenFileDialog();
             this.saveFileDialog2 = new System.Windows.Forms.SaveFileDialog();
-            this.exportAllTexturesFromFolderToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip.SuspendLayout();
             this.toolStrip.SuspendLayout();
             this.toolStripContainer1.ContentPanel.SuspendLayout();
@@ -151,6 +152,7 @@
             this.saveToolStripMenuItem,
             this.saveAsToolStripMenuItem,
             this.resizeToolStripMenuItem,
+            this.importFBXToolStripMenuItem,
             this.toolStripMenuItem5,
             this.toolStripMenuItem4,
             this.toolStripMenuItem7,
@@ -218,6 +220,13 @@
             this.resizeToolStripMenuItem.Text = "Resize...";
             this.resizeToolStripMenuItem.Click += new System.EventHandler(this.resizeToolStripMenuItem_Click);
             // 
+            // importFBXToolStripMenuItem
+            // 
+            this.importFBXToolStripMenuItem.Name = "importFBXToolStripMenuItem";
+            this.importFBXToolStripMenuItem.Size = new System.Drawing.Size(289, 26);
+            this.importFBXToolStripMenuItem.Text = "Import FBX...";
+            this.importFBXToolStripMenuItem.Click += new System.EventHandler(this.importFBXToolStripMenuItem_Click);
+            // 
             // toolStripMenuItem5
             // 
             this.toolStripMenuItem5.Name = "toolStripMenuItem5";
@@ -252,6 +261,13 @@
             this.exportAllTexturesToolStripMenuItem.Size = new System.Drawing.Size(289, 26);
             this.exportAllTexturesToolStripMenuItem.Text = "Export All Textures";
             this.exportAllTexturesToolStripMenuItem.Click += new System.EventHandler(this.exportAllTexturesToolStripMenuItem_Click);
+            // 
+            // exportAllTexturesFromFolderToolStripMenuItem
+            // 
+            this.exportAllTexturesFromFolderToolStripMenuItem.Name = "exportAllTexturesFromFolderToolStripMenuItem";
+            this.exportAllTexturesFromFolderToolStripMenuItem.Size = new System.Drawing.Size(289, 26);
+            this.exportAllTexturesFromFolderToolStripMenuItem.Text = "Export All Textures In Folder";
+            this.exportAllTexturesFromFolderToolStripMenuItem.Click += new System.EventHandler(this.exportAllTexturesInFolderToolStripMenuItem_Click);
             // 
             // toolStripMenuItem6
             // 
@@ -873,13 +889,6 @@
             this.openFileDialog2.Multiselect = true;
             this.openFileDialog2.Title = "Import Textures";
             // 
-            // exportAllTexturesFromFolderToolStripMenuItem
-            // 
-            this.exportAllTexturesFromFolderToolStripMenuItem.Name = "exportAllTexturesFromFolderToolStripMenuItem";
-            this.exportAllTexturesFromFolderToolStripMenuItem.Size = new System.Drawing.Size(289, 26);
-            this.exportAllTexturesFromFolderToolStripMenuItem.Text = "Export All Textures In Folder";
-            this.exportAllTexturesFromFolderToolStripMenuItem.Click += new System.EventHandler(this.exportAllTexturesInFolderToolStripMenuItem_Click);
-            // 
             // UTFEditorMain
             // 
             this.AllowDrop = true;
@@ -1001,6 +1010,7 @@
         private System.Windows.Forms.SaveFileDialog saveFileDialog2;
         private System.Windows.Forms.ToolStripMenuItem resizeToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem exportAllTexturesFromFolderToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem importFBXToolStripMenuItem;
     }
 }
 
