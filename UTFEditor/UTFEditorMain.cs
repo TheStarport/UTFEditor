@@ -1307,5 +1307,14 @@ namespace UTFEditor
                 }
             }
         }
+
+        private void importFBXToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            openFileDialog1.FileName = "";
+            openFileDialog1.Filter = "FBX|*.fbx";
+            openFileDialog1.Title = "Import model...";
+            if (openFileDialog1.ShowDialog(this) == DialogResult.OK)
+                new ModelImporter(this, openFileDialog1.FileName);
+        }
     }
 }

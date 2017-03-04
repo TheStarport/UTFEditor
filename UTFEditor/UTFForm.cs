@@ -68,6 +68,8 @@ namespace UTFEditor
         /// </summary>
         public string fileName;
 
+        public TreeView Tree => treeView1;
+
 
         /// <summary>
         /// Create an empty form.
