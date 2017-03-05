@@ -97,21 +97,6 @@ namespace UTFEditor
             return node;
         }
 
-        private void CreateCmpnd(string group_name, string mesh_name, int i)
-        {
-            var part = CreateNode("Part_" + group_name);
-
-            var filename = CreateNode("File name", Encoding.ASCII.GetBytes(mesh_name));
-            var index = CreateNode("Index", BitConverter.GetBytes(i));
-            var objectname = CreateNode("Object name", Encoding.ASCII.GetBytes(group_name));
-
-            part.Nodes.Add(filename);
-            part.Nodes.Add(index);
-            part.Nodes.Add(objectname);
-
-            cmpnd.Nodes.Add(part);
-        }
-
         private void ImportFBX(string path)
         {
             FBXManager man = FBXManager.Create();
@@ -172,6 +157,30 @@ namespace UTFEditor
 
             foreach(var vmesh in lst_vmesh_data)
             {
+                /*VMeshData vmeshdata = new VMeshData();
+
+                switch (VertexType)
+                {
+                    case ModelImportVertexType.Normals:
+                        vmeshdata.FlexibleVertexFormat = (ushort)(VMeshData.D3DFVF_XYZ | VMeshData.D3DFVF_NORMAL | VMeshData.D3DFVF_TEX1);
+                        break;
+                    case ModelImportVertexType.VertexColors:
+                        vmeshdata.FlexibleVertexFormat = (ushort)(VMeshData.D3DFVF_XYZ | VMeshData.D3DFVF_DIFFUSE | VMeshData.D3DFVF_TEX1);
+                        break;
+                    case ModelImportVertexType.VertexColorsNormals:
+                        vmeshdata.FlexibleVertexFormat = (ushort)(VMeshData.D3DFVF_XYZ | VMeshData.D3DFVF_DIFFUSE | VMeshData.D3DFVF_NORMAL | VMeshData.D3DFVF_DIFFUSE);
+                        break;
+                    case ModelImportVertexType.ExtraUVs:
+                        vmeshdata.FlexibleVertexFormat = (ushort)(VMeshData.D3DFVF_XYZ | VMeshData.D3DFVF_NORMAL | VMeshData.D3DFVF_TEX2);
+                        break;
+                    case ModelImportVertexType.TangentsBinormals:
+                        vmeshdata.FlexibleVertexFormat = (ushort)(VMeshData.D3DFVF_XYZ | VMeshData.D3DFVF_NORMAL | VMeshData.D3DFVF_TEX4);
+                        break;
+                    case ModelImportVertexType.ExtraUVsTangentsBinormals:
+                        vmeshdata.FlexibleVertexFormat = (ushort)(VMeshData.D3DFVF_XYZ | VMeshData.D3DFVF_NORMAL | VMeshData.D3DFVF_TEX5);
+                        break;
+                }*/
+
                 const uint HEADER_SIZE = 2 * 4 + 4 * 2;
                 const uint MESH_HEADER_SIZE = 4 + 3 * 2 + 2;
                 const uint INDEX_SIZE = 2;
@@ -355,8 +364,11 @@ namespace UTFEditor
                     }
                 }
                 
-                TreeNode vmeshnode = CreateNode(vmesh.filename, data);
+                TreeNode vmeshnode = CreateNode(vmesh.filename);
                 vmeshlib.Nodes.Add(vmeshnode);
+
+                TreeNode vmeshdatanode = CreateNode("VMeshData", data);
+                vmeshnode.Nodes.Add(vmeshdatanode);
             }
 
             uint iTotalVWireIndices = 0;
@@ -488,7 +500,6 @@ namespace UTFEditor
         class VMeshDataFile
         {
             public string filename;
-            public byte[] data;
             public uint ref_vertices;
             public uint vertices;
             public uint meshes;
@@ -531,6 +542,22 @@ namespace UTFEditor
             return new Vector2((float)v.x, (float)v.y);
         }
 
+        private Vector4 T4(FBXVector v)
+        {
+            return new Vector4((float)v.x, (float)v.y, (float)v.z, (float)v.w);
+        }
+
+        private Matrix T(FBXMatrix m)
+        {
+            Matrix m2 = new Matrix(
+                (float)m.mData[0].x, (float)m.mData[0].y, (float)m.mData[0].z, (float)m.mData[0].w,
+                (float)m.mData[1].x, (float)m.mData[1].y, (float)m.mData[1].z, (float)m.mData[1].w,
+                (float)m.mData[2].x, (float)m.mData[2].y, (float)m.mData[2].z, (float)m.mData[2].w,
+                (float)m.mData[3].x, (float)m.mData[3].y, (float)m.mData[3].z, (float)m.mData[3].w
+                );
+            return m2;
+        }
+
         private void CreateCMPData(FBXNode n)
         {
             Vector3 vOffset = Vector3.Zero;
@@ -546,11 +573,7 @@ namespace UTFEditor
 
                 if(Relocate)
                 {
-                    Vector3 objoffset = T(n.EvaluateLocalTranslation(FBXTime.Infinite(), ArcManagedFBX.Types.EPivotSet.eSourcePivot, false, false));
-
-                    Vector3 objcenter = Vector3.Zero;//T(m.BBoxMin) + T(m.BBoxMax);
-
-                    vOffset = objcenter + objoffset;
+                    vOffset = T(n.EvaluateLocalTranslation(FBXTime.Infinite(), ArcManagedFBX.Types.EPivotSet.eSourcePivot, false, false));
                 }
             }
 
@@ -579,7 +602,10 @@ namespace UTFEditor
                     int numVerts = 0;
                     int numFaces = 0;
 
-                    for(int j = 0; j < cur_lodnode.GetChildCount(); j++)
+                    Vector3 bbmin = new Vector3(float.MaxValue);
+                    Vector3 bbmax = new Vector3(float.MinValue);
+
+                    for (int j = 0; j < cur_lodnode.GetChildCount(); j++)
                     {
                         var cur_node = cur_lodnode.GetChild(j);
 
@@ -591,6 +617,10 @@ namespace UTFEditor
                             continue;
 
                         var pmesh = attr as FBXMesh;
+
+                        var cur_node_trans = T(cur_node.EvaluateGlobalTransform(FBXTime.Infinite(), ArcManagedFBX.Types.EPivotSet.eSourcePivot, false, false));
+                        var cur_node_geo = T(cur_node.GetGeometricMatrix(ArcManagedFBX.Types.EPivotSet.eSourcePivot));
+                        cur_node_trans = cur_node_geo * cur_node_trans;
 
                         SMesh mesh = new SMesh();
 
@@ -612,17 +642,19 @@ namespace UTFEditor
                         int nVerts = nTris * 3;
                         mesh.v = new VMSVert[nVerts];
 
-                        int vertexDuplicates = 0;
-
                         var vertices = pmesh.GetControlPoints();
-                        var tangentLayer = pmesh.GetElementTangent().GetDirectArray(); // FIXME
-                        var binormalLayer = pmesh.GetElementBinormal().GetDirectArray(); // FIXME
+                        int tangentLayerCount = pmesh.GetElementTangentCount();
+                        var tangentLayer = tangentLayerCount > 0 ? pmesh.GetElementTangent().GetDirectArray() : null;
+                        int binormalLayerCount = pmesh.GetElementBinormalCount();
+                        var binormalLayer = binormalLayerCount > 0 ? pmesh.GetElementBinormal().GetDirectArray() : null;
 
                         for (int nTri = 0; nTri < nTris; nTri++)
                         {
+                            mesh.t[nTri].vertices = new ushort[3];
+
                             for(int k = 0; k < 3; k++)
                             {
-                                int nVert = (nTri * 3 + k) - vertexDuplicates;
+                                int nVert = (nTri * 3 + k);
 
                                 Vector3 vertice, normal;
                                 Vector2 uv;
@@ -630,42 +662,23 @@ namespace UTFEditor
                                 FBXVector fbxuv = new FBXVector();
                                 FBXVector fbxnormal = new FBXVector();
 
-                                vertice = T(vertices[pmesh.GetPolygonVertex(nTri, k)]);
+                                vertice = Vector3.TransformCoordinate(T(vertices[pmesh.GetPolygonVertex(nTri, k)]), cur_node_trans);
                                 
                                 // offset vertice
                                 vertice -= vOffset;
                                 pmesh.GetPolygonVertexUV(nTri, k, "map1", ref fbxuv, ref unmapped);
                                 uv = T2(fbxuv);
                                 pmesh.GetPolygonVertexNormal(nTri, k, ref fbxnormal);
-                                normal = T(fbxnormal);
+                                normal = Vector3.TransformNormal(T(fbxnormal), cur_node_trans);
 
-                                // before assigning the vert, check existing verts if there is a duplicate
-                                bool bDuplicate = false;
-                                for (int nVertB = 0; nVertB < nVert; nVertB++)
-                                {
-                                    if (mesh.v[nVertB].vert == vertice &&
-                                        mesh.v[nVertB].normal == normal &&
-                                        mesh.v[nVertB].uv == uv)
-                                    {
-                                        // match!
-                                        // assign triangle corner to found vertex index
-                                        mesh.t[nTri].vertices[i] = (ushort)nVertB;
-                                        vertexDuplicates++;
-                                        bDuplicate = true;
-                                        break;
-                                    }
-                                }
-                                if (bDuplicate)
-                                    continue;
-
-                                mesh.t[nTri].vertices[i] = (ushort)nVert;
+                                mesh.t[nTri].vertices[k] = (ushort)nVert;
 
                                 mesh.v[nVert].vert = vertice;
                                 mesh.v[nVert].normal = normal;
                                 mesh.v[nVert].uv = uv;
 
-                                mesh.v[nVert].tangent = T(tangentLayer.GetAt(nVert));
-                                mesh.v[nVert].binormal = T(binormalLayer.GetAt(nVert));
+                                mesh.v[nVert].tangent = tangentLayer != null ? T(tangentLayer.GetAt(nVert)) : Vector3.Zero;
+                                mesh.v[nVert].binormal = binormalLayer != null ? T(binormalLayer.GetAt(nVert)) : Vector3.Zero;
                                 /*
                                
                                 float alpha = 1.0f;
@@ -682,10 +695,13 @@ namespace UTFEditor
                                     mesh->v[nVert].tangent = Point3(0, 0, 0);
                                     mesh->v[nVert].binormal = Point3(0, 0, 0);
                                 }*/
+
+                                bbmin = Vector3.Min(bbmin, vertice);
+                                bbmax = Vector3.Max(bbmin, vertice);
                             }
                         }
 
-                        mesh.nVerts = nVerts - vertexDuplicates;
+                        mesh.nVerts = nVerts;
                         numVerts += mesh.nVerts;
 
                         mesh.nTris = nTris;
@@ -694,26 +710,26 @@ namespace UTFEditor
                         cmpnd.object_data.data[lod].meshes.Add(mesh);
                     }
 
-
-                    var lodmesh = cur_lodnode.GetNodeAttribute() as FBXMesh;
-
                     cmpnd.object_data.data[lod].vmeshref = new VMeshRef();
-                    cmpnd.object_data.data[lod].vmeshref.BoundingBoxMaxX = (float)lodmesh.BBoxMax.x;
-                    cmpnd.object_data.data[lod].vmeshref.BoundingBoxMaxY = (float)lodmesh.BBoxMax.y;
-                    cmpnd.object_data.data[lod].vmeshref.BoundingBoxMaxZ = (float)lodmesh.BBoxMax.z;
-                    cmpnd.object_data.data[lod].vmeshref.BoundingBoxMinX = (float)lodmesh.BBoxMin.x;
-                    cmpnd.object_data.data[lod].vmeshref.BoundingBoxMinY = (float)lodmesh.BBoxMin.y;
-                    cmpnd.object_data.data[lod].vmeshref.BoundingBoxMinZ = (float)lodmesh.BBoxMin.z;
-                    var vCenter = (T(lodmesh.BBoxMax) + T(lodmesh.BBoxMin)) / 2;
+                    cmpnd.object_data.data[lod].vmeshref.BoundingBoxMaxX = bbmax.X;
+                    cmpnd.object_data.data[lod].vmeshref.BoundingBoxMaxY = bbmax.Y;
+                    cmpnd.object_data.data[lod].vmeshref.BoundingBoxMaxZ = bbmax.Z;
+                    cmpnd.object_data.data[lod].vmeshref.BoundingBoxMinX = bbmin.X;
+                    cmpnd.object_data.data[lod].vmeshref.BoundingBoxMinY = bbmin.Y;
+                    cmpnd.object_data.data[lod].vmeshref.BoundingBoxMinZ = bbmin.Z;
+                    var vCenter = (bbmax + bbmin) / 2;
                     cmpnd.object_data.data[lod].vmeshref.CenterX = vCenter.X;
                     cmpnd.object_data.data[lod].vmeshref.CenterY = vCenter.Y;
                     cmpnd.object_data.data[lod].vmeshref.CenterZ = vCenter.Z;
-                    cmpnd.object_data.data[lod].vmeshref.Radius = (T(lodmesh.BBoxMax) - vCenter).Length() * 1.25f;
+                    cmpnd.object_data.data[lod].vmeshref.Radius = (bbmax - vCenter).Length() * 1.25f;
 
                     cmpnd.object_data.data[lod].vmeshref.HeaderSize = 60;
                     cmpnd.object_data.data[lod].vmeshref.NumMeshes = (ushort)cmpnd.object_data.data[lod].meshes.Count;
                     cmpnd.object_data.data[lod].vmeshref.NumVert = (ushort)numVerts;
                     cmpnd.object_data.data[lod].vmeshref.NumIndex = (ushort)(numFaces * 3);
+
+                    if (numFaces * 3 > 0xFFFF)
+                        throw new ArgumentException($"{cmpnd.object_name} references more than 65535 vertices. Split the group into smaller groups!");
                 }
             }
 

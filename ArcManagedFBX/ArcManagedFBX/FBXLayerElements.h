@@ -12,7 +12,7 @@ using namespace System::Runtime::InteropServices;
 public ref class FBXLayerElement##type : public FBXLayerElementVector4 \
 { \
 public: \
-	FBXLayerElement##type(fbxsdk_2015_1::FbxLayerElement##type* instance) : mInstance(instance) { } \
+	FBXLayerElement##type(fbxsdk_2015_1::FbxLayerElement##type* instance) : mInstance(instance), FBXLayerElementVector4(instance) { } \
 private: \
 	fbxsdk_2015_1::FbxLayerElement##type* mInstance; \
 public:

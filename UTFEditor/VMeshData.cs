@@ -102,6 +102,11 @@ namespace UTFEditor
         public const uint D3DFVF_TEX7 = 0x700;
         public const uint D3DFVF_TEX8 = 0x800;
 
+        public VMeshData()
+        {
+
+        }
+
         /// <summary>
         /// Decode the VMeshData
         /// </summary>

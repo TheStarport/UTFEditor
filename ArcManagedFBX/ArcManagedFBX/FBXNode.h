@@ -66,6 +66,12 @@ namespace ArcManagedFBX
 		FBXMatrix EvaluateLocalTransform(FBXTime time, EPivotSet pivotSet, bool applyTarget, bool forceEval);
 		FBXMatrix EvaluateGlobalTransform(FBXTime time, EPivotSet pivotSet, bool applyTarget, bool forceEval);
 
+		FBXVector GetGeometricTranslation(EPivotSet pivotSet);
+		FBXVector GetGeometricRotation(EPivotSet pivotSet);
+		FBXVector GetGeometricScaling(EPivotSet pivotSet);
+
+		FBXMatrix GetGeometricMatrix(EPivotSet pivotSet);
+
 		int GetMaterialCount();
 		FBXSurfaceMaterial^ GetMaterial(int index);
 		int GetMaterialIndex(const char* name);
