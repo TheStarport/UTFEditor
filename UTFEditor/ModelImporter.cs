@@ -56,12 +56,12 @@ namespace UTFEditor
             UniqueName = importForm.UniqueName;
 
             InitCMP(path);
-            InitMAT(path);
+            //InitMAT(path);
 
             if (Path.GetExtension(path).ToLower() == ".fbx")
                 ImportFBX(path);
 
-            MAT.Show();
+            //MAT.Show();
             CMP.Show();
         }
 
@@ -164,7 +164,10 @@ namespace UTFEditor
                     cmpnd.object_data.data[lod].vmeshdata = cur_meshdata_file;
                 }
 
-                cmpnd.object_data.file_name = UniqueName + cmpnd.object_name + ".3db";
+                cmpnd.object_data.file_name = UniqueName + "." + cmpnd.object_name + ".3db";
+
+                cmpndData.RemoveAt(i);
+                cmpndData.Insert(i, cmpnd);
             }
 
             foreach(var vmesh in lst_vmesh_data)
@@ -444,17 +447,7 @@ namespace UTFEditor
 
         private void ParseNode(FBXNode n, bool traverse)
         {
-            var attr = n.GetNodeAttribute();
-            if (attr != null)
-            {
-                var type = attr.GetAttributeType();
-                switch(type)
-                {
-                    case ArcManagedFBX.Types.EAttributeType.eMesh:
-                        CreateCMPData(n);
-                        break;
-                }
-            }
+            CreateCMPData(n);
 
             if (!traverse)
                 return;
@@ -540,8 +533,6 @@ namespace UTFEditor
 
         private void CreateCMPData(FBXNode n)
         {
-            FBXMesh m = n.GetNodeAttribute() as FBXMesh;
-
             Vector3 vOffset = Vector3.Zero;
 
             CmpndData cmpnd = new CmpndData();
@@ -557,7 +548,7 @@ namespace UTFEditor
                 {
                     Vector3 objoffset = T(n.EvaluateLocalTranslation(FBXTime.Infinite(), ArcManagedFBX.Types.EPivotSet.eSourcePivot, false, false));
 
-                    Vector3 objcenter = T(m.BBoxMin) + T(m.BBoxMax);
+                    Vector3 objcenter = Vector3.Zero;//T(m.BBoxMin) + T(m.BBoxMax);
 
                     vOffset = objcenter + objoffset;
                 }
@@ -574,12 +565,14 @@ namespace UTFEditor
             {
                 var cur_lodnode = n.GetChild(i);
 
-                var match = Regex.Match(cur_lodnode.GetName(), @"^.+\.lod(?<lod>[0-9])(?<wireframe>\.vwd)?");
+                var match = Regex.Match(cur_lodnode.GetName(), @"^.+_lod(?<lod>[0-9])(?<wireframe>_vwd)?");
                 if (match.Success)
                 {
                     uint lod = uint.Parse(match.Groups["lod"].Value);
                     if (match.Groups["wireframe"].Success)
                         cmpnd.object_data.wireframe_lod = lod;
+
+                    cmpnd.object_data.data[lod].meshes = new List<SMesh>();
 
                     lods++;
 
@@ -621,9 +614,9 @@ namespace UTFEditor
 
                         int vertexDuplicates = 0;
 
-                        var vertices = m.GetControlPoints();
-                        var tangentLayer = m.GetElementTangent().GetDirectArray();
-                        var binormalLayer = m.GetElementBinormal().GetDirectArray();
+                        var vertices = pmesh.GetControlPoints();
+                        var tangentLayer = pmesh.GetElementTangent().GetDirectArray(); // FIXME
+                        var binormalLayer = pmesh.GetElementBinormal().GetDirectArray(); // FIXME
 
                         for (int nTri = 0; nTri < nTris; nTri++)
                         {
@@ -704,6 +697,7 @@ namespace UTFEditor
 
                     var lodmesh = cur_lodnode.GetNodeAttribute() as FBXMesh;
 
+                    cmpnd.object_data.data[lod].vmeshref = new VMeshRef();
                     cmpnd.object_data.data[lod].vmeshref.BoundingBoxMaxX = (float)lodmesh.BBoxMax.x;
                     cmpnd.object_data.data[lod].vmeshref.BoundingBoxMaxY = (float)lodmesh.BBoxMax.y;
                     cmpnd.object_data.data[lod].vmeshref.BoundingBoxMaxZ = (float)lodmesh.BBoxMax.z;
@@ -729,7 +723,7 @@ namespace UTFEditor
 
             if(cmpnd.object_name != "Root")
             {
-                if(cmpnd.object_name.EndsWith(".rev"))
+                if(cmpnd.object_name.EndsWith("_rev"))
                 {
                     CmpRevData.Part revdata = new CmpRevData.Part();
                     revdata.ParentName = "Root";
@@ -757,7 +751,7 @@ namespace UTFEditor
 
                     rev.Parts.Add(revdata);
                 }
-                else if(cmpnd.object_name.EndsWith(".pris"))
+                else if(cmpnd.object_name.EndsWith("_pris"))
                 {
                     CmpRevData.Part revdata = new CmpRevData.Part();
                     revdata.ParentName = "Root";

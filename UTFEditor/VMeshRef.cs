@@ -29,6 +29,11 @@ namespace UTFEditor
         public float CenterZ;
         public float Radius;
 
+        public VMeshRef()
+        {
+
+        }
+
         public VMeshRef(byte[] data)
         {
             int pos = 0;
