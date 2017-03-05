@@ -125,6 +125,33 @@ FBXMatrix ArcManagedFBX::FBXNode::EvaluateGlobalTransform(FBXTime time, EPivotSe
 	return FBXMatrix(this->GetFBXNode()->EvaluateGlobalTransform(time, (FbxNode::EPivotSet)pivotSet, applyTarget, forceEval));
 }
 
+FBXVector ArcManagedFBX::FBXNode::GetGeometricTranslation(EPivotSet pivotSet)
+{
+	return FBXVector(this->GetFBXNode()->GetGeometricTranslation((fbxsdk_2015_1::FbxNode::EPivotSet)pivotSet));
+}
+
+FBXVector ArcManagedFBX::FBXNode::GetGeometricRotation(EPivotSet pivotSet)
+{
+	return FBXVector(this->GetFBXNode()->GetGeometricRotation((fbxsdk_2015_1::FbxNode::EPivotSet)pivotSet));
+}
+
+FBXVector ArcManagedFBX::FBXNode::GetGeometricScaling(EPivotSet pivotSet)
+{
+	return FBXVector(this->GetFBXNode()->GetGeometricScaling((fbxsdk_2015_1::FbxNode::EPivotSet)pivotSet));
+}
+
+FBXMatrix ArcManagedFBX::FBXNode::GetGeometricMatrix(EPivotSet pivotSet)
+{
+	fbxsdk_2015_1::FbxVector4 t = this->GetFBXNode()->GetGeometricTranslation((fbxsdk_2015_1::FbxNode::EPivotSet)pivotSet);
+	fbxsdk_2015_1::FbxVector4 r = this->GetFBXNode()->GetGeometricRotation((fbxsdk_2015_1::FbxNode::EPivotSet)pivotSet);
+	fbxsdk_2015_1::FbxVector4 s = this->GetFBXNode()->GetGeometricScaling((fbxsdk_2015_1::FbxNode::EPivotSet)pivotSet);
+
+	fbxsdk_2015_1::FbxMatrix m;
+	m.SetTRS(t, r, s);
+
+	return FBXMatrix(m);
+}
+
 int ArcManagedFBX::FBXNode::GetMaterialCount()
 {
 	return this->GetFBXNode()->GetMaterialCount();
