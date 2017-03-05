@@ -1,0 +1,231 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{C70D41E6-8D0F-4CA9-B024-6EAF77D031C1}</ProjectGuid>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <Keyword>ManagedCProj</Keyword>
+    <RootNamespace>ArcManagedFBX</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CLRSupport>true</CLRSupport>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CLRSupport>true</CLRSupport>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(IncludePath);..\Libs\FBX\include</IncludePath>
+    <LibraryPath>$(LibraryPath);..\Libs\FBX\lib\vs2013\x86\debug</LibraryPath>
+    <OutDir>$(SolutionDir)..\UTFEditor\Dependencies\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)Output\ArcManagedFBX\$(Platform)\$(Configuration)\</IntDir>
+    <SourcePath>$(SourcePath);..\Libs\FBX\include</SourcePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <LibraryPath>$(LibraryPath);..\Libs\FBX\lib\vs2013\x86\release</LibraryPath>
+    <OutDir>$(SolutionDir)..\UTFEditor\Dependencies\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)Output\ArcManagedFBX\$(Platform)\$(Configuration)\</IntDir>
+    <IncludePath>$(IncludePath);..\Libs\FBX\include</IncludePath>
+    <SourcePath>$(SourcePath);..\Libs\FBX\include</SourcePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <PreprocessorDefinitions>WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>libfbxsdk-md.lib</AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries>LIBMCT</IgnoreSpecificDefaultLibraries>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>libfbxsdk-md.lib</AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries>LIBMCT</IgnoreSpecificDefaultLibraries>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ArcFBXFile.h" />
+    <ClInclude Include="ArcFBXFramework.h" />
+    <ClInclude Include="Defines.h" />
+    <ClInclude Include="FBXAnimCurveKeyBase.h" />
+    <ClInclude Include="FBXAnimLayer.h" />
+    <ClInclude Include="FBXAnimStack.h" />
+    <ClInclude Include="FBXBoundary.h" />
+    <ClInclude Include="FBXLayerElementArray.h" />
+    <ClInclude Include="FBXLayerElements.h" />
+    <ClInclude Include="FBXLine.h" />
+    <ClInclude Include="FBXLODGroup.h" />
+    <ClInclude Include="FBXMarker.h" />
+    <ClInclude Include="FBXNodeAttribute.h" />
+    <ClInclude Include="FBXCamera.h" />
+    <ClInclude Include="FBXClassId.h" />
+    <ClInclude Include="FBXCluster.h" />
+    <ClInclude Include="FBXCollection.h" />
+    <ClInclude Include="FBXColour.h" />
+    <ClInclude Include="FBXDeformer.h" />
+    <ClInclude Include="FBXDocument.h" />
+    <ClInclude Include="FBXDocumentInfo.h" />
+    <ClInclude Include="FBXEmitter.h" />
+    <ClInclude Include="FBXException.h" />
+    <ClInclude Include="FBXExporter.h" />
+    <ClInclude Include="FBXFile.h" />
+    <ClInclude Include="FBXGeometry.h" />
+    <ClInclude Include="FBXGeometryBase.h" />
+    <ClInclude Include="FBXGeometryWeightedMap.h" />
+    <ClInclude Include="FBXImporter.h" />
+    <ClInclude Include="FBXIOBase.h" />
+    <ClInclude Include="FBXIOPluginRegistry.h" />
+    <ClInclude Include="FBXIOSettings.h" />
+    <ClInclude Include="FBXLayer.h" />
+    <ClInclude Include="FBXLayerContainer.h" />
+    <ClInclude Include="FBXLayerElement.h" />
+    <ClInclude Include="FBXLayerElementPolygonGroup.h" />
+    <ClInclude Include="FBXLight.h" />
+    <ClInclude Include="FBXLocalTime.h" />
+    <ClInclude Include="FBXManager.h" />
+    <ClInclude Include="FBXMesh.h" />
+    <ClInclude Include="FBXNode.h" />
+    <ClInclude Include="FBXObject.h" />
+    <ClInclude Include="FBXPolygonDef.h" />
+    <ClInclude Include="FBXPose.h" />
+    <ClInclude Include="FBXProperty.h" />
+    <ClInclude Include="FBXScene.h" />
+    <ClInclude Include="FBXShape.h" />
+    <ClInclude Include="FBXSkeleton.h" />
+    <ClInclude Include="FBXSkin.h" />
+    <ClInclude Include="FBXStatus.h" />
+    <ClInclude Include="FBXSurfaceMaterial.h" />
+    <ClInclude Include="FBXTexture.h" />
+    <ClInclude Include="FBXThumbnail.h" />
+    <ClInclude Include="FBXTime.h" />
+    <ClInclude Include="FBXTypes.h" />
+    <ClInclude Include="FBXVector.h" />
+    <ClInclude Include="FBXVertexNormalInfo.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="Stdafx.h" />
+    <ClInclude Include="StringHelper.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ArcFBXFile.cpp" />
+    <ClCompile Include="ArcFBXFramework.cpp" />
+    <ClCompile Include="AssemblyInfo.cpp" />
+    <ClCompile Include="FBXAnimLayer.cpp" />
+    <ClCompile Include="FBXAnimStack.cpp" />
+    <ClCompile Include="FBXBoundary.cpp" />
+    <ClCompile Include="FBXLayerElementArray.cpp" />
+    <ClCompile Include="FBXLine.cpp" />
+    <ClCompile Include="FBXLODGroup.cpp" />
+    <ClCompile Include="FBXMarker.cpp" />
+    <ClCompile Include="FBXNodeAttribute.cpp" />
+    <ClCompile Include="FBXCamera.cpp" />
+    <ClCompile Include="FBXClassId.cpp" />
+    <ClCompile Include="FBXCollection.cpp" />
+    <ClCompile Include="FBXColour.cpp" />
+    <ClCompile Include="FBXDeformer.cpp" />
+    <ClCompile Include="FBXDocument.cpp" />
+    <ClCompile Include="FBXDocumentInfo.cpp" />
+    <ClCompile Include="FBXEmitter.cpp" />
+    <ClCompile Include="FBXExporter.cpp" />
+    <ClCompile Include="FBXFile.cpp" />
+    <ClCompile Include="FBXGeometry.cpp" />
+    <ClCompile Include="FBXGeometryBase.cpp" />
+    <ClCompile Include="FBXGeometryWeightedMap.cpp" />
+    <ClCompile Include="FBXImporter.cpp" />
+    <ClCompile Include="FBXIOBase.cpp" />
+    <ClCompile Include="FBXIOFileHeaderInfo.cpp" />
+    <ClCompile Include="FBXIOPluginRegistry.cpp" />
+    <ClCompile Include="FBXIOSettings.cpp" />
+    <ClCompile Include="FBXLayer.cpp" />
+    <ClCompile Include="FBXLayerContainer.cpp" />
+    <ClCompile Include="FBXLayerElement.cpp" />
+    <ClCompile Include="FBXLayerElementPolygonGroup.cpp" />
+    <ClCompile Include="FBXLight.cpp" />
+    <ClCompile Include="FBXManager.cpp" />
+    <ClCompile Include="FBXNode.cpp" />
+    <ClCompile Include="FBXObject.cpp" />
+    <ClCompile Include="FBXPolygonDef.cpp" />
+    <ClCompile Include="FBXProperty.cpp" />
+    <ClCompile Include="FBXScene.cpp" />
+    <ClCompile Include="FBXShape.cpp" />
+    <ClCompile Include="FBXSkeleton.cpp" />
+    <ClCompile Include="FBXSkin.cpp" />
+    <ClCompile Include="FBXStatus.cpp" />
+    <ClCompile Include="FBXSurfaceMaterial.cpp" />
+    <ClCompile Include="FBXTexture.cpp" />
+    <ClCompile Include="FBXThumbnail.cpp" />
+    <ClCompile Include="FBXVector.cpp" />
+    <ClCompile Include="FBXMesh.cpp" />
+    <ClCompile Include="Stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="StringHelper.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="app.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="app.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="FBXIOFileHeaderInfo.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ArcManagedFBX.Shared\ArcManagedFBX.Shared.csproj">
+      <Project>{28a74a7a-30be-4978-8473-c3cb8a8c70de}</Project>
+      <Private>true</Private>
+      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+      <CopyLocalSatelliteAssemblies>false</CopyLocalSatelliteAssemblies>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+      <UseLibraryDependencyInputs>false</UseLibraryDependencyInputs>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
