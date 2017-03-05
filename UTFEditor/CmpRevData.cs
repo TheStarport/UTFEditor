@@ -38,6 +38,11 @@ namespace UTFEditor
         /// </summary>
         public List<Part> Parts = new List<Part>();
 
+        public CmpRevData()
+        {
+
+        }
+
         /// <summary>
         /// Decode a rev node. Throw an exception if this fails.
         /// </summary>

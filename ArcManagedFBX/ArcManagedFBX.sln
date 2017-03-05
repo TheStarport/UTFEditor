@@ -5,8 +5,6 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ArcManagedFBX", "ArcManagedFBX\ArcManagedFBX.vcxproj", "{C70D41E6-8D0F-4CA9-B024-6EAF77D031C1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArcManagedFBXTest", "ArcManagedFBXTest\ArcManagedFBXTest.csproj", "{9CC95E75-4A51-491E-B298-FF78E3092368}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArcManagedFBX.Shared", "ArcManagedFBX.Shared\ArcManagedFBX.Shared.csproj", "{28A74A7A-30BE-4978-8473-C3CB8A8C70DE}"
 EndProject
 Global
@@ -19,10 +17,6 @@ Global
 		{C70D41E6-8D0F-4CA9-B024-6EAF77D031C1}.Debug|Win32.Build.0 = Debug|Win32
 		{C70D41E6-8D0F-4CA9-B024-6EAF77D031C1}.Release|Win32.ActiveCfg = Release|Win32
 		{C70D41E6-8D0F-4CA9-B024-6EAF77D031C1}.Release|Win32.Build.0 = Release|Win32
-		{9CC95E75-4A51-491E-B298-FF78E3092368}.Debug|Win32.ActiveCfg = Debug|Any CPU
-		{9CC95E75-4A51-491E-B298-FF78E3092368}.Debug|Win32.Build.0 = Debug|Any CPU
-		{9CC95E75-4A51-491E-B298-FF78E3092368}.Release|Win32.ActiveCfg = Release|Any CPU
-		{9CC95E75-4A51-491E-B298-FF78E3092368}.Release|Win32.Build.0 = Release|Any CPU
 		{28A74A7A-30BE-4978-8473-C3CB8A8C70DE}.Debug|Win32.ActiveCfg = Debug|Any CPU
 		{28A74A7A-30BE-4978-8473-C3CB8A8C70DE}.Debug|Win32.Build.0 = Debug|Any CPU
 		{28A74A7A-30BE-4978-8473-C3CB8A8C70DE}.Release|Win32.ActiveCfg = Release|Any CPU

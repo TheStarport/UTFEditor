@@ -101,6 +101,7 @@
     <ClInclude Include="FBXLine.h" />
     <ClInclude Include="FBXLODGroup.h" />
     <ClInclude Include="FBXMarker.h" />
+    <ClInclude Include="FBXMatrix.h" />
     <ClInclude Include="FBXNodeAttribute.h" />
     <ClInclude Include="FBXCamera.h" />
     <ClInclude Include="FBXClassId.h" />
@@ -161,6 +162,7 @@
     <ClCompile Include="FBXLine.cpp" />
     <ClCompile Include="FBXLODGroup.cpp" />
     <ClCompile Include="FBXMarker.cpp" />
+    <ClCompile Include="FBXMatrix.cpp" />
     <ClCompile Include="FBXNodeAttribute.cpp" />
     <ClCompile Include="FBXCamera.cpp" />
     <ClCompile Include="FBXClassId.cpp" />

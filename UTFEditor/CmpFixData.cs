@@ -30,6 +30,11 @@ namespace UTFEditor
         /// </summary>
         public List<Part> Parts = new List<Part>();
 
+        public CmpFixData()
+        {
+
+        }
+
         /// <summary>
         /// Decode a fix node. Throw an exception if this fails.
         /// </summary>

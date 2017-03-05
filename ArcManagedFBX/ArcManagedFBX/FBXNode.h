@@ -3,6 +3,7 @@
 #include "FBXStatus.h"
 #include "FBXNodeAttribute.h"
 #include "FBXVector.h"
+#include "FBXMatrix.h"
 #include "FBXObject.h"
 #include "FBXMesh.h"
 #include "FBXManager.h"
@@ -61,6 +62,9 @@ namespace ArcManagedFBX
 		FBXVector EvaluateLocalTranslation(FBXTime time, EPivotSet pivotSet, bool applyTarget, bool forceEval);
 		FBXVector EvaluateLocalRotation(FBXTime time, EPivotSet pivotSet, bool applyTarget, bool forceEval);
 		FBXVector EvaluateLocalScaling(FBXTime time, EPivotSet pivotSet, bool applyTarget, bool forceEval);
+
+		FBXMatrix EvaluateLocalTransform(FBXTime time, EPivotSet pivotSet, bool applyTarget, bool forceEval);
+		FBXMatrix EvaluateGlobalTransform(FBXTime time, EPivotSet pivotSet, bool applyTarget, bool forceEval);
 
 		int GetMaterialCount();
 		FBXSurfaceMaterial^ GetMaterial(int index);
