@@ -115,6 +115,16 @@ FBXVector ArcManagedFBX::FBXNode::EvaluateLocalScaling(FBXTime time, EPivotSet p
 	return FBXVector(this->GetFBXNode()->EvaluateLocalScaling(time, (FbxNode::EPivotSet)pivotSet, applyTarget, forceEval));
 }
 
+FBXMatrix ArcManagedFBX::FBXNode::EvaluateLocalTransform(FBXTime time, EPivotSet pivotSet, bool applyTarget, bool forceEval)
+{
+	return FBXMatrix(this->GetFBXNode()->EvaluateLocalTransform(time, (FbxNode::EPivotSet)pivotSet, applyTarget, forceEval));
+}
+
+FBXMatrix ArcManagedFBX::FBXNode::EvaluateGlobalTransform(FBXTime time, EPivotSet pivotSet, bool applyTarget, bool forceEval)
+{
+	return FBXMatrix(this->GetFBXNode()->EvaluateGlobalTransform(time, (FbxNode::EPivotSet)pivotSet, applyTarget, forceEval));
+}
+
 int ArcManagedFBX::FBXNode::GetMaterialCount()
 {
 	return this->GetFBXNode()->GetMaterialCount();

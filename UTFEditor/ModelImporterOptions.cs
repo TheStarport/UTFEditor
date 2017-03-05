@@ -13,7 +13,9 @@ namespace UTFEditor
     public partial class ModelImporterOptions : Form
     {
         public bool Wireframe { get; private set; } = false;
+        public bool Relocate { get; private set; } = false;
         public ModelImportVertexType VertexType { get; private set; } = ModelImportVertexType.Normals;
+        public string UniqueName { get; private set; } = null;
 
         public ModelImporterOptions()
         {
@@ -26,6 +28,8 @@ namespace UTFEditor
         {
             VertexType = (ModelImportVertexType)lstVertexType.SelectedIndex;
             Wireframe = chkWireframe.Checked;
+            Relocate = chkRelocate.Checked;
+            UniqueName = txtUniqueName.Text;
 
             DialogResult = DialogResult.OK;
             Close();
