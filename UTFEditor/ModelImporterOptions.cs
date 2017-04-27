@@ -17,10 +17,11 @@ namespace UTFEditor
         public ModelImportVertexType VertexType { get; private set; } = ModelImportVertexType.Normals;
         public string UniqueName { get; private set; } = null;
 
-        public ModelImporterOptions()
+        public ModelImporterOptions(string defaultName)
         {
             InitializeComponent();
 
+            txtUniqueName.Text = defaultName;
             lstVertexType.SelectedIndex = 0;
         }
 

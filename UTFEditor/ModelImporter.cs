@@ -46,7 +46,7 @@ namespace UTFEditor
         {
             this.parent = parent;
 
-            var importForm = new ModelImporterOptions();
+            var importForm = new ModelImporterOptions(Path.GetFileNameWithoutExtension(path));
             if (importForm.ShowDialog() != System.Windows.Forms.DialogResult.OK)
                 return;
 
@@ -60,6 +60,9 @@ namespace UTFEditor
 
             if (Path.GetExtension(path).ToLower() == ".fbx")
                 ImportFBX(path);
+
+            CMP.Modified();
+            //MAT.Modified();
 
             //MAT.Show();
             CMP.Show();
