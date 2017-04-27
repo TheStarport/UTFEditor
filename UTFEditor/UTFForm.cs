@@ -1259,6 +1259,64 @@ namespace UTFEditor
             catch { }
         }
 
+        public void ExportAndFixBoundingBox(StringBuilder sb)
+        {
+            bool needs_saved = false;
+
+            SharpDX.BoundingBox bb = new SharpDX.BoundingBox(new SharpDX.Vector3(float.MaxValue), new SharpDX.Vector3(float.MinValue));
+            // find vmeshrefs
+            foreach (TreeNode node in this.treeView1.Nodes.Find("VMeshRef", true))
+            {
+                VMeshRef refdata = new VMeshRef(node.Tag as byte[]);
+
+                // Fix bounding boxes, if needed
+                bool fixedbb = false;
+                float tmp;
+                if (refdata.BoundingBoxMinX > refdata.BoundingBoxMaxX)
+                {
+                    fixedbb = true;
+                    tmp = refdata.BoundingBoxMinX;
+                    refdata.BoundingBoxMinX = refdata.BoundingBoxMaxX;
+                    refdata.BoundingBoxMaxX = tmp;
+                }
+
+                if (refdata.BoundingBoxMinY > refdata.BoundingBoxMaxY)
+                {
+                    fixedbb = true;
+                    tmp = refdata.BoundingBoxMinY;
+                    refdata.BoundingBoxMinY = refdata.BoundingBoxMaxY;
+                    refdata.BoundingBoxMaxY = tmp;
+                }
+
+                if (refdata.BoundingBoxMinZ > refdata.BoundingBoxMaxZ)
+                {
+                    fixedbb = true;
+                    tmp = refdata.BoundingBoxMinZ;
+                    refdata.BoundingBoxMinZ = refdata.BoundingBoxMaxZ;
+                    refdata.BoundingBoxMaxZ = tmp;
+                }
+
+                if (fixedbb)
+                {
+                    node.Tag = refdata.GetBytes();
+                    needs_saved = true;
+                }
+
+                SharpDX.BoundingBox bb2 = new SharpDX.BoundingBox(
+                    new SharpDX.Vector3(refdata.BoundingBoxMinX, refdata.BoundingBoxMinY, refdata.BoundingBoxMinZ),
+                    new SharpDX.Vector3(refdata.BoundingBoxMaxX, refdata.BoundingBoxMaxY, refdata.BoundingBoxMaxZ));
+
+                SharpDX.BoundingBox.Merge(ref bb, ref bb2, out bb);
+            }
+
+            if (needs_saved)
+                SaveUTFFile(fileName);
+
+            sb.AppendLine($"{fileName}:");
+            sb.AppendLine($"min: {bb.Minimum.ToString()}");
+            sb.AppendLine($"max: {bb.Maximum.ToString()}");
+        }
+
 
         /// <summary>
         /// Find the fix or loose node and open an editor for it.

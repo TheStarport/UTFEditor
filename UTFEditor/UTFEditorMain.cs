@@ -1316,5 +1316,70 @@ namespace UTFEditor
             if (openFileDialog1.ShowDialog(this) == DialogResult.OK)
                 new ModelImporter(this, openFileDialog1.FileName);
         }
+
+        private void exportAndFixBoundingBoxesInFolderToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            var old_desc = folderBrowserDialog1.Description;
+
+            folderBrowserDialog1.Description = "Please select path to parse from...";
+            if (folderBrowserDialog1.ShowDialog(this) == DialogResult.OK)
+            {
+                var path_from = folderBrowserDialog1.SelectedPath;
+                
+                if (saveFileDialog1.ShowDialog(this) == DialogResult.OK)
+                {
+                    var path_to = saveFileDialog1.FileName;
+
+                    try
+                    {
+                        while (this.MdiChildren.Length > 0)
+                            this.MdiChildren[0].Close();
+
+                        System.Threading.Thread.Sleep(100);
+
+                        this.SuspendDrawing();
+                        this.SuspendLayout();
+
+                        StringBuilder sb = new StringBuilder();
+
+                        traverseExportAndFixBoundingBoxes(path_from, sb);
+
+                        File.WriteAllText(path_to, sb.ToString());
+
+                        this.ResumeLayout();
+                        this.ResumeDrawing();
+                    }
+                    catch (Exception) { }
+                }
+            }
+
+            folderBrowserDialog1.Description = old_desc;
+        }
+
+        private void traverseExportAndFixBoundingBoxes(string dir, StringBuilder sb)
+        {
+            foreach (var d in Directory.EnumerateDirectories(dir))
+                traverseExportAndFixBoundingBoxes(d, sb);
+
+            foreach (var f in Directory.EnumerateFiles(dir))
+            {
+                var ext = Path.GetExtension(f).ToLowerInvariant();
+                if (ext == ".3db" || ext == ".cmp")
+                {
+                    try
+                    {
+                        LoadUTFFile(f, false);
+                    }
+                    catch (Exception) { }
+
+                    {
+                        UTFForm childForm = this.MdiChildren[0] as UTFForm;
+
+                        childForm.ExportAndFixBoundingBox(sb);
+                        childForm.Close();
+                    }
+                }
+            }
+        }
     }
 }
