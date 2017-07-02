@@ -1269,10 +1269,14 @@ namespace UTFEditor
                     device.SetRenderState(RenderState.BlendOperation, BlendOperation.Add);
 
 					Texture tex = FindTextureByMaterialID(mesh.MaterialId);
+
+                    Color dc_col = tex != null ? new Color(tex.Dc) : new Color(255);
+                    Color final_col = mg.DisplayInfo.Color * dc_col;
+
                     if (mg.DisplayInfo.Texture == TextureMode.Texture || mg.DisplayInfo.Texture == TextureMode.None || tex == null)
-                        device.SetRenderState(RenderState.TextureFactor, mg.DisplayInfo.Color.ToRgba());
+                        device.SetRenderState(RenderState.TextureFactor, final_col.ToRgba());
                     else
-                        device.SetRenderState(RenderState.TextureFactor, Color.Modulate(mg.DisplayInfo.Color, new Color(tex.Dc)).ToRgba());
+                        device.SetRenderState(RenderState.TextureFactor, final_col.ToRgba());
 
 					if (tex != null && (mg.DisplayInfo.Texture == TextureMode.Texture || mg.DisplayInfo.Texture == TextureMode.TextureColor))
 					{
@@ -1299,7 +1303,14 @@ namespace UTFEditor
                         device.SetTextureStageState(0, TextureStage.AlphaArg2, TextureArgument.TFactor);
 					}
 
-					mg.M[mn - mg.RefData.StartMesh].Draw();
+                    /*device.SetTextureStageState(1, TextureStage.ColorOperation, TextureOperation.Modulate);
+                    device.SetTextureStageState(1, TextureStage.ColorArg1, TextureArgument.Current);
+                    device.SetTextureStageState(1, TextureStage.ColorArg2, TextureArgument.Diffuse);
+                    device.SetTextureStageState(1, TextureStage.AlphaOperation, TextureOperation.Modulate);
+                    device.SetTextureStageState(1, TextureStage.AlphaArg1, TextureArgument.Current);
+                    device.SetTextureStageState(1, TextureStage.AlphaArg2, TextureArgument.Diffuse);*/
+
+                    mg.M[mn - mg.RefData.StartMesh].Draw();
 				}
 			}
 
