@@ -397,14 +397,28 @@ namespace UTFEditor
 
         public void RenderSur(Device device, List<ModelViewForm.MeshGroup> meshgroups)
         {
+            var maincolor = new SharpDX.Color(255, 0, 0, 255);
             var colors = new SharpDX.Color[]
             {
-                new SharpDX.Color(180, 180, 180, 50),
-                new SharpDX.Color(180,148,62, 50),
-                new SharpDX.Color(114,124,206, 50),
-                new SharpDX.Color(96,168,98, 50),
-                new SharpDX.Color(193,92,165, 50),
-                new SharpDX.Color(203,90,76, 50)
+                new SharpDX.Color(230, 25, 75, 50),
+                new SharpDX.Color(60, 180, 75, 50),
+                new SharpDX.Color(255, 225, 25, 50),
+                new SharpDX.Color(0, 130, 200, 50),
+                new SharpDX.Color(245, 130, 48, 50),
+                new SharpDX.Color(145, 30, 180, 50),
+                new SharpDX.Color(70, 240, 240, 50),
+                new SharpDX.Color(240, 50, 230, 50),
+                new SharpDX.Color(210, 245, 60, 50),
+                new SharpDX.Color(250, 190, 190, 50),
+                new SharpDX.Color(0, 128, 128, 50),
+                new SharpDX.Color(230, 190, 255, 50),
+                new SharpDX.Color(170, 110, 40, 50),
+                new SharpDX.Color(255, 250, 200, 50),
+                new SharpDX.Color(128, 0, 0, 50),
+                new SharpDX.Color(170, 255, 195, 50),
+                new SharpDX.Color(128, 128, 0, 50),
+                new SharpDX.Color(255, 215, 180, 50),
+                new SharpDX.Color(0, 0, 128, 50),
             };
 
             device.SetTexture(0, null);
@@ -414,24 +428,33 @@ namespace UTFEditor
             device.SetTextureStageState(0, TextureStage.ColorArg2, TextureArgument.TFactor);
             device.SetTextureStageState(0, TextureStage.AlphaOperation, TextureOperation.SelectArg2);
             device.SetTextureStageState(0, TextureStage.AlphaArg2, TextureArgument.TFactor);
-            
-            device.SetRenderState(RenderState.TextureFactor, new SharpDX.Color(255, 0, 0, 255).ToBgra());
-            device.SetRenderState(RenderState.PointSize, 30.0f);
-            device.DrawUserPrimitives(PrimitiveType.PointList, 1, new SharpDX.Vector3[] { RootCenter });
 
-            int c = 1;
+            int c = 0;
             Dictionary<uint, SharpDX.Matrix> meshgrouptransforms = new Dictionary<uint, SharpDX.Matrix>();
+            HashSet<uint> meshgroupdisplay = new HashSet<uint>();
             foreach(var m in meshgroups)
             {
                 var k = Utilities.FLModelCRC(m.Name);
                 if (meshgrouptransforms.ContainsKey(k))
                     continue;
                 else
+                {
                     meshgrouptransforms[k] = m.Transform;
+
+                    if (m.DisplayInfo.Display)
+                        meshgroupdisplay.Add(k);
+                }
+
             }
 
             foreach (var m in Meshes)
             {
+                if (!meshgroupdisplay.Contains(m.MeshId))
+                {
+                    c++;
+                    continue;
+                }
+
                 if (meshgrouptransforms.ContainsKey(m.MeshId))
                     device.SetTransform(TransformState.World, meshgrouptransforms[m.MeshId]);
                 else
@@ -467,6 +490,99 @@ namespace UTFEditor
                     0, tmpVertices.Count, tmpTri.Count / 3, tmpTri.ToArray(), SharpDX.Direct3D9.Format.Index32, tmpVertices.ToArray());
 
                 c++;
+            }
+        }
+
+        public void RenderSurCenters(Device device, List<ModelViewForm.MeshGroup> meshgroups, SharpDX.Vector3 cameraPos)
+        {
+            var maincolor = new SharpDX.Color(255, 0, 0, 255);
+            var colors = new SharpDX.Color[]
+            {
+                new SharpDX.Color(230, 25, 75, 255),
+                new SharpDX.Color(60, 180, 75, 255),
+                new SharpDX.Color(255, 225, 25, 255),
+                new SharpDX.Color(0, 130, 200, 255),
+                new SharpDX.Color(245, 130, 48, 255),
+                new SharpDX.Color(145, 30, 180, 255),
+                new SharpDX.Color(70, 240, 240, 255),
+                new SharpDX.Color(240, 50, 230, 255),
+                new SharpDX.Color(210, 245, 60, 255),
+                new SharpDX.Color(250, 190, 190, 255),
+                new SharpDX.Color(0, 128, 128, 255),
+                new SharpDX.Color(230, 190, 255, 255),
+                new SharpDX.Color(170, 110, 40, 255),
+                new SharpDX.Color(255, 250, 200, 255),
+                new SharpDX.Color(128, 0, 0, 255),
+                new SharpDX.Color(170, 255, 195, 255),
+                new SharpDX.Color(128, 128, 0, 255),
+                new SharpDX.Color(255, 215, 180, 255),
+                new SharpDX.Color(0, 0, 128, 255),
+            };
+
+            device.SetRenderState(RenderState.PointSize, 30.0f);
+
+            device.SetTextureStageState(0, TextureStage.ColorOperation, TextureOperation.SelectArg2);
+            device.SetTextureStageState(0, TextureStage.ColorArg2, TextureArgument.TFactor);
+            device.SetTextureStageState(0, TextureStage.AlphaOperation, TextureOperation.SelectArg2);
+            device.SetTextureStageState(0, TextureStage.AlphaArg2, TextureArgument.TFactor);
+            device.SetTransform(TransformState.World, SharpDX.Matrix.Identity);
+
+            int c = 0;
+            Dictionary<uint, SharpDX.Matrix> meshgrouptransforms = new Dictionary<uint, SharpDX.Matrix>();
+            HashSet<uint> meshgroupdisplay = new HashSet<uint>();
+            foreach (var m in meshgroups)
+            {
+                var k = Utilities.FLModelCRC(m.Name);
+                if (meshgrouptransforms.ContainsKey(k))
+                    continue;
+                else
+                {
+                    meshgrouptransforms[k] = m.Transform;
+
+                    if (m.DisplayInfo.Display)
+                        meshgroupdisplay.Add(k);
+                }
+
+            }
+
+            List<Tuple<SharpDX.Vector3, int>> points = new List<Tuple<SharpDX.Vector3, int>>();
+
+            foreach (var m in Meshes)
+            {
+                if (!meshgroupdisplay.Contains(m.MeshId))
+                {
+                    c++;
+                    continue;
+                }
+
+                var mat = SharpDX.Matrix.Identity;
+
+                if (meshgrouptransforms.ContainsKey(m.MeshId))
+                    mat = meshgrouptransforms[m.MeshId];
+
+                foreach (var s in m.SurfaceSections)
+                {
+                    var color = m.MeshId == Meshes[0].MeshId && s.Center == Meshes[0].SurfaceSections[0].Center ? maincolor : colors[c % colors.Length];
+                    points.Add(new Tuple<SharpDX.Vector3, int>(SharpDX.Vector3.TransformCoordinate(s.Center, mat), color.ToBgra()));
+
+                }
+
+                c++;
+            }
+
+            points.Sort((a, b) =>
+            {
+                float l1 = (a.Item1 - cameraPos).LengthSquared();
+                float l2 = (b.Item1 - cameraPos).LengthSquared();
+
+                return l1 < l2 ? 1 : l1 > l2 ? -1 : 0;
+            });
+
+            foreach(var p in points)
+            {
+                device.SetRenderState(RenderState.TextureFactor, p.Item2);
+
+                device.DrawUserPrimitives(PrimitiveType.PointList, 1, new SharpDX.Vector3[] { p.Item1 });
             }
         }
 
