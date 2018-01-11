@@ -37,6 +37,7 @@ namespace UTFEditor
         }
 
         SurDisplay surDisplay = SurDisplay.Hidden;
+        bool SurDisplayCenters => centersToolStripMenuItem.Checked;
 
         const float relativeHardpointScale = 60;
         float distance;
@@ -1356,6 +1357,18 @@ namespace UTFEditor
 
                     sur.RenderSur(device, MeshGroups);
                 }
+            }
+            
+            if (sur != null && SurDisplayCenters)
+            {
+                device.SetRenderState(SharpDX.Direct3D9.RenderState.ZWriteEnable, false);
+                device.SetRenderState(SharpDX.Direct3D9.RenderState.ZEnable, false);
+                device.SetRenderState(RenderState.AlphaBlendEnable, false);
+
+                Vector3 pos = Vector3.TransformCoordinate(Vector3.BackwardRH, Matrix.Translation(0, 0, cameraZoom) * Matrix.RotationYawPitchRoll(-cameraYawPitch.X, -cameraYawPitch.Y, 0));
+                pos += cameraPosition;
+
+                sur.RenderSurCenters(device, MeshGroups, pos);
             }
 
             ShowHardpoint();
@@ -3022,6 +3035,11 @@ namespace UTFEditor
         {
             surDisplay = SurDisplay.Opaque;
             ResetSurVisibilityCheckboxes();
+        }
+
+        private void centersToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            centersToolStripMenuItem.Checked = !centersToolStripMenuItem.Checked;
         }
 
         private void CloseFuseEditor(bool close)
