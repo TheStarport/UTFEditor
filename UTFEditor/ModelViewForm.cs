@@ -418,7 +418,7 @@ namespace UTFEditor
 
         public ModelViewForm(UTFForm parent, TreeView utf, string directoryPath)
         {
-            this.sur = parent.SUR;
+            this.sur = parent.SurFile;
             this.parent = parent;
             this.utf = utf;
             this.rootNode = utf.Nodes[0];

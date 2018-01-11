@@ -141,6 +141,13 @@ namespace UTFEditor
             return Encoding.ASCII.GetString(data, startIndex - maxLength, len);
         }
 
+        public static void WriteString(byte[] data, string s, ref int pos)
+        {
+            var sarr = Encoding.ASCII.GetBytes(s);
+            Array.Copy(sarr, 0, data, pos, sarr.Length);
+            pos += sarr.Length;
+        }
+
         public static float GetFloat(byte[] data, ref int pos)
         {
             pos += 4;
@@ -151,7 +158,6 @@ namespace UTFEditor
         {
             Array.Copy(BitConverter.GetBytes(input), 0, data, pos, 4);
             pos += 4;
-            return;
         }
 
         public static Int16 GetShort(byte[] data, ref int pos)
@@ -164,7 +170,6 @@ namespace UTFEditor
         {
             Array.Copy(BitConverter.GetBytes(input), 0, data, pos, 2);
             pos += 2;
-            return;
         }
 
         public static UInt16 GetWord(byte[] data, ref int pos)
@@ -178,7 +183,6 @@ namespace UTFEditor
             
             Array.Copy(BitConverter.GetBytes(input), 0, data, pos, 2);
             pos += 2;
-            return;
         }
 
         public static Int32 GetInt(byte[] data, ref int pos)
@@ -191,7 +195,6 @@ namespace UTFEditor
         {
             Array.Copy(BitConverter.GetBytes(input), 0, data, pos, 4);
             pos += 4;
-            return;
         }
 
         public static UInt32 GetDWord(byte[] data, ref int pos)
@@ -204,7 +207,6 @@ namespace UTFEditor
         {
             Array.Copy(BitConverter.GetBytes(input), 0, data, pos, 4);
             pos += 4;
-            return;
         }
 
         /// <summary>

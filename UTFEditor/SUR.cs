@@ -74,7 +74,7 @@ namespace UTFEditor
 
 			SurfaceSection ss = new SurfaceSection();
 			
-			while(pos < data.Length)
+			while (pos < data.Length)
 			{
 				string nextType = Utilities.GetString(data, ref pos, 4);
 				if(nextType == "hpid")

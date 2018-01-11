@@ -59,9 +59,7 @@ namespace UTFEditor
         /// </summary>
         UTFFile utfFile = new UTFFile();
 
-        SurFile surFile = null;
-
-        internal SurFile SUR => surFile;
+        internal SurFile SurFile { get; private set; } = null;
 
         /// <summary>
         /// The name of the UTF file.
@@ -121,11 +119,11 @@ namespace UTFEditor
             {
                 try
                 {
-                    surFile = new SurFile(surpath);
+                    SurFile = new SurFile(surpath);
                 }
                 catch(Exception)
                 {
-                    surFile = null;
+                    SurFile = null;
                     MessageBox.Show("Error while loading associated SUR file '" + surpath + "'.", "SUR Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
