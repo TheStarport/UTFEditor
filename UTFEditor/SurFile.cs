@@ -414,7 +414,12 @@ namespace UTFEditor
             device.SetTextureStageState(0, TextureStage.ColorArg2, TextureArgument.TFactor);
             device.SetTextureStageState(0, TextureStage.AlphaOperation, TextureOperation.SelectArg2);
             device.SetTextureStageState(0, TextureStage.AlphaArg2, TextureArgument.TFactor);
+            
+            device.SetRenderState(RenderState.TextureFactor, new SharpDX.Color(255, 0, 0, 255).ToBgra());
+            device.SetRenderState(RenderState.PointSize, 30.0f);
+            device.DrawUserPrimitives(PrimitiveType.PointList, 1, new SharpDX.Vector3[] { RootCenter });
 
+            int c = 1;
             Dictionary<uint, SharpDX.Matrix> meshgrouptransforms = new Dictionary<uint, SharpDX.Matrix>();
             foreach(var m in meshgroups)
             {
@@ -425,7 +430,6 @@ namespace UTFEditor
                     meshgrouptransforms[k] = m.Transform;
             }
 
-            int c = 0;
             foreach (var m in Meshes)
             {
                 if (meshgrouptransforms.ContainsKey(m.MeshId))
@@ -457,7 +461,7 @@ namespace UTFEditor
                 }
 
                 var color = colors[c % colors.Length];
-                device.SetRenderState(RenderState.TextureFactor, color.ToRgba());
+                device.SetRenderState(RenderState.TextureFactor, color.ToBgra());
 
                 device.DrawIndexedUserPrimitives(SharpDX.Direct3D9.PrimitiveType.TriangleList,
                     0, tmpVertices.Count, tmpTri.Count / 3, tmpTri.ToArray(), SharpDX.Direct3D9.Format.Index32, tmpVertices.ToArray());
