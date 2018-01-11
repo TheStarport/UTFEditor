@@ -1397,5 +1397,66 @@ namespace UTFEditor
                 }
             }
         }
+
+        private void editMeshIDsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            UTFForm childForm = this.MdiChildren[0] as UTFForm;
+
+            if (childForm.SurFile != null)
+            {
+                var meshGroups = new List<string>();
+
+                // Find Cons(truct) nodes. They contain data that links each mesh to the
+                // root mesh.
+                var mapFileToObj = new Dictionary<string, string>();
+                mapFileToObj["\\"] = "Model";
+                foreach (TreeNode nodeObj in childForm.Tree.Nodes.Find("Object Name", true))
+                {
+                    foreach (TreeNode nodeFileName in nodeObj.Parent.Nodes.Find("File Name", false))
+                    {
+                        string objectName = Utilities.GetString(nodeObj);
+                        string fileName = Utilities.GetString(nodeFileName);
+                        mapFileToObj[fileName] = objectName;
+                    }
+                }
+
+                // Scan the level 0 VMeshRefs to build mesh group list for each 
+                // of the construction nodes identified in the previous search.
+                foreach (TreeNode node in childForm.Tree.Nodes.Find("VMeshRef", true))
+                {
+                    try
+                    {
+                        // Test for LevelN\VMeshData\VMeshRef.
+                        TreeNode fileNode = node.Parent.Parent;
+                        string levelName = fileNode.Name;
+                        string fileName;
+                        if (levelName.StartsWith("Level", StringComparison.OrdinalIgnoreCase))
+                        {
+                            // Okay, back up to filename\MultiLevel\LevelN
+                            fileNode = fileNode.Parent.Parent;
+                            fileName = fileNode.Name;
+                        }
+                        else
+                        {
+                            // No, it's directly under the file.
+                            fileName = levelName;
+                            levelName = "Level0";
+                        }
+
+                        meshGroups.Add(mapFileToObj[fileName]);
+                    }
+                    catch
+                    {
+                        return;
+                    }
+                }
+
+                EditSurMeshIdsForm esmidf = new EditSurMeshIdsForm(childForm.SurFile, meshGroups);
+                if (esmidf.ShowDialog() == DialogResult.OK)
+                {
+                    childForm.SurFile.Save();
+                }
+            }
+        }
     }
 }
