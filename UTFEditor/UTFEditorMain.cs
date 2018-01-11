@@ -1381,5 +1381,21 @@ namespace UTFEditor
                 }
             }
         }
+
+        private void editLeadIndicatorToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            UTFForm childForm = this.MdiChildren[0] as UTFForm;
+
+            if(childForm.SurFile != null)
+            {
+                var c = childForm.SurFile.RootCenter;
+                EditVectorForm evf = new EditVectorForm(c.X, c.Y, c.Z);
+                if(evf.ShowDialog() == DialogResult.OK)
+                {
+                    childForm.SurFile.UpdateRootCenter(evf.X, evf.Y, evf.Z);
+                    childForm.SurFile.Save();
+                }
+            }
+        }
     }
 }

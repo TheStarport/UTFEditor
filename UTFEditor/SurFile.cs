@@ -74,7 +74,20 @@ namespace UTFEditor
             public List<SurfaceSection> SurfaceSections;
         }
 
-        List<Mesh> Meshes = new List<Mesh>();
+        public List<Mesh> Meshes { get; private set; } = new List<Mesh>();
+
+        public SharpDX.Vector3 RootCenter => Meshes[0].SurfaceSections[0].Center;
+
+        public void UpdateRootCenter(float x, float y, float z)
+        {
+            var m = Meshes[0];
+
+            var ss = m.SurfaceSections[0];
+            ss.Center = new SharpDX.Vector3(x, y, z);
+            m.SurfaceSections[0] = ss;
+
+            Meshes[0] = m;
+        }
 
         public string FilePath;
 
@@ -104,10 +117,12 @@ namespace UTFEditor
 
             while (pos < data.Length)
             {
-                Mesh m = new Mesh();
-                m.HardpointSections = new List<HardpointSection>();
-                m.SurfaceSections = new List<SurfaceSection>();
-                m.MeshId = Utilities.GetDWord(data, ref pos);
+                Mesh m = new Mesh
+                {
+                    HardpointSections = new List<HardpointSection>(),
+                    SurfaceSections = new List<SurfaceSection>(),
+                    MeshId = Utilities.GetDWord(data, ref pos)
+                };
                 uint blockCount = Utilities.GetDWord(data, ref pos);
 
                 while (blockCount-- > 0)
@@ -115,8 +130,10 @@ namespace UTFEditor
                     string nextType = Utilities.GetString(data, ref pos, 4);
                     if (nextType == "hpid")
                     {
-                        HardpointSection hps = new HardpointSection();
-                        hps.MeshIdCount = Utilities.GetDWord(data, ref pos);
+                        HardpointSection hps = new HardpointSection
+                        {
+                            MeshIdCount = Utilities.GetDWord(data, ref pos)
+                        };
                         hps.MeshIds = new uint[hps.MeshIdCount];
                         for (int a = 0; a < hps.MeshIdCount; a++)
                             hps.MeshIds[a] = Utilities.GetDWord(data, ref pos);
@@ -170,7 +187,8 @@ namespace UTFEditor
                             tgh.MeshId = Utilities.GetDWord(data, ref pos);
                             tgh.Type = data[pos];
                             tgh.RefVertexCount = Utilities.GetDWord(data, ref pos) >> 8;
-                            tgh.TriangleCount = Utilities.GetShort(data, ref pos); pos += 2;
+                            tgh.TriangleCount = Utilities.GetShort(data, ref pos);
+                            pos += 2;
                             tgh.Triangles = new Triangle[tgh.TriangleCount];
 
                             vertBufStart = group_pos + (int)tgh.VertexOffset;
@@ -225,7 +243,159 @@ namespace UTFEditor
             }
         }
 
-        public void RenderSur(SharpDX.Direct3D9.Device device, List<ModelViewForm.MeshGroup> meshgroups)
+        public void Save(string filePath = null)
+        {
+            if (filePath == null)
+                filePath = FilePath + ".2.sur";
+
+            int pos = 0;
+            byte[] data = new byte[4096];
+
+            Utilities.WriteString(data, VersionString, ref pos);
+            Utilities.WriteFloat(data, VersionNumber, ref pos);
+
+            bool first = true;
+
+            foreach(var m in Meshes)
+            {
+                // Id, block count, !fxd, exts
+                int basicSize = 4 + 4 + 4 + 4 + 2 * 3 * 4;
+                while (pos + basicSize > data.Length)
+                    Array.Resize(ref data, data.Length * 2);
+
+                Utilities.WriteDWord(data, m.MeshId, ref pos);
+
+                int blockCount = m.HardpointSections.Count + (FixedFlag != string.Empty ? 1 : 0) + 1 + m.SurfaceSections.Count;
+
+                Utilities.WriteDWord(data, (uint)blockCount, ref pos);
+
+                if (first && FixedFlag != string.Empty)
+                    Utilities.WriteString(data, FixedFlag, ref pos);
+
+                Utilities.WriteString(data, "exts", ref pos);
+
+                foreach(var v in m.BoundingBox)
+                {
+                    Utilities.WriteFloat(data, v.X, ref pos);
+                    Utilities.WriteFloat(data, v.Y, ref pos);
+                    Utilities.WriteFloat(data, v.Z, ref pos);
+                }
+
+                foreach(var s in m.SurfaceSections)
+                {
+                    // surf, size, center, inertia, radius, scale, size, bits, padding
+                    int ssSize = 4 + 4 + 3 * 4 + 3 * 4 + 4 + 1 + 4 + 4 + 3 * 4;
+                    while (pos + ssSize > data.Length)
+                        Array.Resize(ref data, data.Length * 2);
+
+                    Utilities.WriteString(data, "surf", ref pos);
+
+                    Utilities.WriteDWord(data, 0, ref pos);
+
+                    int headerPos = pos;
+
+                    Utilities.WriteFloat(data, s.Center.X, ref pos);
+                    Utilities.WriteFloat(data, s.Center.Y, ref pos);
+                    Utilities.WriteFloat(data, s.Center.Z, ref pos);
+
+                    Utilities.WriteFloat(data, s.Inertia.X, ref pos);
+                    Utilities.WriteFloat(data, s.Inertia.Y, ref pos);
+                    Utilities.WriteFloat(data, s.Inertia.Z, ref pos);
+
+                    Utilities.WriteFloat(data, s.Radius, ref pos);
+                    data[pos] = (byte)(s.Scale * 250.0f);
+                    Utilities.WriteDWord(data, s.Size << 8, ref pos);
+                    Utilities.WriteDWord(data, s.BitsSectionOffset, ref pos);
+
+                    // padding
+                    pos += 3 * sizeof(uint);
+
+                    foreach(var tg in s.TriangleGroups)
+                    {
+                        int tgSize = 4 + 4 + 1 + 4 + 2 + 2;
+                        while (pos + tgSize > data.Length)
+                            Array.Resize(ref data, data.Length * 2);
+
+                        int groupPos = pos;
+
+                        Utilities.WriteDWord(data, tg.VertexOffset, ref pos);
+                        Utilities.WriteDWord(data, tg.MeshId, ref pos);
+                        data[pos] = tg.Type;
+                        Utilities.WriteDWord(data, tg.RefVertexCount << 8, ref pos);
+                        Utilities.WriteShort(data, tg.TriangleCount, ref pos);
+                        pos += 2;
+
+                        foreach(var t in tg.Triangles)
+                        {
+                            int tSize = (12 + 12 + 7 + 1 + 3 * (16 + 15 + 1)) / 8;
+                            while (pos + tSize > data.Length)
+                                Array.Resize(ref data, data.Length * 2);
+
+                            BitArray br = new BitArray(tSize * 8);
+                            int bitpos = 0;
+
+                            Store(br, t.TriangleNumber, 12, ref bitpos);
+                            Store(br, t.TriangleOpp, 12, ref bitpos);
+                            bitpos += 7;
+                            Store(br, t.Flag, 1, ref bitpos);
+                            foreach(var i in t.Indices)
+                            {
+                                Store(br, i.VertexId, sizeof(ushort) * 8, ref bitpos);
+                                Store(br, (ulong)i.Offset, 15, ref bitpos);
+                                Store(br, i.Flag, 1, ref bitpos);
+                            }
+
+                            br.CopyTo(data, pos);
+                            pos += tSize;
+                        }
+                    }
+
+                    // x, y, z, id
+                    int vSize = 4 * 4 * s.Vertices.Count;
+                    while (pos + vSize > data.Length)
+                        Array.Resize(ref data, data.Length * 2);
+
+                    foreach (var v in s.Vertices)
+                    {
+                        Utilities.WriteFloat(data, v.X, ref pos);
+                        Utilities.WriteFloat(data, v.Y, ref pos);
+                        Utilities.WriteFloat(data, v.Z, ref pos);
+                        Utilities.WriteDWord(data, v.MeshId, ref pos);
+                    }
+
+                    pos = headerPos + (int)s.Size;
+                    
+                    while (pos > data.Length)
+                        Array.Resize(ref data, data.Length * 2);
+
+                    headerPos -= 4;
+                    Utilities.WriteDWord(data, (uint)(pos - headerPos - 4), ref headerPos);
+                }
+
+                foreach(var h in m.HardpointSections)
+                {
+                    // hpid, count, list of ids
+                    uint hpSize = 4 + 4 + 4 * h.MeshIdCount;
+                    if (pos + hpSize > data.Length)
+                        Array.Resize(ref data, data.Length * 2);
+
+                    Utilities.WriteString(data, "hpid", ref pos);
+
+                    Utilities.WriteDWord(data, h.MeshIdCount, ref pos);
+                    for (int a = 0; a < h.MeshIdCount; a++)
+                        Utilities.WriteDWord(data, h.MeshIds[a], ref pos);
+                }
+
+                first = false;
+            }
+
+            using (FileStream fs = new FileStream(filePath, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite))
+            {
+                fs.Write(data, 0, pos);
+            }
+        }
+
+        public void RenderSur(Device device, List<ModelViewForm.MeshGroup> meshgroups)
         {
             var colors = new SharpDX.Color[]
             {
@@ -306,6 +476,16 @@ namespace UTFEditor
             }
             pos += length;
             return output;
+        }
+
+        private static void Store(BitArray br, UInt64 input, int length, ref int pos)
+        {
+            for (int a = 0; a < length; a++)
+            {
+                br.Set(pos + a, (input & 1) == 1);
+                input >>= 1;
+            }
+            pos += length;
         }
     }
 }
