@@ -397,7 +397,7 @@ namespace UTFEditor
 
         public void RenderSur(Device device, List<ModelViewForm.MeshGroup> meshgroups)
         {
-            var maincolor = new SharpDX.Color(255, 0, 0, 255);
+            var badcolor = new SharpDX.Color(255, 255, 255, 50);
             var colors = new SharpDX.Color[]
             {
                 new SharpDX.Color(230, 25, 75, 50),
@@ -449,7 +449,7 @@ namespace UTFEditor
 
             foreach (var m in Meshes)
             {
-                if (!meshgroupdisplay.Contains(m.MeshId))
+                if (!meshgroupdisplay.Contains(m.MeshId) && meshgrouptransforms.ContainsKey(m.MeshId))
                 {
                     c++;
                     continue;
@@ -457,7 +457,7 @@ namespace UTFEditor
 
                 if (meshgrouptransforms.ContainsKey(m.MeshId))
                     device.SetTransform(TransformState.World, meshgrouptransforms[m.MeshId]);
-                else
+                else // Problematic, need to warn user
                     device.SetTransform(TransformState.World, SharpDX.Matrix.Identity);
 
                 List<SharpDX.Vector3> tmpVertices = new List<SharpDX.Vector3>();
@@ -483,7 +483,7 @@ namespace UTFEditor
                     }
                 }
 
-                var color = colors[c % colors.Length];
+                var color = meshgrouptransforms.ContainsKey(m.MeshId) ? colors[c % colors.Length] : badcolor;
                 device.SetRenderState(RenderState.TextureFactor, color.ToBgra());
 
                 device.DrawIndexedUserPrimitives(SharpDX.Direct3D9.PrimitiveType.TriangleList,
@@ -495,7 +495,7 @@ namespace UTFEditor
 
         public void RenderSurCenters(Device device, List<ModelViewForm.MeshGroup> meshgroups, SharpDX.Vector3 cameraPos)
         {
-            var maincolor = new SharpDX.Color(255, 0, 0, 255);
+            var badcolor = new SharpDX.Color(255, 255, 255, 50);
             var colors = new SharpDX.Color[]
             {
                 new SharpDX.Color(230, 25, 75, 255),
@@ -549,7 +549,7 @@ namespace UTFEditor
 
             foreach (var m in Meshes)
             {
-                if (!meshgroupdisplay.Contains(m.MeshId))
+                if (!meshgroupdisplay.Contains(m.MeshId) && meshgrouptransforms.ContainsKey(m.MeshId))
                 {
                     c++;
                     continue;
@@ -562,7 +562,7 @@ namespace UTFEditor
 
                 foreach (var s in m.SurfaceSections)
                 {
-                    var color = m.MeshId == Meshes[0].MeshId && s.Center == Meshes[0].SurfaceSections[0].Center ? maincolor : colors[c % colors.Length];
+                    var color = meshgrouptransforms.ContainsKey(m.MeshId) ? colors[c % colors.Length] : badcolor;
                     points.Add(new Tuple<SharpDX.Vector3, int>(SharpDX.Vector3.TransformCoordinate(s.Center, mat), color.ToBgra()));
 
                 }
