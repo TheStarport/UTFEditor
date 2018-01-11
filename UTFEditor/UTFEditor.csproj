@@ -135,6 +135,12 @@
     <Compile Include="EditColorForm.Designer.cs">
       <DependentUpon>EditColorForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="EditSurMeshIdsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="EditSurMeshIdsForm.Designer.cs">
+      <DependentUpon>EditSurMeshIdsForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="EditVectorForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -280,6 +286,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="EditColorForm.resx">
       <DependentUpon>EditColorForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EditSurMeshIdsForm.resx">
+      <DependentUpon>EditSurMeshIdsForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="EditVectorForm.resx">
       <DependentUpon>EditVectorForm.cs</DependentUpon>
