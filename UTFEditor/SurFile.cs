@@ -11,7 +11,6 @@ namespace UTFEditor
     {
         public string VersionString;
         public float VersionNumber;
-        public string FixedFlag;
 
         public struct HardpointSection
         {
@@ -40,6 +39,10 @@ namespace UTFEditor
 
             public List<TriangleGroup> TriangleGroups;
             public List<Vertex> Vertices;
+            public List<Bit> Bits;
+
+            public Dictionary<int, int> TriangleOffsets;
+            public Dictionary<int, int> TriangleOffsetsReverse;
         }
 
         public struct Triangle
@@ -63,10 +66,20 @@ namespace UTFEditor
             public float Y;
             public float Z;
             public UInt32 MeshId; // Reference to the Triangle Group Header Section (MeshId)
-        };
+        }
+
+        public struct Bit
+        {
+            public int OffsetToNextSibling;
+            public int OffsetToTriangles;
+            public float X, Y, Z;
+            public float Radius;
+            public float ScaleX, ScaleY, ScaleZ;
+        }
 
         public struct Mesh
         {
+            public string FixedFlag;
             public uint MeshId;
 
             public SharpDX.Vector3[] BoundingBox;
@@ -140,7 +153,7 @@ namespace UTFEditor
                         m.HardpointSections.Add(hps);
                     }
                     else if (nextType == "!fxd")
-                        FixedFlag = nextType;
+                        m.FixedFlag = nextType;
                     else if (nextType == "exts")
                     {
                         m.BoundingBox = new SharpDX.Vector3[2];
@@ -170,6 +183,9 @@ namespace UTFEditor
                         ss.BitsSectionOffset = Utilities.GetDWord(data, ref pos);
                         ss.TriangleGroups = new List<TriangleGroup>();
                         ss.Vertices = new List<Vertex>();
+                        ss.TriangleOffsets = new Dictionary<int, int>();
+                        ss.TriangleOffsetsReverse = new Dictionary<int, int>();
+                        ss.Bits = new List<Bit>();
 
                         uint bits_beg = header_pos + ss.BitsSectionOffset;
                         uint bits_end = header_pos + ss.Size;
@@ -177,10 +193,16 @@ namespace UTFEditor
                         // padding
                         pos += 3 * sizeof(uint);
 
+                        int triangles = 0;
+
                         int vertBufStart = data.Length;
                         while (pos < vertBufStart)
                         {
+                            triangles++;
                             TriangleGroup tgh = new TriangleGroup();
+
+                            ss.TriangleOffsets[pos] = triangles;
+                            ss.TriangleOffsetsReverse[triangles] = pos;
 
                             int group_pos = pos;
                             tgh.VertexOffset = Utilities.GetDWord(data, ref pos);
@@ -188,6 +210,7 @@ namespace UTFEditor
                             tgh.Type = data[pos];
                             tgh.RefVertexCount = Utilities.GetDWord(data, ref pos) >> 8;
                             tgh.TriangleCount = Utilities.GetShort(data, ref pos);
+
                             pos += 2;
                             tgh.Triangles = new Triangle[tgh.TriangleCount];
 
@@ -232,6 +255,35 @@ namespace UTFEditor
                             ss.Vertices.Add(vertex);
                         }
 
+                        pos = (int)bits_beg;
+
+                        int bits = 0;
+
+                        while(pos < bits_end)
+                        {
+                            bits++;
+
+                            int bitpos = pos;
+
+                            Bit bit = new Bit();
+                            bit.OffsetToNextSibling = Utilities.GetInt(data, ref pos);
+                            bit.OffsetToTriangles = Utilities.GetInt(data, ref pos);
+                            bit.X = Utilities.GetFloat(data, ref pos);
+                            bit.Y = Utilities.GetFloat(data, ref pos);
+                            bit.Z = Utilities.GetFloat(data, ref pos);
+                            bit.Radius = Utilities.GetFloat(data, ref pos);
+                            bit.ScaleX = data[pos] / 250.0f; pos++;
+                            bit.ScaleY = data[pos] / 250.0f; pos++;
+                            bit.ScaleZ = data[pos] / 250.0f; pos += 2;
+
+                            if(bit.OffsetToNextSibling != 0)
+                                bit.OffsetToNextSibling = bit.OffsetToNextSibling / (4 + 4 + 3 * 4 + 4 + 3 + 1) + bits;
+                            if (bit.OffsetToTriangles != 0)
+                                ss.TriangleOffsets.TryGetValue(bit.OffsetToTriangles + bitpos, out bit.OffsetToTriangles);
+
+                            ss.Bits.Add(bit);
+                        }
+
                         m.SurfaceSections.Add(ss);
 
                         pos = (int)bits_end;
@@ -265,12 +317,12 @@ namespace UTFEditor
 
                 Utilities.WriteDWord(data, m.MeshId, ref pos);
 
-                int blockCount = m.HardpointSections.Count + (FixedFlag != string.Empty ? 1 : 0) + 1 + m.SurfaceSections.Count;
+                int blockCount = m.HardpointSections.Count + (m.FixedFlag != string.Empty ? 1 : 0) + 1 + m.SurfaceSections.Count;
 
                 Utilities.WriteDWord(data, (uint)blockCount, ref pos);
 
-                if (first && FixedFlag != string.Empty)
-                    Utilities.WriteString(data, FixedFlag, ref pos);
+                if (!string.IsNullOrEmpty(m.FixedFlag))
+                    Utilities.WriteString(data, m.FixedFlag, ref pos);
 
                 Utilities.WriteString(data, "exts", ref pos);
 
@@ -303,8 +355,8 @@ namespace UTFEditor
                     Utilities.WriteFloat(data, s.Inertia.Z, ref pos);
 
                     Utilities.WriteFloat(data, s.Radius, ref pos);
-                    data[pos] = (byte)(s.Scale * 250.0f);
                     Utilities.WriteDWord(data, s.Size << 8, ref pos);
+                    data[pos - 4] = (byte)(s.Scale * 250.0f);
                     Utilities.WriteDWord(data, s.BitsSectionOffset, ref pos);
 
                     // padding
@@ -320,8 +372,8 @@ namespace UTFEditor
 
                         Utilities.WriteDWord(data, tg.VertexOffset, ref pos);
                         Utilities.WriteDWord(data, tg.MeshId, ref pos);
-                        data[pos] = tg.Type;
                         Utilities.WriteDWord(data, tg.RefVertexCount << 8, ref pos);
+                        data[pos - 4] = tg.Type;
                         Utilities.WriteShort(data, tg.TriangleCount, ref pos);
                         pos += 2;
 

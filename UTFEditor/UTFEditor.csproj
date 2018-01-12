@@ -250,7 +250,6 @@
     <Compile Include="RenameNodeForm.Designer.cs">
       <DependentUpon>RenameNodeForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="SUR.cs" />
     <Compile Include="SurFile.cs" />
     <Compile Include="ThnParse.cs" />
     <Compile Include="Timeline.cs">
