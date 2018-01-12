@@ -301,7 +301,7 @@ namespace UTFEditor
         public void Save(string filePath = null)
         {
             if (filePath == null)
-                filePath = FilePath + ".2.sur";
+                filePath = FilePath;
 
             int pos = 0;
             byte[] data = new byte[4096];
