@@ -75,6 +75,8 @@ namespace UTFEditor
             public float X, Y, Z;
             public float Radius;
             public float ScaleX, ScaleY, ScaleZ;
+
+            public int N;
         }
 
         public struct Mesh
@@ -266,6 +268,7 @@ namespace UTFEditor
                             int bitpos = pos;
 
                             Bit bit = new Bit();
+                            bit.N = bits;
                             bit.OffsetToNextSibling = Utilities.GetInt(data, ref pos);
                             bit.OffsetToTriangles = Utilities.GetInt(data, ref pos);
                             bit.X = Utilities.GetFloat(data, ref pos);
@@ -306,8 +309,6 @@ namespace UTFEditor
             Utilities.WriteString(data, VersionString, ref pos);
             Utilities.WriteFloat(data, VersionNumber, ref pos);
 
-            bool first = true;
-
             foreach(var m in Meshes)
             {
                 // Id, block count, !fxd, exts
@@ -317,7 +318,7 @@ namespace UTFEditor
 
                 Utilities.WriteDWord(data, m.MeshId, ref pos);
 
-                int blockCount = m.HardpointSections.Count + (m.FixedFlag != string.Empty ? 1 : 0) + 1 + m.SurfaceSections.Count;
+                int blockCount = m.HardpointSections.Count + (!string.IsNullOrEmpty(m.FixedFlag) ? 1 : 0) + 1 + m.SurfaceSections.Count;
 
                 Utilities.WriteDWord(data, (uint)blockCount, ref pos);
 
@@ -356,7 +357,7 @@ namespace UTFEditor
 
                     Utilities.WriteFloat(data, s.Radius, ref pos);
                     Utilities.WriteDWord(data, s.Size << 8, ref pos);
-                    data[pos - 4] = (byte)(s.Scale * 250.0f);
+                    data[pos - 4] = (byte)(s.Scale * 250.0f + 0.05f / 250.0f);
                     Utilities.WriteDWord(data, s.BitsSectionOffset, ref pos);
 
                     // padding
@@ -415,6 +416,30 @@ namespace UTFEditor
                         Utilities.WriteDWord(data, v.MeshId, ref pos);
                     }
 
+                    foreach(var b in s.Bits)
+                    {
+                        int bSize = 4 + 4 + 3 * 4 + 4 + 1 * 3;
+                        while (pos + bSize > data.Length)
+                            Array.Resize(ref data, data.Length * 2);
+
+                        int sib = 0, tri = 0;
+
+                        if (b.OffsetToNextSibling != 0)
+                            sib = (b.OffsetToNextSibling - b.N) * (4 + 4 + 3 * 4 + 4 + 3 + 1);
+                        if (b.OffsetToTriangles != 0)
+                            tri = s.TriangleOffsetsReverse[b.OffsetToTriangles] - pos;
+
+                        Utilities.WriteInt(data, sib, ref pos);
+                        Utilities.WriteInt(data, tri, ref pos);
+                        Utilities.WriteFloat(data, b.X, ref pos);
+                        Utilities.WriteFloat(data, b.Y, ref pos);
+                        Utilities.WriteFloat(data, b.Z, ref pos);
+                        Utilities.WriteFloat(data, b.Radius, ref pos);
+                        data[pos] = (byte)(b.ScaleX * 250.0f + 0.05f / 250.0f); pos++;
+                        data[pos] = (byte)(b.ScaleY * 250.0f + 0.05f / 250.0f); pos++;
+                        data[pos] = (byte)(b.ScaleZ * 250.0f + 0.05f / 250.0f); pos += 2;
+                    }
+
                     pos = headerPos + (int)s.Size;
                     
                     while (pos > data.Length)
@@ -437,8 +462,6 @@ namespace UTFEditor
                     for (int a = 0; a < h.MeshIdCount; a++)
                         Utilities.WriteDWord(data, h.MeshIds[a], ref pos);
                 }
-
-                first = false;
             }
 
             using (FileStream fs = new FileStream(filePath, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite))
