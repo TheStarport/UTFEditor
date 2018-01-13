@@ -34,7 +34,7 @@ namespace UTFEditor
         // vertex definition - 32 bytes
         public struct TVertex
         {
-            public uint FVF;
+            public FVF FVF;
             public float X;
             public float Y;
             public float Z;
@@ -175,7 +175,7 @@ namespace UTFEditor
                 for (int count = 0; count < NumVertices; count++)
                 {                 
                     TVertex item = new TVertex();
-                    item.FVF = FlexibleVertexFormat;
+                    item.FVF = (FVF)FlexibleVertexFormat;
                     item.X = Utilities.GetFloat(data, ref pos);
                     item.Y = Utilities.GetFloat(data, ref pos);
                     item.Z = Utilities.GetFloat(data, ref pos);

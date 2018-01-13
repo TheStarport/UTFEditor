@@ -33,24 +33,16 @@ namespace UTFEditor
 
     public static class SharpDXInterop
     {
-        public static int ToArgb(this SharpDX.Color c)
+        public static uint ToArgb(this SharpDX.Color color)
         {
-            uint value = c.A;
-            value |= (uint)c.R << 8;
-            value |= (uint)c.G << 16;
-            value |= (uint)c.B << 24;
-
-            return (int)value;
+            return ((uint)(color.B << 24) | (uint)(color.G << 16) |
+                    (uint)(color.R << 8) | (uint)(color.A << 0));
         }
 
-        public static int ToRgba(this System.Drawing.Color c)
+        public static uint ToRgba(this System.Drawing.Color color)
         {
-            uint value = c.R;
-            value |= (uint)c.G << 8;
-            value |= (uint)c.B << 16;
-            value |= (uint)c.A << 24;
-
-            return (int)value;
+            return ((uint)(color.A << 24) | (uint)(color.B << 16) |
+                    (uint)(color.G << 8) | (uint)(color.R << 0));
         }
 
         public static Matrix ToMatrix(this HardpointData hp)
@@ -96,14 +88,14 @@ namespace UTFEditor
 
     class Utilities
     {
-        public static void ComputeBoundingBox<T>(T[] verts, out SharpDX.Vector3 min, out SharpDX.Vector3 max) where T : IVertexFormat
+        public static void ComputeBoundingBox(CommonVertex[] verts, out SharpDX.Vector3 min, out SharpDX.Vector3 max)
         {
             min = new Vector3(float.MaxValue);
             max = new Vector3(float.MaxValue);
 
             foreach(var v in verts)
             {
-                var p = v.GetPosition();
+                var p = v.Position;
 
                 if (p.X < min.X)
                     min.X = p.X;
@@ -542,71 +534,56 @@ namespace UTFEditor
         }
     }
 
-    public interface IVertexFormat
+    public struct CommonVertex
     {
-        SharpDX.Vector3 GetPosition();
-        int StrideV { get; }
-        SharpDX.Direct3D9.VertexFormat FormatV { get; }
+        public Vector3 Position, Normal;
+        public uint Diffuse;
+        public Vector2 UV;
+
+        public static int Stride => sizeof(float) * 3 * 2 + sizeof(uint) * 1 + sizeof(float) * 2 * 1;
+        public static SharpDX.Direct3D9.VertexFormat Format => SharpDX.Direct3D9.VertexFormat.Position | SharpDX.Direct3D9.VertexFormat.Diffuse | SharpDX.Direct3D9.VertexFormat.Normal | SharpDX.Direct3D9.VertexFormat.Texture1;
+
+        public CommonVertex(Vector3 pos)
+        {
+            Position = pos;
+
+            Normal = new Vector3();
+            UV = new Vector2();
+            Diffuse = uint.MaxValue;
+        }
+
+        public CommonVertex(float x, float y, float z)
+            : this(new Vector3(x, y, z))
+        { }
     }
 
-    public struct VertexPositionColor : IVertexFormat
+    [Flags]
+    public enum FVF
     {
-        public SharpDX.Vector3 position;
-        public SharpDX.Color color;
+        XYZ              = 0x002,
+        XYZRHW           = 0x004,
+        XYZB1            = 0x006,
+        XYZB2            = 0x008,
+        XYZB3            = 0x00a,
+        XYZB4            = 0x00c,
+        XYZB5            = 0x00e,
+        XYZW             = 0x4002,
 
-        public static int Stride => 3 * sizeof(float) + sizeof(uint);
-        public int StrideV => Stride;
+        NORMAL           = 0x010,
+        PSIZE            = 0x020,
+        DIFFUSE          = 0x040,
+        SPECULAR         = 0x080,
 
-        public static SharpDX.Direct3D9.VertexFormat Format => SharpDX.Direct3D9.VertexFormat.Position | SharpDX.Direct3D9.VertexFormat.Diffuse;
-        public SharpDX.Direct3D9.VertexFormat FormatV => Format;
-
-        public VertexPositionColor(SharpDX.Vector3 p, SharpDX.Color c)
-        {
-            position = p;
-            color = c;
-        }
-
-        public VertexPositionColor(float x, float y, float z, uint c)
-        {
-            position = new SharpDX.Vector3(x, y, z);
-            color = new SharpDX.Color(c);
-        }
-
-        public Vector3 GetPosition()
-        {
-            return position;
-        }
-    }
-
-    public struct VertexPositionNormalTexture : IVertexFormat
-    {
-        public SharpDX.Vector3 position;
-        public SharpDX.Vector3 normal;
-        public SharpDX.Vector2 uv;
-
-        public static int Stride => 3 * sizeof(float) + 3 * sizeof(float) + 2 * sizeof(float);
-        public int StrideV => Stride;
-
-        public static SharpDX.Direct3D9.VertexFormat Format => SharpDX.Direct3D9.VertexFormat.Position | SharpDX.Direct3D9.VertexFormat.Normal | SharpDX.Direct3D9.VertexFormat.Texture1;
-        public SharpDX.Direct3D9.VertexFormat FormatV => Format;
-
-        public VertexPositionNormalTexture(SharpDX.Vector3 p, SharpDX.Vector3 n, SharpDX.Vector2 t)
-        {
-            position = p;
-            normal = n;
-            uv = t;
-        }
-
-        public VertexPositionNormalTexture(float x, float y, float z, float nx, float ny, float nz, float u, float v)
-        {
-            position = new SharpDX.Vector3(x, y, z);
-            normal = new SharpDX.Vector3(nx, ny, nz);
-            uv = new SharpDX.Vector2(u, v);
-        }
-
-        public Vector3 GetPosition()
-        {
-            return position;
-        }
+        TEXCOUNT_MASK    = 0xf00,
+        TEXCOUNT_SHIFT   = 8,
+        TEX0             = 0x000,
+        TEX1             = 0x100,
+        TEX2             = 0x200,
+        TEX3             = 0x300,
+        TEX4             = 0x400,
+        TEX5             = 0x500,
+        TEX6             = 0x600,
+        TEX7             = 0x700,
+        TEX8             = 0x800,
     }
 }

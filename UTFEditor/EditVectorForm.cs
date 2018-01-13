@@ -18,8 +18,7 @@ namespace UTFEditor
         public float X => ParseOrZero(textBox1.Text);
         public float Y => ParseOrZero(textBox2.Text);
         public float Z => ParseOrZero(textBox3.Text);
-
-        TreeNode node;
+        
         public EditVectorForm(float x, float y, float z)
         {
             InitializeComponent();

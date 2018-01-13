@@ -180,19 +180,19 @@ namespace UTFEditor
             public VWireData WireData;
             public Matrix Transform;
             public MeshDataBuffer MeshDataBuffer;
-            public SimpleMesh<VertexPositionNormalTexture>[] M;
+            public SimpleMesh[] M;
             public BoundingBox[] B;
 		};
 
 		public struct MeshGroupDisplayInfo
 		{
 			public bool Display;
-			//public string Name;
 			public int Level;
 			public ShadingMode Shading;
-			public Color Color;
-			public TextureMode Texture;
-			public bool Wire;
+			public Color ColorOverride;
+			public ChannelMode Channel;
+            public bool ChannelColor, ChannelTexture;
+            public bool VertexColor;
 		}
 
 		public enum ShadingMode
@@ -202,12 +202,11 @@ namespace UTFEditor
 			Smooth
 		}
 		
-		public enum TextureMode
+		public enum ChannelMode
 		{
-			TextureColor,
-			Texture,
-			Color,
-			None
+            Diffuse,
+            Emissive,
+            Opacity
 		}
 
         /// <summary>
@@ -222,7 +221,7 @@ namespace UTFEditor
         {
             public uint crc;
             public VMeshData VMeshData;
-            public VertexPositionNormalTexture[] V;
+            public CommonVertex[] V;
             public UInt16[] I;
         }
 
@@ -275,57 +274,57 @@ namespace UTFEditor
             public float min;
 
             // Define the vertices for the hardpoint display.
-            static public VertexPositionColor[] displayvertices =
+            static public CommonVertex[] displayvertices =
             {
                 // Dummy central vertex
                 
-                new VertexPositionColor( 0, 0, 0, 0),
+                new CommonVertex(0, 0, 0) { Diffuse = 0 },
                 
                 // Central white cube
                 
-                new VertexPositionColor( -0.5f, -0.5f,  -0.5f, 0x666666),
-                new VertexPositionColor( -0.5f, 0.5f,  -0.5f, 0x666666),
-                new VertexPositionColor( 0.5f, 0.5f,  -0.5f, 0x888888),
-                new VertexPositionColor( 0.5f, -0.5f,  -0.5f, 0x888888),
-                new VertexPositionColor( -0.5f, -0.5f,  0.5f, 0xaaaaaa),
-                new VertexPositionColor( 0.5f, -0.5f,  0.5f, 0xaaaaaa),
-                new VertexPositionColor( 0.5f, 0.5f,  0.5f, 0xcccccc),
-                new VertexPositionColor( -0.5f, 0.5f,  0.5f, 0xcccccc),
+                new CommonVertex( -0.5f, -0.5f,  -0.5f) { Diffuse = 0x666666 },
+                new CommonVertex( -0.5f, 0.5f,  -0.5f) { Diffuse = 0x666666 },
+                new CommonVertex( 0.5f, 0.5f,  -0.5f) { Diffuse = 0x888888 },
+                new CommonVertex( 0.5f, -0.5f,  -0.5f) { Diffuse = 0x888888 },
+                new CommonVertex( -0.5f, -0.5f,  0.5f) { Diffuse = 0xaaaaaa },
+                new CommonVertex( 0.5f, -0.5f,  0.5f) { Diffuse = 0xaaaaaa },
+                new CommonVertex( 0.5f, 0.5f,  0.5f) { Diffuse = 0xcccccc },
+                new CommonVertex( -0.5f, 0.5f,  0.5f) { Diffuse = 0xcccccc },
                 
                 // Y axis
                 
-                new VertexPositionColor( -0.125f, -0.25f,  -0.125f, 0x00aa00),
-                new VertexPositionColor( -0.125f, 2.75f,  -0.125f, 0x00dd00),
-                new VertexPositionColor( 0.125f, 2.75f,  -0.125f, 0x00dd00),
-                new VertexPositionColor( 0.125f, -0.25f,  -0.125f, 0x00aa00),
-                new VertexPositionColor( -0.125f, -0.25f,  0.125f, 0x00aa00),
-                new VertexPositionColor( 0.125f, -0.25f,  0.125f, 0x00aa00),
-                new VertexPositionColor( 0.125f, 2.75f,  0.125f, 0x00dd00),
-                new VertexPositionColor( -0.125f, 2.75f,  0.125f, 0x00dd00),
+                new CommonVertex( -0.125f, -0.25f,  -0.125f) { Diffuse = 0x00aa00 },
+                new CommonVertex( -0.125f, 2.75f,  -0.125f) { Diffuse = 0x00dd00 },
+                new CommonVertex( 0.125f, 2.75f,  -0.125f) { Diffuse = 0x00dd00 },
+                new CommonVertex( 0.125f, -0.25f,  -0.125f) { Diffuse = 0x00aa00 },
+                new CommonVertex( -0.125f, -0.25f,  0.125f) { Diffuse = 0x00aa00 },
+                new CommonVertex( 0.125f, -0.25f,  0.125f) { Diffuse = 0x00aa00 },
+                new CommonVertex( 0.125f, 2.75f,  0.125f) { Diffuse = 0x00dd00 },
+                new CommonVertex( -0.125f, 2.75f,  0.125f) { Diffuse = 0x00dd00 },
                 
                 // X axis
                 
-                new VertexPositionColor( -0.25f, 0.125f,  -0.125f, 0xaa0000),
-                new VertexPositionColor( 2.75f, 0.125f,  -0.125f, 0xdd0000),
-                new VertexPositionColor( 2.75f, -0.125f,  -0.125f, 0xdd0000),
-                new VertexPositionColor( -0.25f, -0.125f,  -0.125f, 0xaa0000),
-                new VertexPositionColor( -0.25f, 0.125f,  0.125f, 0xaa0000),
-                new VertexPositionColor( -0.25f, -0.125f,  0.125f, 0xaa0000),
-                new VertexPositionColor( 2.75f, -0.125f,  0.125f, 0xdd0000),
-                new VertexPositionColor( 2.75f, 0.125f,  0.125f, 0xdd0000),
+                new CommonVertex( -0.25f, 0.125f,  -0.125f) { Diffuse = 0xaa0000 },
+                new CommonVertex( 2.75f, 0.125f,  -0.125f) { Diffuse = 0xdd0000 },
+                new CommonVertex( 2.75f, -0.125f,  -0.125f) { Diffuse = 0xdd0000 },
+                new CommonVertex( -0.25f, -0.125f,  -0.125f) { Diffuse = 0xaa0000 },
+                new CommonVertex( -0.25f, 0.125f,  0.125f) { Diffuse = 0xaa0000 },
+                new CommonVertex( -0.25f, -0.125f,  0.125f) { Diffuse = 0xaa0000 },
+                new CommonVertex( 2.75f, -0.125f,  0.125f) { Diffuse = 0xdd0000 },
+                new CommonVertex( 2.75f, 0.125f,  0.125f) { Diffuse = 0xdd0000 },
                 
                 // Z axis
                 
-                new VertexPositionColor( 0.125f, 0.125f,  0.25f, 0x0000aa),
-                new VertexPositionColor( 0.125f, 0.125f,  -2.75f, 0x0000dd),
-                new VertexPositionColor( 0.125f, -0.125f,  -2.75f, 0x0000dd),
-                new VertexPositionColor( 0.125f, -0.125f,  0.25f, 0x0000aa),
-                new VertexPositionColor( -0.125f, 0.125f,  0.25f, 0x0000aa),
-                new VertexPositionColor( -0.125f, -0.125f,  0.25f, 0x0000aa),
-                new VertexPositionColor( -0.125f, -0.125f,  -2.75f, 0x0000dd),
-                new VertexPositionColor( -0.125f, 0.125f,  -2.75f, 0x0000dd),
+                new CommonVertex( 0.125f, 0.125f,  0.25f) { Diffuse = 0x0000aa },
+                new CommonVertex( 0.125f, 0.125f,  -2.75f) { Diffuse = 0x0000dd },
+                new CommonVertex( 0.125f, -0.125f,  -2.75f) { Diffuse = 0x0000dd },
+                new CommonVertex( 0.125f, -0.125f,  0.25f) { Diffuse = 0x0000aa },
+                new CommonVertex( -0.125f, 0.125f,  0.25f) { Diffuse = 0x0000aa },
+                new CommonVertex( -0.125f, -0.125f,  0.25f) { Diffuse = 0x0000aa },
+                new CommonVertex( -0.125f, -0.125f,  -2.75f) { Diffuse = 0x0000dd },
+                new CommonVertex( -0.125f, 0.125f,  -2.75f) { Diffuse = 0x0000dd },
             };
-            
+
             static public int[] displayindexes =
             {
                 // Central white cube
@@ -515,18 +514,15 @@ namespace UTFEditor
 				hp.display.Dispose();
 				hp.revolute.Dispose();
 			}
-			hp.display = new VertexBuffer(dev, Hardpoint.displayvertices.Length * VertexPositionColor.Stride, Usage.WriteOnly, VertexPositionColor.Format, Pool.Default);
+			hp.display = new VertexBuffer(dev, Hardpoint.displayvertices.Length * CommonVertex.Stride, Usage.WriteOnly, CommonVertex.Format, Pool.Default);
             using (DataStream ds = hp.display.Lock(0, 0, LockFlags.None))
                 ds.WriteRange(Hardpoint.displayvertices);
             hp.display.Unlock();
-			hp.revolute = new VertexBuffer(dev, 26, Usage.WriteOnly, VertexPositionColor.Format, Pool.Default);
+			hp.revolute = new VertexBuffer(dev, 26 * CommonVertex.Stride, Usage.WriteOnly, CommonVertex.Format, Pool.Default);
 			hp.max = Single.MaxValue;
 			hp.min = Single.MinValue;
 
-			if (hp.indices != null)
-			{
-				hp.indices.Dispose();
-			}
+			hp.indices?.Dispose();
 			hp.indices = new IndexBuffer(device, Hardpoint.displayindexes.Length * sizeof(int), Usage.WriteOnly, Pool.Default, false);
             using (DataStream ds = hp.indices.Lock(0, 0, LockFlags.None))
                 ds.WriteRange(Hardpoint.displayindexes);
@@ -592,9 +588,26 @@ namespace UTFEditor
                     md.VMeshData = new VMeshData(node.Tag as byte[]);
 
                     // Convert index and vertex data into appropriate directx formats.
-                    List<VertexPositionNormalTexture> vertices = new List<VertexPositionNormalTexture>();
+                    List<CommonVertex> vertices = new List<CommonVertex>();
                     foreach (VMeshData.TVertex vert in md.VMeshData.Vertices)
-                        vertices.Add(new VertexPositionNormalTexture(vert.X, vert.Y, vert.Z, vert.NormalX, vert.NormalY, vert.NormalZ, vert.S, vert.T));
+                    {
+                        var v = new CommonVertex(vert.X, vert.Y, vert.Z);
+                        if (vert.FVF.HasFlag(FVF.NORMAL))
+                            v.Normal = new Vector3(vert.NormalX, vert.NormalY, vert.NormalZ);
+
+                        if (vert.FVF.HasFlag(FVF.DIFFUSE))
+                            v.Diffuse = vert.Diffuse;
+
+                        if ((vert.FVF & FVF.TEXCOUNT_MASK) > FVF.TEX0)
+                            v.UV = new Vector2(vert.S, vert.T);
+
+                        /*if ((vert.FVF & FVF.TEXCOUNT_MASK) > FVF.TEX1)
+                            v.Tangent = new Vector3(vert.TangentX, vert.TangentY, vert.TangentZ);
+                        if ((vert.FVF & FVF.TEXCOUNT_MASK) > FVF.TEX2)
+                            v.Binormal = new Vector3(vert.BinormalX, vert.BinormalY, vert.BinormalZ);*/
+
+                        vertices.Add(v);
+                    }
 
                     List<UInt16> indices = new List<UInt16>();
                     foreach (VMeshData.TTriangle tri in md.VMeshData.Triangles)
@@ -663,7 +676,7 @@ namespace UTFEditor
                             mg.RefData = new VMeshRef(node.Tag as byte[]);
                             mg.Transform = Matrix.Identity;
                             mg.MeshDataBuffer = FindMatchingMeshData(mg.RefData);
-                            mg.M = new SimpleMesh<VertexPositionNormalTexture>[mg.RefData.NumMeshes];
+                            mg.M = new SimpleMesh[mg.RefData.NumMeshes];
                             mg.B = new BoundingBox[mg.RefData.NumMeshes];
                             mapFileToMesh[fileName] = MeshGroups.Count;
 
@@ -676,11 +689,11 @@ namespace UTFEditor
                                 for (int a = 0; a < indicesCurrent.Length; a++)
                                     indicesCurrent[a] = mg.MeshDataBuffer.I[mesh.TriangleStart + a];
 
-                                VertexPositionNormalTexture[] verticesCurrent = new VertexPositionNormalTexture[mesh.EndVertex - mesh.StartVertex + 1];
+                                CommonVertex[] verticesCurrent = new CommonVertex[mesh.EndVertex - mesh.StartVertex + 1];
                                 for (int a = 0; a < verticesCurrent.Length; a++)
                                     verticesCurrent[a] = mg.MeshDataBuffer.V[mesh.StartVertex + mg.RefData.StartVert + a];
 
-                                var m = new SimpleMesh<VertexPositionNormalTexture>(device, verticesCurrent, indicesCurrent);
+                                SimpleMesh m = new SimpleMesh(device, verticesCurrent, indicesCurrent);
 
                                 Vector3 min, max;
                                 Utilities.ComputeBoundingBox(verticesCurrent, out min, out max);
@@ -946,20 +959,24 @@ namespace UTFEditor
 				if ("Level" + cellTag[0] == level && cellName == name)
 				{
 					MeshGroupDisplayInfo mgdi = new MeshGroupDisplayInfo();
-					mgdi.Display = (bool)((DataGridViewCheckBoxCell)viewPanelView[0, a]).Value;
+                    mgdi.Display = (bool)((DataGridViewCheckBoxCell)viewPanelView[0, a]).Value;
 					mgdi.Shading = (ShadingMode) Enum.Parse(typeof(ShadingMode), ((DataGridViewComboBoxCell)viewPanelView[2, a]).Value as string);
-					mgdi.Color = GetColor((string)((DataGridViewTextBoxCell)viewPanelView[3, a]).Value);
-					mgdi.Texture = (TextureMode)Enum.Parse(typeof(TextureMode), ((DataGridViewComboBoxCell)viewPanelView[4, a]).Value as string);
-					Int32.TryParse(level.Substring(5), out mgdi.Level);
-					return mgdi;
+					mgdi.ColorOverride = GetColor((string)((DataGridViewTextBoxCell)viewPanelView[3, a]).Value);
+					mgdi.Channel = (ChannelMode)Enum.Parse(typeof(ChannelMode), ((DataGridViewComboBoxCell)viewPanelView[4, a]).Value as string);
+                    mgdi.ChannelColor = (bool)((DataGridViewCheckBoxCell)viewPanelView[5, a]).Value;
+                    mgdi.ChannelTexture = (bool)((DataGridViewCheckBoxCell)viewPanelView[6, a]).Value;
+                    mgdi.VertexColor = (bool)((DataGridViewCheckBoxCell)viewPanelView[7, a]).Value;
+                    Int32.TryParse(level.Substring(5), out mgdi.Level);
+                    return mgdi;
 				}
 			}
 			
 			MeshGroupDisplayInfo mgdiDef = new MeshGroupDisplayInfo();
 			mgdiDef.Display = def;
 			mgdiDef.Shading = ShadingMode.Flat;
-			mgdiDef.Texture = TextureMode.TextureColor;
-			mgdiDef.Color = Color.White;
+            mgdiDef.Channel = ChannelMode.Diffuse;
+			mgdiDef.ColorOverride = Color.White;
+            mgdiDef.ChannelColor = mgdiDef.ChannelTexture = mgdiDef.VertexColor = true;
 			Int32.TryParse(level.Substring(5), out mgdiDef.Level);
 			
 			int rowNum = viewPanelView.Rows.Add();
@@ -969,16 +986,19 @@ namespace UTFEditor
 			viewPanelView[1, rowNum].Value = name;
 			viewPanelView[2, rowNum].Value = ShadingMode.Flat.ToString();
 			viewPanelView[3, rowNum].Value = "#FFFFFFFF";
-			viewPanelView[4, rowNum].Value = TextureMode.TextureColor.ToString();
-			viewPanelView[1, rowNum].Tag = new int[] { mgdiDef.Level, 0 };
+            viewPanelView[4, rowNum].Value = ChannelMode.Diffuse.ToString();
+            viewPanelView[5, rowNum].Value = true;
+            viewPanelView[6, rowNum].Value = true;
+            viewPanelView[7, rowNum].Value = true;
+            viewPanelView[1, rowNum].Tag = new int[] { mgdiDef.Level, 0 };
 			
 			return mgdiDef;
         }
         
         Color GetColor(string text)
         {
-			if(text == null) return Color.Black;
-			System.Text.RegularExpressions.Regex r = new System.Text.RegularExpressions.Regex("^#(?<A>[0-9a-fA-F]{2})?(?<R>[0-9a-fA-F]{2})(?<G>[0-9a-fA-F]{2})(?<B>[0-9a-fA-F]{2})$");
+			if(text == null) return Color.White;
+			System.Text.RegularExpressions.Regex r = new System.Text.RegularExpressions.Regex("^#(?<R>[0-9a-fA-F]{2})(?<G>[0-9a-fA-F]{2})(?<B>[0-9a-fA-F]{2})(?<A>[0-9a-fA-F]{2})?$");
 			System.Text.RegularExpressions.Match m = r.Match(text);
 			if(m.Success) return new Color(
 						Int32.Parse(m.Groups["R"].Value, System.Globalization.NumberStyles.HexNumber),
@@ -1005,8 +1025,11 @@ namespace UTFEditor
 			viewPanelView[1, row].Value = "Level" + level;
 			viewPanelView[2, row].Value = ShadingMode.Flat.ToString();
 			viewPanelView[3, row].Value = "#FFFFFFFF";
-			viewPanelView[4, row].Value = TextureMode.TextureColor.ToString();
-			viewPanelView[1, row].Tag = new int[] { level, 1 };
+			viewPanelView[4, row].Value = ChannelMode.Diffuse.ToString();
+            viewPanelView[5, row].Value = true;
+            viewPanelView[6, row].Value = true;
+            viewPanelView[7, row].Value = true;
+            viewPanelView[1, row].Tag = new int[] { level, 1 };
 
 			viewPanelView.Rows[row].DefaultCellStyle.BackColor = System.Drawing.SystemColors.ControlDarkDark;
 			viewPanelView.Rows[row].DefaultCellStyle.ForeColor = System.Drawing.SystemColors.ControlLightLight;
@@ -1215,14 +1238,6 @@ namespace UTFEditor
         }
 
         /// <summary>
-        /// Create some lights and brightness based on the world scale.
-        /// </summary>
-        private void SetupLights()
-		{
-			device.SetRenderState(RenderState.Lighting, true);
-        }
-
-        /// <summary>
         /// Render the image.
         /// </summary>
         private void Render()
@@ -1234,13 +1249,17 @@ namespace UTFEditor
 			device.SetRenderTarget(0, s);
 			device.DepthStencilSurface = depthStencil;
 			device.Clear(ClearFlags.Target | ClearFlags.ZBuffer, background, 1.0f, 0);
-            device.SetRenderState(SharpDX.Direct3D9.RenderState.ZWriteEnable, true);
-            device.SetRenderState(SharpDX.Direct3D9.RenderState.ZEnable, true);
+            device.SetRenderState(RenderState.ZWriteEnable, true);
+            device.SetRenderState(RenderState.ZEnable, true);
+            device.SetRenderState(RenderState.ColorVertex, true);
+            device.SetRenderState(RenderState.DiffuseMaterialSource, ColorSource.Color1);
+            device.SetRenderState(RenderState.EmissiveMaterialSource, ColorSource.Color1);
+            device.SetRenderState(RenderState.AmbientMaterialSource, ColorSource.Color1);
+            device.SetRenderState(RenderState.SpecularMaterialSource, ColorSource.Color1);
             s.Dispose();
             device.BeginScene();
 
             SetupMatrices();
-			SetupLights();
             
             foreach (MeshGroup mg in MeshGroups)
             {
@@ -1253,35 +1272,80 @@ namespace UTFEditor
 				{
 					VMeshData.TMeshHeader mesh = mg.MeshDataBuffer.VMeshData.Meshes[mn];
 
-					if (mg.DisplayInfo.Shading == ShadingMode.Flat)
+					Texture tex = FindTextureByMaterialID(mesh.MaterialId);
+
+                    if (mg.DisplayInfo.Shading == ShadingMode.Flat)
                     {
-                        device.SetRenderState(RenderState.CullMode, Cull.Clockwise);
+                        device.SetRenderState(RenderState.CullMode, tex != null && tex.Two ? Cull.None : Cull.Clockwise);
                         device.SetRenderState(RenderState.FillMode, FillMode.Solid);
-					}
-					else
+                    }
+                    else
                     {
                         device.SetRenderState(RenderState.CullMode, Cull.None);
                         device.SetRenderState(RenderState.FillMode, FillMode.Wireframe);
-					}
+                    }
 
                     device.SetRenderState(RenderState.AlphaBlendEnable, true);
-                    device.SetRenderState(RenderState.SourceBlend, Blend.SourceAlpha);
-                    device.SetRenderState(RenderState.DestinationBlend, Blend.InverseSourceAlpha);
                     device.SetRenderState(RenderState.BlendOperation, BlendOperation.Add);
-
-					Texture tex = FindTextureByMaterialID(mesh.MaterialId);
-
-                    Color dc_col = tex != null ? new Color(tex.Dc) : new Color(255);
-                    Color final_col = mg.DisplayInfo.Color * dc_col;
-
-                    if (mg.DisplayInfo.Texture == TextureMode.Texture || mg.DisplayInfo.Texture == TextureMode.None || tex == null)
-                        device.SetRenderState(RenderState.TextureFactor, final_col.ToRgba());
+                    if (tex != null && tex.Nebula)
+                    {
+                        device.SetRenderState(RenderState.SourceBlend, Blend.One);
+                        device.SetRenderState(RenderState.DestinationBlend, Blend.One);
+                    }
                     else
-                        device.SetRenderState(RenderState.TextureFactor, final_col.ToRgba());
+                    {
+                        device.SetRenderState(RenderState.SourceBlend, Blend.SourceAlpha);
+                        device.SetRenderState(RenderState.DestinationBlend, Blend.InverseSourceAlpha);
+                    }
 
-					if (tex != null && (mg.DisplayInfo.Texture == TextureMode.Texture || mg.DisplayInfo.Texture == TextureMode.TextureColor))
-					{
-						device.SetTexture(0, tex.texture);
+                    Color FinalColor = mg.DisplayInfo.ColorOverride;
+
+                    Color3? ChannelColor = null;
+                    if (mg.DisplayInfo.ChannelColor)
+                    {
+                        switch (mg.DisplayInfo.Channel)
+                        {
+                            case ChannelMode.Diffuse:
+                                ChannelColor = tex?.Dc;
+                                break;
+                            case ChannelMode.Emissive:
+                                ChannelColor = tex?.Ec;
+                                break;
+                            case ChannelMode.Opacity:
+                                if (tex != null && tex.Oc != null)
+                                    ChannelColor = new Color3(tex.Oc.Value, tex.Oc.Value, tex.Oc.Value);
+                                break;
+                        }
+                    }
+
+                    SharpDX.Direct3D9.Texture ChannelTexture = null;
+                    switch (mg.DisplayInfo.Channel)
+                    {
+                        case ChannelMode.Diffuse:
+                            ChannelTexture = tex?.Dt;
+                            break;
+                        case ChannelMode.Emissive:
+                            ChannelTexture = tex?.Et;
+                            break;
+                        case ChannelMode.Opacity:
+                            ChannelTexture = tex?.Ot;
+                            break;
+                    }
+
+                    if (ChannelColor != null)
+                        FinalColor *= new Color(ChannelColor.Value.ToVector3(), 1.0f);
+                    else if (ChannelTexture == null || !mg.DisplayInfo.ChannelTexture)
+                        FinalColor = new Color(0, 0, 0, 0xFF);
+
+                    device.SetRenderState(RenderState.TextureFactor, FinalColor.ToBgra());
+
+                    if (mg.DisplayInfo.ChannelTexture && ChannelTexture != null)
+                    {
+                        device.SetTexture(0, ChannelTexture);
+
+                        device.SetSamplerState(0, SamplerState.MinFilter, TextureFilter.Linear);
+                        device.SetSamplerState(0, SamplerState.MagFilter, TextureFilter.Linear);
+                        device.SetSamplerState(0, SamplerState.MipFilter, TextureFilter.Linear);
 
                         device.SetTextureStageState(0, TextureStage.ColorOperation, TextureOperation.Modulate);
                         device.SetTextureStageState(0, TextureStage.ColorArg1, TextureArgument.Texture);
@@ -1289,27 +1353,31 @@ namespace UTFEditor
                         device.SetTextureStageState(0, TextureStage.AlphaOperation, TextureOperation.Modulate);
                         device.SetTextureStageState(0, TextureStage.AlphaArg1, TextureArgument.Texture);
                         device.SetTextureStageState(0, TextureStage.AlphaArg2, TextureArgument.TFactor);
-
-                        device.SetSamplerState(0, SamplerState.MipFilter, TextureFilter.Linear);
-                        device.SetSamplerState(0, SamplerState.MinFilter, TextureFilter.Linear);
-                        device.SetSamplerState(0, SamplerState.MagFilter, TextureFilter.Linear);
-					}
-					else
-					{
-						device.SetTexture(0, null);
+                    }
+                    else
+                    {
+                        device.SetTexture(0, null);
 
                         device.SetTextureStageState(0, TextureStage.ColorOperation, TextureOperation.SelectArg2);
                         device.SetTextureStageState(0, TextureStage.ColorArg2, TextureArgument.TFactor);
                         device.SetTextureStageState(0, TextureStage.AlphaOperation, TextureOperation.SelectArg2);
                         device.SetTextureStageState(0, TextureStage.AlphaArg2, TextureArgument.TFactor);
-					}
+                    }
 
-                    /*device.SetTextureStageState(1, TextureStage.ColorOperation, TextureOperation.Modulate);
-                    device.SetTextureStageState(1, TextureStage.ColorArg1, TextureArgument.Current);
-                    device.SetTextureStageState(1, TextureStage.ColorArg2, TextureArgument.Diffuse);
-                    device.SetTextureStageState(1, TextureStage.AlphaOperation, TextureOperation.Modulate);
-                    device.SetTextureStageState(1, TextureStage.AlphaArg1, TextureArgument.Current);
-                    device.SetTextureStageState(1, TextureStage.AlphaArg2, TextureArgument.Diffuse);*/
+                    if (mg.DisplayInfo.VertexColor)
+                    {
+                        device.SetTextureStageState(1, TextureStage.ColorOperation, TextureOperation.Modulate);
+                        device.SetTextureStageState(1, TextureStage.ColorArg1, TextureArgument.Current);
+                        device.SetTextureStageState(1, TextureStage.ColorArg2, TextureArgument.Diffuse);
+                        device.SetTextureStageState(1, TextureStage.AlphaOperation, TextureOperation.Modulate);
+                        device.SetTextureStageState(1, TextureStage.AlphaArg1, TextureArgument.Current);
+                        device.SetTextureStageState(1, TextureStage.AlphaArg2, TextureArgument.Diffuse);
+                    }
+                    else
+                    {
+                        device.SetTextureStageState(1, TextureStage.ColorOperation, TextureOperation.Disable);
+                        device.SetTextureStageState(1, TextureStage.AlphaOperation, TextureOperation.Disable);
+                    }
 
                     mg.M[mn - mg.RefData.StartMesh].Draw();
 				}
@@ -1564,10 +1632,42 @@ namespace UTFEditor
         class Texture
         {
             public uint matID;
-            public string fileName;
-            public SharpDX.Direct3D9.Texture texture;
-            public int Dc;
+            public string Dt_name, Ot_name, Et_name;
+            public SharpDX.Direct3D9.Texture Dt, Ot, Et;
+            public Color3? Dc, Ec;
+            public float? Oc;
+            public bool Two;
+            public bool Nebula;
         };
+
+        Color3 GetColor3FromNode(TreeNode n)
+        {
+            byte[] c = n.Tag as Byte[];
+            int pos = 0;
+            float r = Utilities.GetFloat(c, ref pos);
+            float g = Utilities.GetFloat(c, ref pos);
+            float b = Utilities.GetFloat(c, ref pos);
+
+            return new Color3(r, g, b);
+        }
+
+        void GetTextureFromTNameNode(TreeNode n, TreeNode matRootNode, out SharpDX.Direct3D9.Texture tex, out string name)
+        {
+            name = Utilities.GetString(n);
+            if(name == null)
+            {
+                tex = null;
+                return;
+            }
+            try
+            {
+                tex = MakeTexture(matRootNode, name);
+            }
+            catch
+            {
+                tex = null;
+            }
+        }
 
         /// <summary>
         /// A dictionary of textures used by this model.
@@ -1594,44 +1694,40 @@ namespace UTFEditor
                         {
                             Texture tex = new Texture();
                             tex.matID = matID;
-                            tex.Dc = Color.White.ToArgb();
 
-                            // Not all textures have files (glass in particular).
-                            // This makes them show as black, rather than garbage.
-                            try
-                            {
-                                tex.fileName = Utilities.GetString(node.Nodes["Dt_name"]);
-                                tex.texture = MakeTexture(matRootNode, tex.fileName);
-							}
-							catch { }
-
-							bool Dc_present = false;
-							if(node.Nodes.ContainsKey("Dc")) 
-							{
-                                
-                                byte[] Dc = node.Nodes["Dc"].Tag as Byte[];
-                                int pos = 0;
-                                int r = (int)(Utilities.GetFloat(Dc, ref pos) * 255);
-                                int g = (int)(Utilities.GetFloat(Dc, ref pos) * 255);
-                                int b = (int)(Utilities.GetFloat(Dc, ref pos) * 255);
-                                tex.Dc = (0xFF << 24) + (r << 16) + (g << 8) + (b << 0);
-								Dc_present = true;
-                            }
+                            if (node.Nodes.ContainsKey("Dc"))
+                                tex.Dc = GetColor3FromNode(node.Nodes["Dc"]);
+                            if (node.Nodes.ContainsKey("Ec"))
+                                tex.Ec = GetColor3FromNode(node.Nodes["Ec"]);
                             if (node.Nodes.ContainsKey("Oc"))
                             {
-								byte[] Oc = node.Nodes["Oc"].Tag as Byte[];
-								int pos = 0;
-								int alpha = (int)(Utilities.GetFloat(Oc, ref pos) * 255);
-								tex.Dc &= 0xFFFFFF;
-								tex.Dc |= alpha << 24;
-								Dc_present = true;
-							}
+                                byte[] c = node.Nodes["Oc"].Tag as Byte[];
+                                int pos = 0;
+                                tex.Oc = Utilities.GetFloat(c, ref pos);
+                            }
 
-							if (tex.fileName == null && Dc_present)
-							{
-                                tex.texture = new SharpDX.Direct3D9.Texture(device, 1, 1, 1, Usage.None, Format.A8R8G8B8, Pool.Default);
-                                tex.texture.Fill((x, s) => Color.White);
-							}
+                            if (node.Nodes.ContainsKey("Dt_name"))
+                                GetTextureFromTNameNode(node.Nodes["Dt_name"], matRootNode, out tex.Dt, out tex.Dt_name);
+
+                            if (node.Nodes.ContainsKey("Et_name"))
+                                GetTextureFromTNameNode(node.Nodes["Et_name"], matRootNode, out tex.Et, out tex.Et_name);
+
+                            if (node.Nodes.ContainsKey("Ot_name"))
+                                GetTextureFromTNameNode(node.Nodes["Ot_name"], matRootNode, out tex.Ot, out tex.Ot_name);
+
+                            if(node.Nodes.ContainsKey("Type"))
+                            {
+                                var type = Utilities.GetString(node.Nodes["Type"]);
+                                tex.Two = type.Contains("Two");
+                                tex.Nebula = type.Contains("Nebula");
+
+                                if(type.Contains("Ot") && tex.Ot_name == null)
+                                {
+                                    tex.Ot_name = tex.Dt_name;
+                                    tex.Ot = tex.Dt;
+                                }
+                            }
+                            
                             textures[matID] = tex;
                         }
                     }
@@ -1766,14 +1862,15 @@ namespace UTFEditor
             device.SetRenderState(RenderState.AlphaBlendEnable, false);
             device.SetRenderState(RenderState.FillMode, FillMode.Solid);
             device.SetRenderState(RenderState.CullMode, Cull.None);
-            device.VertexFormat = VertexPositionColor.Format;
 
             device.SetTextureStageState(0, TextureStage.ColorOperation, TextureOperation.Modulate);
             device.SetTextureStageState(0, TextureStage.ColorArg1, TextureArgument.Diffuse);
             device.SetTextureStageState(0, TextureStage.ColorArg2, TextureArgument.TFactor);
             device.SetTextureStageState(0, TextureStage.AlphaOperation, TextureOperation.SelectArg2);
-			
-			foreach(HardpointDisplayInfo hi in otherHardpoints)
+
+            device.VertexFormat = CommonVertex.Format;
+
+            foreach (HardpointDisplayInfo hi in otherHardpoints)
             {
                 device.SetRenderState(RenderState.TextureFactor, hi.Color.ToRgba());
                 device.SetRenderState(RenderState.BlendFactor, hi.Color.ToRgba());
@@ -1801,23 +1898,23 @@ namespace UTFEditor
 									hp.max = hi.Max;
 									hp.min = hi.Min;
 									
-									VertexPositionColor[] rotVert = new VertexPositionColor[26];
-									rotVert[0] = new VertexPositionColor(0, 0, 0, 0xffff00);
+									CommonVertex[] rotVert = new CommonVertex[26];
+									rotVert[0] = new CommonVertex(0, 0, 0) { Diffuse = 0xffff00 };
 									pos = 1;
 									float delta = (hp.max - hp.min) / 24;
 									for (float angle = hp.max; pos < 26; angle -= delta)
-										rotVert[pos++] = new VertexPositionColor(2 * (float)Math.Cos(angle), 0, 2 * (float)Math.Sin(angle), 0xffff00);
+										rotVert[pos++] = new CommonVertex(2 * (float)Math.Cos(angle), 0, 2 * (float)Math.Sin(angle)) { Diffuse = 0xffff00 };
                                     using (var stream = hp.revolute.Lock(0, 0, LockFlags.None))
                                         stream.WriteRange(rotVert);
                                     hp.revolute.Unlock();
                                 }
-								device.SetStreamSource(0, hp.revolute, 0, VertexPositionColor.Stride);
+								device.SetStreamSource(0, hp.revolute, 0, CommonVertex.Stride);
 								device.DrawPrimitives(PrimitiveType.TriangleFan, 0, 24);
 							}
 							catch { }
 						}
 					}
-					device.SetStreamSource(0, hp.display, 0, VertexPositionColor.Stride);
+					device.SetStreamSource(0, hp.display, 0, CommonVertex.Stride);
 					device.Indices = hp.indices;
 					if (isSelectedNode)
 						device.DrawIndexedPrimitive(PrimitiveType.TriangleList, 0, 0, Hardpoint.displayvertices.Length, 0, Hardpoint.displayindexes.Length / 3);
@@ -1862,14 +1959,14 @@ namespace UTFEditor
                             nameFinal = mg.Name;
                             rayFinal = r;
 
-                            VertexPositionNormalTexture[] tempIntersectedVertices = new VertexPositionNormalTexture[3];
+                            CommonVertex[] tempIntersectedVertices = new CommonVertex[3];
                             
                             tempIntersectedVertices[0] = m.Vertices[m.Indices[hit.FaceIndex * 3]];
                             tempIntersectedVertices[1] = m.Vertices[m.Indices[hit.FaceIndex * 3 + 1]];
                             tempIntersectedVertices[2] = m.Vertices[m.Indices[hit.FaceIndex * 3 + 2]];
 
-                            Vector3 v1 = tempIntersectedVertices[1].position - tempIntersectedVertices[0].position;
-                            Vector3 v2 = tempIntersectedVertices[2].position - tempIntersectedVertices[0].position;
+                            Vector3 v1 = tempIntersectedVertices[1].Position - tempIntersectedVertices[0].Position;
+                            Vector3 v2 = tempIntersectedVertices[2].Position - tempIntersectedVertices[0].Position;
                             v1.Normalize();
                             v2.Normalize();
                             faceNormal = Vector3.Cross(v1, v2);
@@ -2706,12 +2803,21 @@ namespace UTFEditor
 					mg.DisplayInfo.Shading = (ShadingMode)Enum.Parse(typeof(ShadingMode), c.Value as string);
 					break;
 				case 3:
-					mg.DisplayInfo.Color = GetColor((string)c.Value);
+					mg.DisplayInfo.ColorOverride = GetColor((string)c.Value);
 					break;
 				case 4:
-					mg.DisplayInfo.Texture = (TextureMode)Enum.Parse(typeof(TextureMode), c.Value as string);
+					mg.DisplayInfo.Channel = (ChannelMode)Enum.Parse(typeof(ChannelMode), c.Value as string);
 					break;
-			}
+                case 5:
+                    mg.DisplayInfo.ChannelColor = (bool)c.Value;
+                    break;
+                case 6:
+                    mg.DisplayInfo.ChannelTexture = (bool)c.Value;
+                    break;
+                case 7:
+                    mg.DisplayInfo.VertexColor = (bool)c.Value;
+                    break;
+            }
 
 			if (!viewPanelView.UseWaitCursor) Invalidate();
 		}
@@ -2783,7 +2889,7 @@ namespace UTFEditor
 		{
 			if(viewPanelView.SelectedCells[0].ColumnIndex == 3)
 			{
-				colorDiag.Color = System.Drawing.Color.FromArgb(GetColor(viewPanelView.SelectedCells[0].Value as string).ToArgb());
+				colorDiag.Color = System.Drawing.Color.FromArgb((int)GetColor(viewPanelView.SelectedCells[0].Value as string).ToArgb());
 				if(colorDiag.ShowDialog() == DialogResult.OK)
 				{
 					viewPanelView.SelectedCells[0].Value = String.Format("#{0:X2}{1:X2}{2:X2}{3:X2}", colorDiag.Color.A, colorDiag.Color.R, colorDiag.Color.G, colorDiag.Color.B);
@@ -2929,7 +3035,7 @@ namespace UTFEditor
 		{
 			if (hardpointPanelView.SelectedCells[0].ColumnIndex == 3)
 			{
-				colorDiag.Color = System.Drawing.Color.FromArgb(GetColor(hardpointPanelView.SelectedCells[0].Value as string).ToArgb());
+				colorDiag.Color = System.Drawing.Color.FromArgb((int)GetColor(hardpointPanelView.SelectedCells[0].Value as string).ToArgb());
 				if (colorDiag.ShowDialog() == DialogResult.OK)
 				{
 					hardpointPanelView.SelectedCells[0].Value = String.Format("#{0:X2}{1:X2}{2:X2}{3:X2}", colorDiag.Color.A, colorDiag.Color.R, colorDiag.Color.G, colorDiag.Color.B);
